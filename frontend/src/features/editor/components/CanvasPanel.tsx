@@ -1,0 +1,302 @@
+import { useRef, useEffect, useState, useCallback } from 'react'
+import { useEditorStore } from '../stores/useEditorStore'
+import { useFabricCanvas } from '../hooks/useFabricCanvas'
+import { loadFonts } from '@/engine/utils/fontLoader'
+import { convertDomToCanvas } from '@/engine/index'
+import { compileJsx, renderToHiddenDom } from '@/features/generation/services/jsxCompiler'
+import React from 'react'
+import * as ReactDOMClient from 'react-dom/client'
+import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react'
+
+interface CanvasPanelProps {
+  onLayersChange?: () => void
+}
+
+export function CanvasPanel({ onLayersChange }: CanvasPanelProps) {
+  const canvasElRef = useRef<HTMLCanvasElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const innerRef = useRef<HTMLDivElement>(null)
+
+  const { getCanvas } = useFabricCanvas(canvasElRef)
+
+  const generatedCode = useEditorStore((s) => s.generatedCode)
+  const posterSize = useEditorStore((s) => s.posterSize)
+  const setError = useEditorStore((s) => s.setError)
+
+  const [fontsReady, setFontsReady] = useState(false)
+  const [rendering, setRendering] = useState(false)
+  const [zoomDisplay, setZoomDisplay] = useState(100)
+
+  // 跟踪待渲染代码：当渲染进行中时新代码到来，暂存到 ref，
+  // 渲染结束后检查并触发二次渲染（解决 code_complete → complete 丢失问题）
+  const pendingCodeRef = useRef<string | null>(null)
+
+  // Zoom/pan state kept in refs for smooth, non-rerender updates
+  const zoomRef = useRef(1)
+  const panRef = useRef({ x: 0, y: 0 })
+  const isPanningRef = useRef(false)
+  const lastPosRef = useRef({ x: 0, y: 0 })
+
+  const applyTransform = useCallback(() => {
+    if (!innerRef.current) return
+    const { x, y } = panRef.current
+    const z = zoomRef.current
+    innerRef.current.style.transform =
+      `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${z})`
+    setZoomDisplay(Math.round(z * 100))
+  }, [])
+
+  const fitToScreen = useCallback(() => {
+    const container = containerRef.current
+    if (!container) return
+    const { width: cw, height: ch } = container.getBoundingClientRect()
+    const pad = 64
+    const scaleX = (cw - pad * 2) / posterSize.width
+    const scaleY = (ch - pad * 2) / posterSize.height
+    const scale = Math.min(scaleX, scaleY)
+    zoomRef.current = Math.max(0.05, Math.min(4, scale))
+    panRef.current = { x: 0, y: 0 }
+    applyTransform()
+  }, [posterSize, applyTransform])
+
+  // Initial fit after layout settles
+  useEffect(() => {
+    const timer = setTimeout(fitToScreen, 120)
+    return () => clearTimeout(timer)
+  }, [fitToScreen])
+
+  const zoomIn = useCallback(() => {
+    zoomRef.current = Math.min(zoomRef.current * 1.25, 8)
+    applyTransform()
+  }, [applyTransform])
+
+  const zoomOut = useCallback(() => {
+    zoomRef.current = Math.max(zoomRef.current / 1.25, 0.05)
+    applyTransform()
+  }, [applyTransform])
+
+  const zoomReset = useCallback(() => {
+    zoomRef.current = 1
+    panRef.current = { x: 0, y: 0 }
+    applyTransform()
+  }, [applyTransform])
+
+  // Ctrl+wheel zoom: 0.999^deltaY maps each wheel tick (~120 units) to ~±12% scale change.
+  // Negative deltaY (scroll up) → factor > 1 → zoom in; positive → zoom out.
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault()
+      zoomRef.current = Math.max(0.05, Math.min(8, zoomRef.current * (0.999 ** e.deltaY)))
+      applyTransform()
+    }
+  }, [applyTransform])
+
+  // Middle mouse button pan
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button === 1) {
+      e.preventDefault()
+      isPanningRef.current = true
+      lastPosRef.current = { x: e.clientX, y: e.clientY }
+    }
+  }, [])
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isPanningRef.current) return
+    const dx = e.clientX - lastPosRef.current.x
+    const dy = e.clientY - lastPosRef.current.y
+    panRef.current = { x: panRef.current.x + dx, y: panRef.current.y + dy }
+    lastPosRef.current = { x: e.clientX, y: e.clientY }
+    applyTransform()
+  }, [applyTransform])
+
+  const stopPan = useCallback(() => { isPanningRef.current = false }, [])
+
+  // Keyboard shortcuts: Ctrl+0 fit, Ctrl+= zoom in, Ctrl+- zoom out
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return
+      if (e.key === '0') { e.preventDefault(); fitToScreen() }
+      if (e.key === '=' || e.key === '+') { e.preventDefault(); zoomIn() }
+      if (e.key === '-') { e.preventDefault(); zoomOut() }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [fitToScreen, zoomIn, zoomOut])
+
+  useEffect(() => {
+    loadFonts().then(() => setFontsReady(true))
+  }, [])
+
+  // Render pipeline: JSX string → Babel compile → hidden DOM render → 200ms flush
+  // → Fabric.js canvas snapshot.
+  //
+  // 当渲染进行中有新代码到来（如 code_complete → complete），暂存到 pendingCodeRef，
+  // 当前渲染结束后自动触发二次渲染。
+  useEffect(() => {
+    if (!generatedCode || !fontsReady) return
+    if (rendering) {
+      // 渲染中收到新代码，暂存等当前渲染结束后再渲染
+      pendingCodeRef.current = generatedCode
+      return
+    }
+    runRender(generatedCode)
+  }, [generatedCode, fontsReady]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const runRender = useCallback(async (codeToRender: string) => {
+    setRendering(true)
+    pendingCodeRef.current = null
+
+    // 将 hidden div 挂到 document.body 而非组件内部的 overflow:hidden 容器，
+    // 避免父容器的 CSS 属性干扰布局计算（getBoundingClientRect）
+    const hiddenDiv = document.createElement('div')
+    hiddenDiv.style.cssText =
+      `position:absolute;visibility:hidden;pointer-events:none;left:-9999px;` +
+      `width:${posterSize.width}px;height:${posterSize.height}px;`
+    document.body.appendChild(hiddenDiv)
+
+    try {
+      const compiledJs = await compileJsx(codeToRender)
+
+      renderToHiddenDom(compiledJs, hiddenDiv, React, ReactDOMClient)
+
+      // 等待所有图片加载完成，然后等待浏览器完成布局重排。
+      // flushSync 已确保 React 同步渲染完成，此时 DOM 一定存在。
+      const imgs = Array.from(hiddenDiv.querySelectorAll<HTMLImageElement>('img'))
+      console.log('[CanvasPanel] 检测到图片数:', imgs.length)
+      if (imgs.length > 0) {
+        await Promise.all(
+          imgs.map((img) =>
+            img.complete
+              ? Promise.resolve()
+              : new Promise<void>((resolve) => {
+                  img.onload = () => resolve()
+                  img.onerror = () => resolve()
+                }),
+          ),
+        )
+        // 图片加载后等待浏览器完成布局重排（图片尺寸变化会触发 reflow）
+        await new Promise((r) => setTimeout(r, 200))
+      } else {
+        // 无图片时也等待布局稳定（Tailwind 类名解析、flex/grid 计算）
+        await new Promise((r) => setTimeout(r, 200))
+      }
+
+      const canvas = getCanvas()
+      if (!canvas) return
+      await convertDomToCanvas(
+        hiddenDiv,
+        { width: posterSize.width, height: posterSize.height, backgroundColor: '#ffffff' },
+        canvas,
+      )
+      onLayersChange?.()
+    } catch (err) {
+      console.error('[CanvasPanel] Render pipeline failed:', {
+        error: (err as Error).message,
+        stack: (err as Error).stack,
+        codeLength: codeToRender.length,
+        posterSize,
+      })
+      setError('生成结果有问题，要重新生成吗？')
+    } finally {
+      document.body.removeChild(hiddenDiv)
+      setRendering(false)
+      const pending = pendingCodeRef.current
+      if (pending) {
+        pendingCodeRef.current = null
+        runRender(pending)
+      }
+    }
+  }, [posterSize, getCanvas, onLayersChange, setError]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <div className="flex flex-col h-full">
+      <div
+        ref={containerRef}
+        className="flex-1 relative overflow-hidden select-none"
+        style={{
+          background: `radial-gradient(circle, #c8c8c8 1.5px, #f0f0f0 1.5px)`,
+          backgroundSize: '24px 24px',
+          cursor: isPanningRef.current ? 'grabbing' : 'default',
+        }}
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={stopPan}
+        onMouseLeave={stopPan}
+      >
+        {/* Canvas transform wrapper */}
+        <div
+          ref={innerRef}
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transformOrigin: 'center center',
+            willChange: 'transform',
+          }}
+        >
+          <canvas
+            ref={canvasElRef}
+            width={posterSize.width}
+            height={posterSize.height}
+            style={{ display: 'block', boxShadow: '0 8px 40px rgba(0,0,0,0.22)' }}
+          />
+        </div>
+
+        {/* Loading overlay */}
+        {(rendering || !fontsReady) && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-[2px] z-20">
+            <div className="flex items-center gap-2.5 bg-white border border-gray-200 rounded-xl px-5 py-3 shadow-lg">
+              <div className="w-4 h-4 border-2 border-gray-800 border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm font-medium text-gray-700">
+                {!fontsReady ? '加载字体中...' : '正在渲染海报...'}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Zoom controls — bottom right */}
+        <div className="absolute bottom-4 right-4 flex items-center bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden z-10">
+          <button
+            onClick={zoomOut}
+            className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors border-r border-gray-200"
+            title="缩小 (Ctrl+-)"
+          >
+            <ZoomOut size={14} className="text-gray-600" />
+          </button>
+          <button
+            onClick={zoomReset}
+            className="px-2.5 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors text-xs font-medium text-gray-700 min-w-[52px] border-r border-gray-200"
+            title="重置缩放 (100%)"
+          >
+            {zoomDisplay}%
+          </button>
+          <button
+            onClick={zoomIn}
+            className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors border-r border-gray-200"
+            title="放大 (Ctrl+=)"
+          >
+            <ZoomIn size={14} className="text-gray-600" />
+          </button>
+          <button
+            onClick={fitToScreen}
+            className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors"
+            title="适配窗口 (Ctrl+0)"
+          >
+            <Maximize2 size={13} className="text-gray-600" />
+          </button>
+        </div>
+
+        {/* Canvas size — bottom left */}
+        <div className="absolute bottom-4 left-4 text-[11px] text-gray-400 bg-white/80 px-2 py-1 rounded-md z-10">
+          {posterSize.width} × {posterSize.height}
+        </div>
+
+        {/* Usage hint — middle mouse pan */}
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 text-[11px] text-gray-400 pointer-events-none select-none z-10 opacity-60">
+          滚轮缩放 (Ctrl)  ·  中键拖拽平移
+        </div>
+      </div>
+    </div>
+  )
+}

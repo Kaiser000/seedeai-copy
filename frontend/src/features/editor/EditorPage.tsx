@@ -1,0 +1,163 @@
+import { useEffect, useState, useCallback } from 'react'
+import {
+  ArrowLeft, Download, Layers, Settings2, MessageSquare, Code2,
+} from 'lucide-react'
+import { useEditorStore } from './stores/useEditorStore'
+import { useGenerate } from '@/features/generation/hooks/useGenerate'
+import { useExport } from './hooks/useExport'
+import { getGlobalCanvas } from './canvasRegistry'
+import { CanvasPanel } from './components/CanvasPanel'
+import { Toolbar } from './components/Toolbar'
+import { LayersPanel } from './components/LayersPanel'
+import { PropertiesPanel } from './components/PropertiesPanel'
+import { ChatDialog } from './components/ChatDialog'
+import { StreamPanel } from './components/StreamPanel'
+
+type LeftTab = 'layers' | 'code'
+type RightTab = 'props' | 'chat'
+
+export function EditorPage() {
+  const { generate } = useGenerate()
+  const isGenerating = useEditorStore((s) => s.isGenerating)
+  const error = useEditorStore((s) => s.error)
+  const prompt = useEditorStore((s) => s.prompt)
+  const posterSize = useEditorStore((s) => s.posterSize)
+  const startGeneration = useEditorStore((s) => s.startGeneration)
+  const setCurrentPage = useEditorStore((s) => s.setCurrentPage)
+
+  const [leftTab, setLeftTab] = useState<LeftTab>('layers')
+  const [rightTab, setRightTab] = useState<RightTab>('chat')
+  const [layersRefresh, setLayersRefresh] = useState(0)
+
+  const getCanvas = useCallback(() => getGlobalCanvas(), [])
+  const { exportPng, isExporting } = useExport(getCanvas)
+
+  // Auto-trigger generation on mount
+  useEffect(() => {
+    if (isGenerating) generate()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleRetry = () => {
+    startGeneration(prompt, posterSize)
+    generate()
+  }
+
+  const handleLayersChange = useCallback(() => {
+    setLayersRefresh((n) => n + 1)
+  }, [])
+
+  return (
+    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden font-sans">
+
+      {/* ── Header ───────────────────────────────────────────────────────── */}
+      <header className="flex items-center h-12 px-4 bg-white border-b border-gray-200 flex-shrink-0 gap-3">
+        <button
+          onClick={() => setCurrentPage('input')}
+          className="flex items-center gap-1.5 h-8 px-2.5 rounded-md text-xs text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors flex-shrink-0"
+        >
+          <ArrowLeft size={14} />
+          返回
+        </button>
+
+        <div className="w-px h-5 bg-gray-200 flex-shrink-0" />
+
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <span className="text-sm font-bold text-gray-900">Seede AI</span>
+          <span className="text-[11px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded font-medium">编辑器</span>
+        </div>
+
+        {/* Prompt preview */}
+        <div className="flex-1 min-w-0">
+          <p className="text-xs text-gray-400 truncate" title={prompt}>{prompt}</p>
+        </div>
+
+        {/* Status */}
+        {isGenerating && (
+          <div className="flex items-center gap-1.5 text-xs text-violet-600 bg-violet-50 px-2.5 py-1 rounded-full flex-shrink-0">
+            <span className="w-2 h-2 bg-violet-500 rounded-full animate-pulse flex-shrink-0" />
+            AI 生成中
+          </div>
+        )}
+
+        {error && (
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-xs text-red-500 max-w-[160px] truncate">{error}</span>
+            <button
+              onClick={handleRetry}
+              className="text-xs text-white bg-red-500 hover:bg-red-600 px-2.5 py-1 rounded-md transition-colors"
+            >
+              重试
+            </button>
+          </div>
+        )}
+
+        <button
+          onClick={exportPng}
+          disabled={isExporting}
+          className="flex items-center gap-1.5 h-8 px-3 rounded-md text-xs font-semibold bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-50 transition-colors flex-shrink-0"
+        >
+          <Download size={13} />
+          {isExporting ? '导出中...' : '导出 PNG'}
+        </button>
+      </header>
+
+      {/* ── 3-panel body ─────────────────────────────────────────────────── */}
+      <div className="flex flex-1 overflow-hidden">
+
+        {/* ── Left panel: Layers / Code ────────────────────────────────── */}
+        <aside className="w-52 flex-shrink-0 flex flex-col bg-white border-r border-gray-200 overflow-hidden">
+          {/* Tab bar */}
+          <div className="flex border-b border-gray-200 flex-shrink-0">
+            <TabBtn active={leftTab === 'layers'} onClick={() => setLeftTab('layers')} icon={<Layers size={11} />} label="图层" />
+            <TabBtn active={leftTab === 'code'} onClick={() => setLeftTab('code')} icon={<Code2 size={11} />} label="代码" />
+          </div>
+          <div className="flex-1 overflow-hidden flex flex-col">
+            {leftTab === 'layers' && <LayersPanel refreshToken={layersRefresh} />}
+            {leftTab === 'code' && <StreamPanel />}
+          </div>
+        </aside>
+
+        {/* ── Center: Toolbar + Canvas ─────────────────────────────────── */}
+        <main className="flex-1 flex flex-col overflow-hidden min-w-0">
+          <Toolbar />
+          <CanvasPanel onLayersChange={handleLayersChange} />
+        </main>
+
+        {/* ── Right panel: Properties / Chat ───────────────────────────── */}
+        <aside className="w-64 flex-shrink-0 flex flex-col bg-white border-l border-gray-200 overflow-hidden">
+          {/* Tab bar */}
+          <div className="flex border-b border-gray-200 flex-shrink-0">
+            <TabBtn active={rightTab === 'props'} onClick={() => setRightTab('props')} icon={<Settings2 size={11} />} label="属性" />
+            <TabBtn active={rightTab === 'chat'} onClick={() => setRightTab('chat')} icon={<MessageSquare size={11} />} label="AI 对话" />
+          </div>
+          <div className="flex-1 overflow-hidden flex flex-col">
+            {rightTab === 'props' && <PropertiesPanel refreshToken={layersRefresh} />}
+            {rightTab === 'chat' && <ChatDialog />}
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  )
+}
+
+function TabBtn({
+  active, onClick, icon, label,
+}: {
+  active: boolean; onClick: () => void; icon: React.ReactNode; label: string
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        flex-1 flex items-center justify-center gap-1.5 h-9 text-xs font-medium
+        border-b-2 transition-colors
+        ${active
+          ? 'border-gray-900 text-gray-900 bg-gray-50'
+          : 'border-transparent text-gray-400 hover:text-gray-600 hover:bg-gray-50'}
+      `}
+    >
+      {icon}{label}
+    </button>
+  )
+}

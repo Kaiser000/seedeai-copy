@@ -1,0 +1,823 @@
+diff --git a/seede-ai/backend/pom.xml b/seede-ai/backend/pom.xml
+new file mode 100644
+index 0000000..b7cbb8b
+--- /dev/null
++++ b/seede-ai/backend/pom.xml
+@@ -0,0 +1,46 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
++         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
++    <modelVersion>4.0.0</modelVersion>
++    <parent>
++        <groupId>org.springframework.boot</groupId>
++        <artifactId>spring-boot-starter-parent</artifactId>
++        <version>3.5.12</version>
++        <relativePath/>
++    </parent>
++    <groupId>com.seede</groupId>
++    <artifactId>seede-ai</artifactId>
++    <version>0.0.1-SNAPSHOT</version>
++    <name>seede-ai</name>
++    <description>Seede AI - 海报生成平台</description>
++
++    <properties>
++        <java.version>21</java.version>
++    </properties>
++
++    <dependencies>
++        <dependency>
++            <groupId>org.springframework.boot</groupId>
++            <artifactId>spring-boot-starter-web</artifactId>
++        </dependency>
++        <dependency>
++            <groupId>org.springframework.boot</groupId>
++            <artifactId>spring-boot-starter-webflux</artifactId>
++        </dependency>
++
++        <dependency>
++            <groupId>org.springframework.boot</groupId>
++            <artifactId>spring-boot-starter-test</artifactId>
++            <scope>test</scope>
++        </dependency>
++    </dependencies>
++
++    <build>
++        <plugins>
++            <plugin>
++                <groupId>org.springframework.boot</groupId>
++                <artifactId>spring-boot-maven-plugin</artifactId>
++            </plugin>
++        </plugins>
++    </build>
++</project>
+warning: LF will be replaced by CRLF in seede-ai/backend/pom.xml.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/java/com/seede/SeedeApplication.java b/seede-ai/backend/src/main/java/com/seede/SeedeApplication.java
+new file mode 100644
+index 0000000..56c0bc1
+--- /dev/null
++++ b/seede-ai/backend/src/main/java/com/seede/SeedeApplication.java
+@@ -0,0 +1,12 @@
++package com.seede;
++
++import org.springframework.boot.SpringApplication;
++import org.springframework.boot.autoconfigure.SpringBootApplication;
++
++@SpringBootApplication
++public class SeedeApplication {
++
++    public static void main(String[] args) {
++        SpringApplication.run(SeedeApplication.class, args);
++    }
++}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/java/com/seede/SeedeApplication.java.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/java/com/seede/config/LlmConfig.java b/seede-ai/backend/src/main/java/com/seede/config/LlmConfig.java
+new file mode 100644
+index 0000000..2d3222a
+--- /dev/null
++++ b/seede-ai/backend/src/main/java/com/seede/config/LlmConfig.java
+@@ -0,0 +1,20 @@
++package com.seede.config;
++
++import org.springframework.boot.context.properties.ConfigurationProperties;
++import org.springframework.context.annotation.Configuration;
++
++@Configuration
++@ConfigurationProperties(prefix = "llm")
++public class LlmConfig {
++
++    private String apiUrl = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
++    private String apiKey = "";
++    private String modelName = "glm-4-flash";
++
++    public String getApiUrl() { return apiUrl; }
++    public void setApiUrl(String apiUrl) { this.apiUrl = apiUrl; }
++    public String getApiKey() { return apiKey; }
++    public void setApiKey(String apiKey) { this.apiKey = apiKey; }
++    public String getModelName() { return modelName; }
++    public void setModelName(String modelName) { this.modelName = modelName; }
++}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/java/com/seede/config/LlmConfig.java.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/java/com/seede/config/WebConfig.java b/seede-ai/backend/src/main/java/com/seede/config/WebConfig.java
+new file mode 100644
+index 0000000..22b46b4
+--- /dev/null
++++ b/seede-ai/backend/src/main/java/com/seede/config/WebConfig.java
+@@ -0,0 +1,17 @@
++package com.seede.config;
++
++import org.springframework.context.annotation.Configuration;
++import org.springframework.web.servlet.config.annotation.CorsRegistry;
++import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
++
++@Configuration
++public class WebConfig implements WebMvcConfigurer {
++
++    @Override
++    public void addCorsMappings(CorsRegistry registry) {
++        registry.addMapping("/api/**")
++                .allowedOrigins("http://localhost:5173")
++                .allowedMethods("GET", "POST", "PUT", "DELETE")
++                .allowedHeaders("*");
++    }
++}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/java/com/seede/config/WebConfig.java.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/java/com/seede/controller/ChatController.java b/seede-ai/backend/src/main/java/com/seede/controller/ChatController.java
+new file mode 100644
+index 0000000..abc78dc
+--- /dev/null
++++ b/seede-ai/backend/src/main/java/com/seede/controller/ChatController.java
+@@ -0,0 +1,28 @@
++package com.seede.controller;
++
++import com.seede.model.SseMessage;
++import com.seede.model.dto.ChatRequest;
++import com.seede.service.ChatOptimizeService;
++import org.springframework.http.MediaType;
++import org.springframework.http.codec.ServerSentEvent;
++import org.springframework.web.bind.annotation.PostMapping;
++import org.springframework.web.bind.annotation.RequestBody;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RestController;
++import reactor.core.publisher.Flux;
++
++@RestController
++@RequestMapping("/api/posters")
++public class ChatController {
++
++    private final ChatOptimizeService chatOptimizeService;
++
++    public ChatController(ChatOptimizeService chatOptimizeService) {
++        this.chatOptimizeService = chatOptimizeService;
++    }
++
++    @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
++    public Flux<ServerSentEvent<SseMessage>> chat(@RequestBody ChatRequest request) {
++        return chatOptimizeService.chat(request);
++    }
++}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/java/com/seede/controller/ChatController.java.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/java/com/seede/controller/HealthController.java b/seede-ai/backend/src/main/java/com/seede/controller/HealthController.java
+new file mode 100644
+index 0000000..646088d
+--- /dev/null
++++ b/seede-ai/backend/src/main/java/com/seede/controller/HealthController.java
+@@ -0,0 +1,15 @@
++package com.seede.controller;
++
++import org.springframework.web.bind.annotation.GetMapping;
++import org.springframework.web.bind.annotation.RestController;
++
++import java.util.Map;
++
++@RestController
++public class HealthController {
++
++    @GetMapping("/api/health")
++    public Map<String, String> health() {
++        return Map.of("status", "UP");
++    }
++}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/java/com/seede/controller/HealthController.java.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/java/com/seede/controller/PosterController.java b/seede-ai/backend/src/main/java/com/seede/controller/PosterController.java
+new file mode 100644
+index 0000000..d637f26
+--- /dev/null
++++ b/seede-ai/backend/src/main/java/com/seede/controller/PosterController.java
+@@ -0,0 +1,28 @@
++package com.seede.controller;
++
++import com.seede.model.SseMessage;
++import com.seede.model.dto.GenerateRequest;
++import com.seede.service.PosterGenerateService;
++import org.springframework.http.MediaType;
++import org.springframework.http.codec.ServerSentEvent;
++import org.springframework.web.bind.annotation.PostMapping;
++import org.springframework.web.bind.annotation.RequestBody;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RestController;
++import reactor.core.publisher.Flux;
++
++@RestController
++@RequestMapping("/api/posters")
++public class PosterController {
++
++    private final PosterGenerateService generateService;
++
++    public PosterController(PosterGenerateService generateService) {
++        this.generateService = generateService;
++    }
++
++    @PostMapping(value = "/generate", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
++    public Flux<ServerSentEvent<SseMessage>> generate(@RequestBody GenerateRequest request) {
++        return generateService.generate(request);
++    }
++}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/java/com/seede/controller/PosterController.java.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/java/com/seede/controller/RollController.java b/seede-ai/backend/src/main/java/com/seede/controller/RollController.java
+new file mode 100644
+index 0000000..c5fe7bb
+--- /dev/null
++++ b/seede-ai/backend/src/main/java/com/seede/controller/RollController.java
+@@ -0,0 +1,28 @@
++package com.seede.controller;
++
++import com.seede.model.SseMessage;
++import com.seede.model.dto.RollRequest;
++import com.seede.service.RollService;
++import org.springframework.http.MediaType;
++import org.springframework.http.codec.ServerSentEvent;
++import org.springframework.web.bind.annotation.PostMapping;
++import org.springframework.web.bind.annotation.RequestBody;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RestController;
++import reactor.core.publisher.Flux;
++
++@RestController
++@RequestMapping("/api/posters")
++public class RollController {
++
++    private final RollService rollService;
++
++    public RollController(RollService rollService) {
++        this.rollService = rollService;
++    }
++
++    @PostMapping(value = "/roll", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
++    public Flux<ServerSentEvent<SseMessage>> roll(@RequestBody RollRequest request) {
++        return rollService.roll(request);
++    }
++}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/java/com/seede/controller/RollController.java.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/java/com/seede/llm/LlmClient.java b/seede-ai/backend/src/main/java/com/seede/llm/LlmClient.java
+new file mode 100644
+index 0000000..ff9b98b
+--- /dev/null
++++ b/seede-ai/backend/src/main/java/com/seede/llm/LlmClient.java
+@@ -0,0 +1,64 @@
++package com.seede.llm;
++
++import com.seede.config.LlmConfig;
++import org.springframework.stereotype.Component;
++import org.springframework.web.reactive.function.client.WebClient;
++import reactor.core.publisher.Flux;
++
++import java.time.Duration;
++import java.util.List;
++import java.util.Map;
++
++@Component
++public class LlmClient {
++
++    private final WebClient webClient;
++    private final LlmConfig config;
++
++    public LlmClient(LlmConfig config) {
++        this.config = config;
++        this.webClient = WebClient.builder()
++                .baseUrl(config.getApiUrl())
++                .defaultHeader("Content-Type", "application/json")
++                .build();
++    }
++
++    public Flux<String> streamChat(String systemPrompt, String userMessage) {
++        Map<String, Object> body = Map.of(
++                "model", config.getModelName(),
++                "stream", true,
++                "messages", List.of(
++                        Map.of("role", "system", "content", systemPrompt),
++                        Map.of("role", "user", "content", userMessage)
++                )
++        );
++
++        return webClient.post()
++                .uri("")
++                .header("Authorization", "Bearer " + config.getApiKey())
++                .bodyValue(body)
++                .retrieve()
++                .bodyToFlux(String.class)
++                .timeout(Duration.ofSeconds(120));
++    }
++
++    public Flux<String> streamChatWithHistory(String systemPrompt, List<Map<String, String>> messages) {
++        var allMessages = new java.util.ArrayList<Map<String, String>>();
++        allMessages.add(Map.of("role", "system", "content", systemPrompt));
++        allMessages.addAll(messages);
++
++        Map<String, Object> body = Map.of(
++                "model", config.getModelName(),
++                "stream", true,
++                "messages", allMessages
++        );
++
++        return webClient.post()
++                .uri("")
++                .header("Authorization", "Bearer " + config.getApiKey())
++                .bodyValue(body)
++                .retrieve()
++                .bodyToFlux(String.class)
++                .timeout(Duration.ofSeconds(120));
++    }
++}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/java/com/seede/llm/LlmClient.java.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/java/com/seede/llm/LlmResponseParser.java b/seede-ai/backend/src/main/java/com/seede/llm/LlmResponseParser.java
+new file mode 100644
+index 0000000..19ab9b6
+--- /dev/null
++++ b/seede-ai/backend/src/main/java/com/seede/llm/LlmResponseParser.java
+@@ -0,0 +1,44 @@
++package com.seede.llm;
++
++import com.fasterxml.jackson.databind.JsonNode;
++import com.fasterxml.jackson.databind.ObjectMapper;
++import com.seede.model.SseMessage;
++import org.springframework.stereotype.Component;
++import reactor.core.publisher.Flux;
++
++@Component
++public class LlmResponseParser {
++
++    private final ObjectMapper objectMapper = new ObjectMapper();
++
++    public Flux<SseMessage> parseStream(Flux<String> rawStream) {
++        StringBuilder codeBuffer = new StringBuilder();
++
++        return rawStream
++                .filter(line -> !line.isBlank() && !line.equals("[DONE]"))
++                .map(line -> {
++                    String data = line.startsWith("data: ") ? line.substring(6) : line;
++                    if (data.equals("[DONE]")) return null;
++                    try {
++                        JsonNode root = objectMapper.readTree(data);
++                        JsonNode choices = root.path("choices");
++                        if (choices.isArray() && !choices.isEmpty()) {
++                            JsonNode delta = choices.get(0).path("delta");
++                            String content = delta.path("content").asText("");
++                            if (!content.isEmpty()) {
++                                codeBuffer.append(content);
++                                return SseMessage.codeChunk(content);
++                            }
++                            String finishReason = choices.get(0).path("finish_reason").asText("");
++                            if ("stop".equals(finishReason)) {
++                                return SseMessage.complete(codeBuffer.toString());
++                            }
++                        }
++                        return null;
++                    } catch (Exception e) {
++                        return null;
++                    }
++                })
++                .filter(msg -> msg != null);
++    }
++}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/java/com/seede/llm/LlmResponseParser.java.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/java/com/seede/llm/SystemPromptManager.java b/seede-ai/backend/src/main/java/com/seede/llm/SystemPromptManager.java
+new file mode 100644
+index 0000000..a9107ac
+--- /dev/null
++++ b/seede-ai/backend/src/main/java/com/seede/llm/SystemPromptManager.java
+@@ -0,0 +1,33 @@
++package com.seede.llm;
++
++import org.springframework.core.io.ClassPathResource;
++import org.springframework.stereotype.Component;
++
++import java.io.IOException;
++import java.nio.charset.StandardCharsets;
++import java.util.Map;
++import java.util.concurrent.ConcurrentHashMap;
++
++@Component
++public class SystemPromptManager {
++
++    private final Map<String, String> cache = new ConcurrentHashMap<>();
++
++    public String loadPrompt(String templateName, Map<String, String> variables) {
++        String template = cache.computeIfAbsent(templateName, this::readTemplate);
++        String result = template;
++        for (Map.Entry<String, String> entry : variables.entrySet()) {
++            result = result.replace("{{" + entry.getKey() + "}}", entry.getValue());
++        }
++        return result;
++    }
++
++    private String readTemplate(String name) {
++        try {
++            ClassPathResource resource = new ClassPathResource("prompts/" + name);
++            return resource.getContentAsString(StandardCharsets.UTF_8);
++        } catch (IOException e) {
++            throw new RuntimeException("Failed to load prompt template: " + name, e);
++        }
++    }
++}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/java/com/seede/llm/SystemPromptManager.java.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/java/com/seede/model/SseMessage.java b/seede-ai/backend/src/main/java/com/seede/model/SseMessage.java
+new file mode 100644
+index 0000000..ac1680d
+--- /dev/null
++++ b/seede-ai/backend/src/main/java/com/seede/model/SseMessage.java
+@@ -0,0 +1,44 @@
++package com.seede.model;
++
++public class SseMessage {
++
++    private String type;
++    private String content;
++    private Boolean retryable;
++
++    public SseMessage() {}
++
++    public SseMessage(String type, String content) {
++        this.type = type;
++        this.content = content;
++    }
++
++    public SseMessage(String type, String content, Boolean retryable) {
++        this.type = type;
++        this.content = content;
++        this.retryable = retryable;
++    }
++
++    public static SseMessage thinking(String content) {
++        return new SseMessage("thinking", content);
++    }
++
++    public static SseMessage codeChunk(String content) {
++        return new SseMessage("code_chunk", content);
++    }
++
++    public static SseMessage complete(String content) {
++        return new SseMessage("complete", content);
++    }
++
++    public static SseMessage error(String content, boolean retryable) {
++        return new SseMessage("error", content, retryable);
++    }
++
++    public String getType() { return type; }
++    public void setType(String type) { this.type = type; }
++    public String getContent() { return content; }
++    public void setContent(String content) { this.content = content; }
++    public Boolean getRetryable() { return retryable; }
++    public void setRetryable(Boolean retryable) { this.retryable = retryable; }
++}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/java/com/seede/model/SseMessage.java.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/java/com/seede/model/dto/ApiResponse.java b/seede-ai/backend/src/main/java/com/seede/model/dto/ApiResponse.java
+new file mode 100644
+index 0000000..820fe54
+--- /dev/null
++++ b/seede-ai/backend/src/main/java/com/seede/model/dto/ApiResponse.java
+@@ -0,0 +1,50 @@
++package com.seede.model.dto;
++
++public class ApiResponse<T> {
++
++    private int code;
++    private T data;
++    private String message;
++
++    private ApiResponse(int code, T data, String message) {
++        this.code = code;
++        this.data = data;
++        this.message = message;
++    }
++
++    public static <T> ApiResponse<T> success(T data) {
++        return new ApiResponse<>(200, data, "success");
++    }
++
++    public static <T> ApiResponse<T> success(T data, String message) {
++        return new ApiResponse<>(200, data, message);
++    }
++
++    public static <T> ApiResponse<T> error(int code, String message) {
++        return new ApiResponse<>(code, null, message);
++    }
++
++    public int getCode() {
++        return code;
++    }
++
++    public void setCode(int code) {
++        this.code = code;
++    }
++
++    public T getData() {
++        return data;
++    }
++
++    public void setData(T data) {
++        this.data = data;
++    }
++
++    public String getMessage() {
++        return message;
++    }
++
++    public void setMessage(String message) {
++        this.message = message;
++    }
++}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/java/com/seede/model/dto/ApiResponse.java.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/java/com/seede/model/dto/ChatRequest.java b/seede-ai/backend/src/main/java/com/seede/model/dto/ChatRequest.java
+new file mode 100644
+index 0000000..1252d96
+--- /dev/null
++++ b/seede-ai/backend/src/main/java/com/seede/model/dto/ChatRequest.java
+@@ -0,0 +1,33 @@
++package com.seede.model.dto;
++
++import java.util.List;
++
++public class ChatRequest {
++
++    private String canvasState;
++    private String userMessage;
++    private List<ChatMessageDto> chatHistory;
++    private int width;
++    private int height;
++
++    public String getCanvasState() { return canvasState; }
++    public void setCanvasState(String canvasState) { this.canvasState = canvasState; }
++    public String getUserMessage() { return userMessage; }
++    public void setUserMessage(String userMessage) { this.userMessage = userMessage; }
++    public List<ChatMessageDto> getChatHistory() { return chatHistory; }
++    public void setChatHistory(List<ChatMessageDto> chatHistory) { this.chatHistory = chatHistory; }
++    public int getWidth() { return width; }
++    public void setWidth(int width) { this.width = width; }
++    public int getHeight() { return height; }
++    public void setHeight(int height) { this.height = height; }
++
++    public static class ChatMessageDto {
++        private String role;
++        private String content;
++
++        public String getRole() { return role; }
++        public void setRole(String role) { this.role = role; }
++        public String getContent() { return content; }
++        public void setContent(String content) { this.content = content; }
++    }
++}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/java/com/seede/model/dto/ChatRequest.java.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/java/com/seede/model/dto/GenerateRequest.java b/seede-ai/backend/src/main/java/com/seede/model/dto/GenerateRequest.java
+new file mode 100644
+index 0000000..220a817
+--- /dev/null
++++ b/seede-ai/backend/src/main/java/com/seede/model/dto/GenerateRequest.java
+@@ -0,0 +1,15 @@
++package com.seede.model.dto;
++
++public class GenerateRequest {
++
++    private String prompt;
++    private int width;
++    private int height;
++
++    public String getPrompt() { return prompt; }
++    public void setPrompt(String prompt) { this.prompt = prompt; }
++    public int getWidth() { return width; }
++    public void setWidth(int width) { this.width = width; }
++    public int getHeight() { return height; }
++    public void setHeight(int height) { this.height = height; }
++}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/java/com/seede/model/dto/GenerateRequest.java.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/java/com/seede/model/dto/RollRequest.java b/seede-ai/backend/src/main/java/com/seede/model/dto/RollRequest.java
+new file mode 100644
+index 0000000..252dee6
+--- /dev/null
++++ b/seede-ai/backend/src/main/java/com/seede/model/dto/RollRequest.java
+@@ -0,0 +1,18 @@
++package com.seede.model.dto;
++
++public class RollRequest {
++
++    private String elementDescription;
++    private String canvasContext;
++    private int width;
++    private int height;
++
++    public String getElementDescription() { return elementDescription; }
++    public void setElementDescription(String elementDescription) { this.elementDescription = elementDescription; }
++    public String getCanvasContext() { return canvasContext; }
++    public void setCanvasContext(String canvasContext) { this.canvasContext = canvasContext; }
++    public int getWidth() { return width; }
++    public void setWidth(int width) { this.width = width; }
++    public int getHeight() { return height; }
++    public void setHeight(int height) { this.height = height; }
++}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/java/com/seede/model/dto/RollRequest.java.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/java/com/seede/service/ChatOptimizeService.java b/seede-ai/backend/src/main/java/com/seede/service/ChatOptimizeService.java
+new file mode 100644
+index 0000000..15b10f5
+--- /dev/null
++++ b/seede-ai/backend/src/main/java/com/seede/service/ChatOptimizeService.java
+@@ -0,0 +1,53 @@
++package com.seede.service;
++
++import com.seede.llm.LlmClient;
++import com.seede.llm.LlmResponseParser;
++import com.seede.llm.SystemPromptManager;
++import com.seede.model.SseMessage;
++import com.seede.model.dto.ChatRequest;
++import org.springframework.http.codec.ServerSentEvent;
++import org.springframework.stereotype.Service;
++import reactor.core.publisher.Flux;
++
++import java.util.ArrayList;
++import java.util.List;
++import java.util.Map;
++
++@Service
++public class ChatOptimizeService {
++
++    private final LlmClient llmClient;
++    private final LlmResponseParser responseParser;
++    private final SystemPromptManager promptManager;
++
++    public ChatOptimizeService(LlmClient llmClient, LlmResponseParser responseParser, SystemPromptManager promptManager) {
++        this.llmClient = llmClient;
++        this.responseParser = responseParser;
++        this.promptManager = promptManager;
++    }
++
++    public Flux<ServerSentEvent<SseMessage>> chat(ChatRequest request) {
++        String systemPrompt = promptManager.loadPrompt("poster-chat.md", Map.of(
++                "width", String.valueOf(request.getWidth()),
++                "height", String.valueOf(request.getHeight()),
++                "canvasState", request.getCanvasState()
++        ));
++
++        List<Map<String, String>> messages = new ArrayList<>();
++        if (request.getChatHistory() != null) {
++            for (ChatRequest.ChatMessageDto msg : request.getChatHistory()) {
++                messages.add(Map.of("role", msg.getRole(), "content", msg.getContent()));
++            }
++        }
++        messages.add(Map.of("role", "user", "content", request.getUserMessage()));
++
++        Flux<SseMessage> thinkingMsg = Flux.just(SseMessage.thinking("正在分析修改意图..."));
++
++        Flux<SseMessage> llmStream = responseParser.parseStream(
++                llmClient.streamChatWithHistory(systemPrompt, messages)
++        ).onErrorResume(e -> Flux.just(SseMessage.error("优化失败，请稍后重试", true)));
++
++        return Flux.concat(thinkingMsg, llmStream)
++                .map(msg -> ServerSentEvent.<SseMessage>builder().data(msg).build());
++    }
++}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/java/com/seede/service/ChatOptimizeService.java.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/java/com/seede/service/PosterGenerateService.java b/seede-ai/backend/src/main/java/com/seede/service/PosterGenerateService.java
+new file mode 100644
+index 0000000..5877017
+--- /dev/null
++++ b/seede-ai/backend/src/main/java/com/seede/service/PosterGenerateService.java
+@@ -0,0 +1,44 @@
++package com.seede.service;
++
++import com.seede.llm.LlmClient;
++import com.seede.llm.LlmResponseParser;
++import com.seede.llm.SystemPromptManager;
++import com.seede.model.SseMessage;
++import com.seede.model.dto.GenerateRequest;
++import org.springframework.http.codec.ServerSentEvent;
++import org.springframework.stereotype.Service;
++import reactor.core.publisher.Flux;
++
++import java.util.Map;
++
++@Service
++public class PosterGenerateService {
++
++    private final LlmClient llmClient;
++    private final LlmResponseParser responseParser;
++    private final SystemPromptManager promptManager;
++
++    public PosterGenerateService(LlmClient llmClient, LlmResponseParser responseParser, SystemPromptManager promptManager) {
++        this.llmClient = llmClient;
++        this.responseParser = responseParser;
++        this.promptManager = promptManager;
++    }
++
++    public Flux<ServerSentEvent<SseMessage>> generate(GenerateRequest request) {
++        String systemPrompt = promptManager.loadPrompt("poster-generate.md", Map.of(
++                "width", String.valueOf(request.getWidth()),
++                "height", String.valueOf(request.getHeight())
++        ));
++
++        Flux<SseMessage> thinkingMsg = Flux.just(SseMessage.thinking("正在分析设计需求..."));
++
++        Flux<SseMessage> llmStream = responseParser.parseStream(
++                llmClient.streamChat(systemPrompt, request.getPrompt())
++        ).onErrorResume(e -> Flux.just(SseMessage.error("生成失败，请稍后重试", true)));
++
++        return Flux.concat(thinkingMsg, llmStream)
++                .map(msg -> ServerSentEvent.<SseMessage>builder()
++                        .data(msg)
++                        .build());
++    }
++}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/java/com/seede/service/PosterGenerateService.java.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/java/com/seede/service/RollService.java b/seede-ai/backend/src/main/java/com/seede/service/RollService.java
+new file mode 100644
+index 0000000..4c7ae30
+--- /dev/null
++++ b/seede-ai/backend/src/main/java/com/seede/service/RollService.java
+@@ -0,0 +1,45 @@
++package com.seede.service;
++
++import com.seede.llm.LlmClient;
++import com.seede.llm.LlmResponseParser;
++import com.seede.llm.SystemPromptManager;
++import com.seede.model.SseMessage;
++import com.seede.model.dto.RollRequest;
++import org.springframework.http.codec.ServerSentEvent;
++import org.springframework.stereotype.Service;
++import reactor.core.publisher.Flux;
++
++import java.util.Map;
++
++@Service
++public class RollService {
++
++    private final LlmClient llmClient;
++    private final LlmResponseParser responseParser;
++    private final SystemPromptManager promptManager;
++
++    public RollService(LlmClient llmClient, LlmResponseParser responseParser, SystemPromptManager promptManager) {
++        this.llmClient = llmClient;
++        this.responseParser = responseParser;
++        this.promptManager = promptManager;
++    }
++
++    public Flux<ServerSentEvent<SseMessage>> roll(RollRequest request) {
++        String systemPrompt = promptManager.loadPrompt("poster-roll.md", Map.of(
++                "width", String.valueOf(request.getWidth()),
++                "height", String.valueOf(request.getHeight())
++        ));
++
++        String userMessage = "元素描述：" + request.getElementDescription() +
++                "\n\n画布上下文：" + request.getCanvasContext();
++
++        Flux<SseMessage> thinkingMsg = Flux.just(SseMessage.thinking("正在重新生成元素..."));
++
++        Flux<SseMessage> llmStream = responseParser.parseStream(
++                llmClient.streamChat(systemPrompt, userMessage)
++        ).onErrorResume(e -> Flux.just(SseMessage.error("重新生成失败，请稍后重试", true)));
++
++        return Flux.concat(thinkingMsg, llmStream)
++                .map(msg -> ServerSentEvent.<SseMessage>builder().data(msg).build());
++    }
++}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/java/com/seede/service/RollService.java.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/resources/application.yml b/seede-ai/backend/src/main/resources/application.yml
+new file mode 100644
+index 0000000..0a174b6
+--- /dev/null
++++ b/seede-ai/backend/src/main/resources/application.yml
+@@ -0,0 +1,11 @@
++server:
++  port: 8080
++
++spring:
++  application:
++    name: seede-ai
++
++llm:
++  api-url: ${LLM_API_URL:https://open.bigmodel.cn/api/paas/v4/chat/completions}
++  api-key: ${LLM_API_KEY:d53ee3eac2614b8bb014d891e3d038bf.7auuAjeKo02ODFiU}
++  model-name: ${LLM_MODEL:glm-4.7}
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/resources/application.yml.
+The file will have its original line endings in your working directory
+diff --git a/seede-ai/backend/src/main/resources/application-dev.yml b/seede-ai/backend/src/main/resources/application-dev.yml
+new file mode 100644
+index 0000000..6357a51
+--- /dev/null
++++ b/seede-ai/backend/src/main/resources/application-dev.yml
+@@ -0,0 +1,7 @@
++spring:
++  profiles:
++    active: dev
++
++logging:
++  level:
++    com.seede: DEBUG
+warning: LF will be replaced by CRLF in seede-ai/backend/src/main/resources/application-dev.yml.
+The file will have its original line endings in your working directory

@@ -1,0 +1,68 @@
+# generated: 2026-04-02
+# last_updated: 2026-04-02
+# project: seede-ai
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: {project-root}/_bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-04-02
+last_updated: 2026-04-03
+project: seede-ai
+project_key: NOKEY
+tracking_system: file-system
+story_location: "{project-root}/_bmad-output/implementation-artifacts"
+
+development_status:
+  # Epic 1: 海报生成——从自然语言到画布呈现
+  epic-1: done
+  1-1-project-scaffolding-and-base-architecture: done
+  1-2-input-page-user-describe-poster-needs: done
+  1-3-llm-orchestration-and-sse-streaming: done
+  1-4-jsx-runtime-compilation-and-dom-rendering: done
+  1-5-dom-to-fabricjs-canvas-conversion-and-chinese-fonts: done
+  epic-1-retrospective: optional
+
+  # Epic 2: 画布编辑与导出——像 PPT 一样精细控制
+  epic-2: done
+  2-1-canvas-basic-interaction-select-drag-scale: done
+  2-2-text-editing-content-and-style: done
+  2-3-element-management-delete-and-add-text: done
+  2-4-undo-redo-command-pattern: done
+  2-5-export-png: done
+  epic-2-retrospective: optional
+
+  # Epic 3: AI 智能优化——Roll 与对话式调整
+  epic-3: done
+  3-1-canvas-state-serialization: done
+  3-2-single-element-roll-regeneration: done
+  3-3-chat-ai-design-optimization: done
+  epic-3-retrospective: optional

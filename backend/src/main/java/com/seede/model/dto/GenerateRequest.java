@@ -1,0 +1,38 @@
+package com.seede.model.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+
+/**
+ * 海报生成请求 DTO
+ *
+ * <p>对应接口：POST /api/posters/generate</p>
+ *
+ * <p>字段说明：</p>
+ * <ul>
+ *   <li>{@code prompt}  — 用户对海报的自然语言设计描述，LLM 根据此描述生成 JSX 代码</li>
+ *   <li>{@code width}   — 画布宽度（像素），注入提示词模板 {{width}} 占位符</li>
+ *   <li>{@code height}  — 画布高度（像素），注入提示词模板 {{height}} 占位符</li>
+ * </ul>
+ */
+public class GenerateRequest {
+
+    /** 设计描述，不能为空；LLM 据此生成海报的视觉风格和内容 */
+    @NotBlank(message = "prompt 不能为空")
+    private String prompt;
+
+    /** 画布宽度（像素），必须为正整数 */
+    @Positive(message = "width 必须为正整数")
+    private int width;
+
+    /** 画布高度（像素），必须为正整数 */
+    @Positive(message = "height 必须为正整数")
+    private int height;
+
+    public String getPrompt() { return prompt; }
+    public void setPrompt(String prompt) { this.prompt = prompt; }
+    public int getWidth() { return width; }
+    public void setWidth(int width) { this.width = width; }
+    public int getHeight() { return height; }
+    public void setHeight(int height) { this.height = height; }
+}

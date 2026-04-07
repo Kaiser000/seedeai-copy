@@ -1,0 +1,21 @@
+# 环境变量（包含 API Key 等敏感信息）
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# OS
+.DS_Store
+Thumbs.db
+
+# BMad 输出（如需要可取消注释）
+# _bmad-output/
+
+# Claude Code
+.claude/

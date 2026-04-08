@@ -12,9 +12,12 @@
  *   - 有阴影/渐变的容器也会生成 shape
  *   - 传递完整的样式信息给 imageHandler（opacity、shadow、rotation、borderRadius）
  *   - SVG 元素作为装饰形状处理而非跳过
+ *   - overflow:hidden 容器的子元素会被 clipPath 裁切，防止内容溢出
  */
 import type { FabricObject } from 'fabric'
+import { Rect } from 'fabric'
 import { parseLayout } from '../parsers/layoutParser'
+import type { ElementLayout } from '../parsers/layoutParser'
 import { parseStyle } from '../parsers/styleParser'
 import { createTextObject } from './textHandler'
 import { createShapeObject } from './shapeHandler'
@@ -71,10 +74,84 @@ function hasVisualBackground(bg: string, style: ReturnType<typeof parseStyle>): 
   return hasBg || hasBorder || hasGradient || hasShadow
 }
 
+/**
+ * 判断容器是否与父容器完全重合且背景相同（纯布局容器）。
+ * 这类容器生成的 shape 会与父容器的 shape 完全重叠，产生不必要的层叠。
+ * 跳过它们可以减少画布上的冗余矩形，降低视觉遮挡问题。
+ *
+ * 判断条件（全部满足才跳过）：
+ *   1. 容器的尺寸与父容器几乎完全相同（宽高差 < 2px）
+ *   2. 容器没有圆角、边框、渐变、阴影等独立视觉效果
+ *   3. 容器只有纯色背景（可能继承自父级）
+ */
+function isRedundantContainer(
+  layout: ElementLayout,
+  parentLayout: ElementLayout | undefined,
+  style: ReturnType<typeof parseStyle>,
+): boolean {
+  if (!parentLayout) return false
+
+  // 尺寸几乎与父容器相同
+  const sameWidth = Math.abs(layout.width - parentLayout.width) < 2
+  const sameHeight = Math.abs(layout.height - parentLayout.height) < 2
+  if (!sameWidth || !sameHeight) return false
+
+  // 有独立的视觉效果（圆角、边框、渐变、阴影）则不跳过
+  if (style.borderRadius > 0) return false
+  if (style.borderWidth > 0) return false
+  if (style.gradient !== null) return false
+  if (style.boxShadow !== null) return false
+
+  return true
+}
+
+/**
+ * 判断 fabric 对象是否超出指定裁切区域的边界。
+ * 通过比较对象的 left/top/width/height 与裁切区域判断。
+ */
+function objectExceedsBounds(obj: FabricObject, bounds: ElementLayout): boolean {
+  const objLeft = (obj.left ?? 0)
+  const objTop = (obj.top ?? 0)
+  // 考虑 scaleX/scaleY（图片缩放后的实际尺寸）
+  const objWidth = (obj.width ?? 0) * (obj.scaleX ?? 1)
+  const objHeight = (obj.height ?? 0) * (obj.scaleY ?? 1)
+
+  // 对象是否有任何部分超出容器边界
+  return (
+    objLeft < bounds.left - 1 ||
+    objTop < bounds.top - 1 ||
+    objLeft + objWidth > bounds.left + bounds.width + 1 ||
+    objTop + objHeight > bounds.top + bounds.height + 1
+  )
+}
+
+/**
+ * 为超出 overflow:hidden 容器边界的 fabric 对象添加 clipPath 裁切。
+ * 使用 absolutePositioned: true 使 clipPath 工作在画布坐标系中。
+ */
+function applyOverflowClip(obj: FabricObject, clipBounds: ElementLayout): void {
+  // 如果对象已有 clipPath（如图片圆角），不覆盖，避免破坏现有裁切效果
+  if (obj.clipPath) return
+
+  const clipRect = new Rect({
+    left: clipBounds.left,
+    top: clipBounds.top,
+    width: clipBounds.width,
+    height: clipBounds.height,
+    originX: 'left',
+    originY: 'top',
+    // absolutePositioned 使 clipPath 使用画布坐标系而非对象本地坐标系
+    absolutePositioned: true,
+  })
+  obj.clipPath = clipRect
+}
+
 export async function processElement(
   element: HTMLElement,
   containerRect: DOMRect,
   warnings: string[],
+  clipBounds?: ElementLayout,
+  parentLayout?: ElementLayout,
 ): Promise<FabricObject[]> {
   const objects: FabricObject[] = []
   const layout = parseLayout(element, containerRect)
@@ -134,11 +211,24 @@ export async function processElement(
 
   // ---- 容器元素 ----
   // 检查是否有视觉背景（背景色/边框/渐变/阴影），如有则生成底层 shape
+  // 跳过与父容器完全重合的纯布局容器，减少冗余矩形层叠
   const bg = style.backgroundColor
   if (bg && hasVisualBackground(bg, style)) {
-    const shape = createShapeObject(layout, style)
-    objects.push(shape)
+    if (isRedundantContainer(layout, parentLayout, style)) {
+      console.log('[GroupHandler] 跳过冗余容器 shape:', {
+        tag: element.tagName,
+        className: element.className?.toString().substring(0, 60),
+        layout,
+      })
+    } else {
+      const shape = createShapeObject(layout, style)
+      objects.push(shape)
+    }
   }
+
+  // 判断此容器是否有 overflow:hidden，若有则传递裁切边界给子元素
+  const hasOverflow = style.overflow === 'hidden'
+  const childClipBounds = hasOverflow ? layout : clipBounds
 
   // 递归处理子元素；每个子元素的错误被隔离，不影响兄弟节点
   for (const child of element.children) {
@@ -147,7 +237,25 @@ export async function processElement(
         child as HTMLElement,
         containerRect,
         warnings,
+        childClipBounds,
+        layout,
       )
+
+      // 对来自 overflow:hidden 容器的子对象应用裁切
+      if (childClipBounds) {
+        for (const obj of childObjects) {
+          if (objectExceedsBounds(obj, childClipBounds)) {
+            applyOverflowClip(obj, childClipBounds)
+            console.log('[GroupHandler] overflow:hidden 裁切:', {
+              objType: obj.type,
+              objLeft: obj.left,
+              objTop: obj.top,
+              clipBounds: childClipBounds,
+            })
+          }
+        }
+      }
+
       objects.push(...childObjects)
     } catch (err) {
       const reason = (err as Error).message || 'unknown error'

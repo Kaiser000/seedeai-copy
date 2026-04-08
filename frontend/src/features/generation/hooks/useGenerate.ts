@@ -19,6 +19,7 @@ export function useGenerate() {
   const {
     prompt,
     posterSize,
+    selectedModel,
     setIsGenerating,
     addSseMessage,
     setGeneratedCode,
@@ -28,6 +29,7 @@ export function useGenerate() {
     appendAccumulatedCode,
     appendAnalysisContent,
     addStageDetail,
+    addStageImage,
     failActiveStages,
   } = useEditorStore()
 
@@ -42,7 +44,7 @@ export function useGenerate() {
     try {
       const fullCode = await connectSse(
         '/api/posters/generate',
-        { prompt, width: posterSize.width, height: posterSize.height },
+        { prompt, width: posterSize.width, height: posterSize.height, modelName: selectedModel || undefined },
         {
           // ── 阶段 0：联网搜索 ──────────────────────────────────
           onSearchStart: (keywords) => {
@@ -125,10 +127,16 @@ export function useGenerate() {
             }
           },
 
-          // ── 阶段 2：代码生成 ──────────────────────────────────
+          // ── 阶段 2：代码生成（设计合成阶段） ──────────────────
           onCodeChunk: (chunk) => {
             addSseMessage({ type: 'code_chunk', content: chunk })
             appendAccumulatedCode(chunk)
+
+            // 首个代码片段到达时，将设计合成阶段标记为 active
+            const composeStage = useEditorStore.getState().workflowStages.find((s) => s.id === 'compose')
+            if (composeStage && composeStage.status === 'pending') {
+              updateWorkflowStage('compose', { status: 'active', summary: '代码生成中...' })
+            }
           },
 
           // 代码生成完成（后续还有图片生成阶段）
@@ -160,6 +168,14 @@ export function useGenerate() {
               const info = JSON.parse(content)
               if (info.url) {
                 addStageDetail('image_gen', `图片 ${info.index + 1} 生成完成`)
+                // 保存图片信息，供工作流 UI 预览展示
+                addStageImage('image_gen', {
+                  index: info.index,
+                  prompt: info.prompt || '',
+                  url: info.url,
+                })
+              } else if (info.error) {
+                addStageDetail('image_gen', `图片 ${info.index + 1} 生成失败: ${info.error}`)
               }
             } catch (parseErr) {
               console.warn('[Generate] image_complete JSON 解析失败:', parseErr)
@@ -213,9 +229,9 @@ export function useGenerate() {
       setIsGenerating(false)
     }
   }, [
-    prompt, posterSize, setIsGenerating, addSseMessage, setGeneratedCode,
+    prompt, posterSize, selectedModel, setIsGenerating, addSseMessage, setGeneratedCode,
     setError, addChatMessage, updateWorkflowStage, appendAccumulatedCode,
-    appendAnalysisContent, addStageDetail, failActiveStages,
+    appendAnalysisContent, addStageDetail, addStageImage, failActiveStages,
   ])
 
   const cancel = useCallback(() => {

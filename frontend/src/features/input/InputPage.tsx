@@ -3,12 +3,14 @@ import { Button } from '@/shared/components/ui/button'
 import { PromptInput } from './components/PromptInput'
 import { SizeSelector, PRESET_SIZES } from './components/SizeSelector'
 import type { PosterSize } from './components/SizeSelector'
+import { ModelSelector } from './components/ModelSelector'
 import { PresetCases } from './components/PresetCases'
 import { useEditorStore } from '@/features/editor/stores/useEditorStore'
 
 export function InputPage() {
   const [prompt, setPrompt] = useState('')
   const [posterSize, setPosterSize] = useState<PosterSize>(PRESET_SIZES[0])
+  const [selectedModel, setSelectedModel] = useState('')
   const [validationError, setValidationError] = useState('')
   const startGeneration = useEditorStore((s) => s.startGeneration)
 
@@ -18,7 +20,7 @@ export function InputPage() {
       return
     }
     setValidationError('')
-    startGeneration(prompt.trim(), posterSize)
+    startGeneration(prompt.trim(), posterSize, selectedModel)
   }
 
   const handlePresetSelect = (presetPrompt: string) => {
@@ -41,6 +43,8 @@ export function InputPage() {
         )}
 
         <SizeSelector value={posterSize} onChange={setPosterSize} />
+
+        <ModelSelector value={selectedModel} onChange={setSelectedModel} />
 
         <Button onClick={handleGenerate} className="w-full" size="lg">
           生成海报

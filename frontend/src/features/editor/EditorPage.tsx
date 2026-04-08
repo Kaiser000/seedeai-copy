@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import {
   ArrowLeft, Download, Layers, Settings2, MessageSquare, Code2,
 } from 'lucide-react'
@@ -25,9 +25,21 @@ export function EditorPage() {
   const startGeneration = useEditorStore((s) => s.startGeneration)
   const setCurrentPage = useEditorStore((s) => s.setCurrentPage)
 
+  const accumulatedCode = useEditorStore((s) => s.accumulatedCode)
+
   const [leftTab, setLeftTab] = useState<LeftTab>('layers')
   const [rightTab, setRightTab] = useState<RightTab>('chat')
   const [layersRefresh, setLayersRefresh] = useState(0)
+
+  // 左侧面板宽度：图层 tab 默认 208px，代码 tab 默认 420px，可拖拽调整
+  const LAYERS_WIDTH = 208
+  const CODE_WIDTH = 420
+  const MIN_LEFT_WIDTH = 160
+  const MAX_LEFT_WIDTH = 700
+  const [leftWidth, setLeftWidth] = useState(LAYERS_WIDTH)
+  const isDraggingRef = useRef(false)
+  const dragStartXRef = useRef(0)
+  const dragStartWidthRef = useRef(0)
 
   const getCanvas = useCallback(() => getGlobalCanvas(), [])
   const { exportPng, isExporting } = useExport(getCanvas)
@@ -36,6 +48,45 @@ export function EditorPage() {
   useEffect(() => {
     if (isGenerating) generate()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 代码开始生成时自动切换到"代码"tab，保持流式输出可见
+  useEffect(() => {
+    if (accumulatedCode && isGenerating) {
+      setLeftTab('code')
+    }
+  }, [accumulatedCode, isGenerating])
+
+  // 切换 tab 时自动调整默认宽度（仅在未手动拖拽过时）
+  useEffect(() => {
+    setLeftWidth(leftTab === 'code' ? CODE_WIDTH : LAYERS_WIDTH)
+  }, [leftTab])
+
+  // 拖拽分割条调整左侧面板宽度
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    isDraggingRef.current = true
+    dragStartXRef.current = e.clientX
+    dragStartWidthRef.current = leftWidth
+
+    const handleMouseMove = (ev: MouseEvent) => {
+      if (!isDraggingRef.current) return
+      const delta = ev.clientX - dragStartXRef.current
+      const newWidth = Math.min(MAX_LEFT_WIDTH, Math.max(MIN_LEFT_WIDTH, dragStartWidthRef.current + delta))
+      setLeftWidth(newWidth)
+    }
+    const handleMouseUp = () => {
+      isDraggingRef.current = false
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }, [leftWidth])
 
   const handleRetry = () => {
     startGeneration(prompt, posterSize)
@@ -104,8 +155,11 @@ export function EditorPage() {
       {/* ── 3-panel body ─────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* ── Left panel: Layers / Code ────────────────────────────────── */}
-        <aside className="w-52 flex-shrink-0 flex flex-col bg-white border-r border-gray-200 overflow-hidden">
+        {/* ── Left panel: Layers / Code（可拖拽调宽） ────────────────── */}
+        <aside
+          className="flex-shrink-0 flex flex-col bg-white border-r border-gray-200 overflow-hidden"
+          style={{ width: leftWidth }}
+        >
           {/* Tab bar */}
           <div className="flex border-b border-gray-200 flex-shrink-0">
             <TabBtn active={leftTab === 'layers'} onClick={() => setLeftTab('layers')} icon={<Layers size={11} />} label="图层" />
@@ -116,6 +170,15 @@ export function EditorPage() {
             {leftTab === 'code' && <StreamPanel />}
           </div>
         </aside>
+        {/* ── 拖拽分割条 ─────────────────────────────────────────── */}
+        <div
+          onMouseDown={handleResizeStart}
+          className="w-1 flex-shrink-0 cursor-col-resize hover:bg-blue-400 active:bg-blue-500 transition-colors bg-transparent group relative"
+          title="拖拽调整宽度"
+        >
+          {/* 加大拖拽热区，实际可视宽度只有 1px */}
+          <div className="absolute inset-y-0 -left-1 -right-1" />
+        </div>
 
         {/* ── Center: Toolbar + Canvas ─────────────────────────────────── */}
         <main className="flex-1 flex flex-col overflow-hidden min-w-0">

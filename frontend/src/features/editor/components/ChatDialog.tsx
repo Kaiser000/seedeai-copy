@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 import { useEditorStore } from '../stores/useEditorStore'
 import type {
-  ChatMessage, WorkflowStage, WorkflowStageStatus, LayoutElement,
+  ChatMessage, WorkflowStage, WorkflowStageStatus, LayoutElement, GeneratedImage,
 } from '../stores/useEditorStore'
 import { useCanvasCommands } from '../hooks/useCanvasCommands'
 import type { Command } from '../hooks/useCanvasCommands'
@@ -74,6 +74,38 @@ function ElementIcon({ type }: { type: LayoutElement['type'] }) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+ *  生成图片缩略图（点击在新标签中打开原图）
+ * ══════════════════════════════════════════════════════════════════ */
+
+function ImageThumbnail({ image }: { image: GeneratedImage }) {
+  return (
+    <a
+      href={image.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block rounded-md overflow-hidden border border-gray-100 hover:border-blue-300 transition-colors group"
+      title={`点击查看原图\n${image.prompt}`}
+    >
+      <div className="relative bg-gray-50">
+        <img
+          src={image.url}
+          alt={image.prompt}
+          className="w-full h-20 object-cover"
+          loading="lazy"
+        />
+        {/* 悬浮时显示"查看"图标 */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+          <ExternalLink size={14} className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow" />
+        </div>
+      </div>
+      <div className="px-1.5 py-1 text-[9px] text-gray-400 truncate bg-gray-50/80">
+        图片 {image.index + 1}
+      </div>
+    </a>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════
  *  阶段卡片的边框颜色
  * ══════════════════════════════════════════════════════════════════ */
 
@@ -103,7 +135,10 @@ function StageCard({ stage, analysisContent, isGenerating }: {
     (stage.id === 'search' && !!stage.details && stage.details.length > 0) ||
     (stage.id === 'analysis' && !!analysisContent) ||
     (stage.id === 'layout' && !!stage.elements && stage.elements.length > 0) ||
-    (stage.id === 'image_gen' && !!stage.details && stage.details.length > 0)
+    (stage.id === 'image_gen' && (
+      (!!stage.details && stage.details.length > 0) ||
+      (!!stage.images && stage.images.length > 0)
+    ))
 
   const canExpand = hasContent && stage.status !== 'pending'
 
@@ -153,8 +188,7 @@ function StageCard({ stage, analysisContent, isGenerating }: {
           {/* 需求分析：设计方案文本 */}
           {stage.id === 'analysis' && analysisContent && (
             <div className="text-[10px] leading-relaxed text-gray-600 max-h-48 overflow-auto mt-2 whitespace-pre-wrap bg-gray-50 rounded p-2">
-              {analysisContent.slice(0, 3000)}
-              {analysisContent.length > 3000 && '\n...（内容已截断）'}
+              {analysisContent}
             </div>
           )}
 
@@ -171,15 +205,24 @@ function StageCard({ stage, analysisContent, isGenerating }: {
             </div>
           )}
 
-          {/* 图片生成：进度详情 */}
-          {stage.id === 'image_gen' && stage.details && (
-            <div className="space-y-0.5 mt-2">
-              {stage.details.map((detail, i) => (
-                <div key={i} className="text-[10px] text-gray-500 flex items-center gap-1.5">
+          {/* 图片生成：进度详情 + 图片预览 */}
+          {stage.id === 'image_gen' && (
+            <div className="space-y-1.5 mt-2">
+              {/* 进度文本 */}
+              {stage.details?.map((detail, i) => (
+                <div key={`d-${i}`} className="text-[10px] text-gray-500 flex items-center gap-1.5">
                   <ImageIcon size={9} className="text-emerald-400 flex-shrink-0" />
                   <span>{detail}</span>
                 </div>
               ))}
+              {/* 生成的图片缩略图（点击在新标签打开） */}
+              {stage.images && stage.images.length > 0 && (
+                <div className="grid grid-cols-2 gap-1.5 mt-1">
+                  {stage.images.map((img) => (
+                    <ImageThumbnail key={img.index} image={img} />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -231,6 +274,7 @@ export function ChatDialog() {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const posterSize = useEditorStore((s) => s.posterSize)
+  const selectedModel = useEditorStore((s) => s.selectedModel)
   const chatHistory = useEditorStore((s) => s.chatHistory)
   const addChatMessage = useEditorStore((s) => s.addChatMessage)
   const isGenerating = useEditorStore((s) => s.isGenerating)
@@ -266,7 +310,7 @@ export function ChatDialog() {
 
       const fullCode = await connectSse(
         '/api/posters/chat',
-        { canvasState, userMessage, chatHistory: historyForApi, width: posterSize.width, height: posterSize.height },
+        { canvasState, userMessage, chatHistory: historyForApi, width: posterSize.width, height: posterSize.height, modelName: selectedModel || undefined },
         { onError: (msg) => setChatError(msg) },
         controller.signal,
       )
@@ -312,7 +356,7 @@ export function ChatDialog() {
     } finally {
       setIsSending(false)
     }
-  }, [input, posterSize, chatHistory, addChatMessage, pushCommand])
+  }, [input, posterSize, selectedModel, chatHistory, addChatMessage, pushCommand])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {

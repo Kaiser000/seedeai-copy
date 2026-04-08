@@ -63,6 +63,14 @@ export interface LayoutElement {
   label: string
 }
 
+/** 图片生成阶段产出的图片信息 */
+export interface GeneratedImage {
+  index: number
+  prompt: string
+  /** 原始图片 URL（用于 UI 预览展示） */
+  url: string
+}
+
 /** 单个工作流阶段的完整状态 */
 export interface WorkflowStage {
   id: WorkflowStageId
@@ -74,6 +82,8 @@ export interface WorkflowStage {
   elements?: LayoutElement[]
   /** 图片生成等阶段的进度详情 */
   details?: string[]
+  /** 图片生成阶段产出的图片列表 */
+  images?: GeneratedImage[]
 }
 
 /* ── Store 接口定义 ──────────────────────────────────────────────── */
@@ -86,9 +96,12 @@ interface EditorState {
   // Generation input
   prompt: string
   posterSize: PosterSize
+  /** 用户选择的 LLM 模型 ID（空字符串表示使用后端默认模型） */
+  selectedModel: string
   setPrompt: (prompt: string) => void
   setPosterSize: (size: PosterSize) => void
-  startGeneration: (prompt: string, posterSize: PosterSize) => void
+  setSelectedModel: (model: string) => void
+  startGeneration: (prompt: string, posterSize: PosterSize, selectedModel?: string) => void
 
   // SSE streaming
   isGenerating: boolean
@@ -109,6 +122,8 @@ interface EditorState {
   /** 追加需求分析阶段的流式文本片段 */
   appendAnalysisContent: (chunk: string) => void
   addStageDetail: (id: WorkflowStageId, detail: string) => void
+  /** 添加图片生成结果到指定阶段 */
+  addStageImage: (id: WorkflowStageId, image: GeneratedImage) => void
   /** 将所有 active 阶段标记为 error（生成失败时调用） */
   failActiveStages: (message: string) => void
 
@@ -147,12 +162,15 @@ export const useEditorStore = create<EditorState>()((set) => ({
 
   prompt: '',
   posterSize: { width: 1080, height: 1920, label: '1080×1920 竖版海报' },
+  selectedModel: '',
   setPrompt: (prompt) => set({ prompt }),
   setPosterSize: (size) => set({ posterSize: size }),
-  startGeneration: (prompt, posterSize) =>
-    set({
+  setSelectedModel: (model) => set({ selectedModel: model }),
+  startGeneration: (prompt, posterSize, selectedModel) =>
+    set((state) => ({
       prompt,
       posterSize,
+      selectedModel: selectedModel ?? state.selectedModel,
       currentPage: 'editor',
       isGenerating: true,
       sseMessages: [],
@@ -164,7 +182,7 @@ export const useEditorStore = create<EditorState>()((set) => ({
         { role: 'user', content: prompt, timestamp: Date.now(), msgType: 'message' as ChatMessageType },
       ],
       workflowStages: createInitialStages(),
-    }),
+    })),
 
   isGenerating: false,
   sseMessages: [],
@@ -197,6 +215,13 @@ export const useEditorStore = create<EditorState>()((set) => ({
     set((state) => ({
       workflowStages: state.workflowStages.map((s) =>
         s.id === id ? { ...s, details: [...(s.details || []), detail] } : s
+      ),
+    })),
+
+  addStageImage: (id, image) =>
+    set((state) => ({
+      workflowStages: state.workflowStages.map((s) =>
+        s.id === id ? { ...s, images: [...(s.images || []), image] } : s
       ),
     })),
 

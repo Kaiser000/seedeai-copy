@@ -47,7 +47,10 @@ export default {
     // ========== 渐变 ==========
     { pattern: /^bg-gradient-to-(t|tr|r|br|b|bl|l|tl)$/ },
     { pattern: /^(from|via|to)-(transparent|current|black|white)$/ },
+    // 渐变端点 + 透明度修饰符（蒙版渐变必备，如 from-black/30 to-transparent）
+    { pattern: /^(from|via|to)-(black|white)\/(5|10|15|20|25|30|40|50|60|70|75|80|90|95)$/ },
     { pattern: /^(from|via|to)-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(50|100|200|300|400|500|600|700|800|900|950)$/ },
+    { pattern: /^(from|via|to)-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(50|100|200|300|400|500|600|700|800|900|950)\/(5|10|15|20|25|30|40|50|60|70|75|80|90|95)$/ },
 
     // ========== 边框 ==========
     'border', 'border-0', 'border-2', 'border-4', 'border-8',

@@ -1,6 +1,9 @@
 export interface SseMessage {
   type:
     | 'thinking'
+    | 'analysis_chunk'
+    | 'analysis_complete'
+    | 'layout_complete'
     | 'code_chunk'
     | 'code_complete'
     | 'complete'

@@ -2,6 +2,12 @@ import type { SseMessage } from '../types/sseMessages'
 
 export interface SseCallbacks {
   onThinking?: (content: string) => void
+  /** 需求分析阶段流式文本片段 */
+  onAnalysisChunk?: (chunk: string) => void
+  /** 需求分析阶段完成，content 为完整分析文本 */
+  onAnalysisComplete?: (content: string) => void
+  /** 页面布局完成，content 为 JSON 格式的元素列表 */
+  onLayoutComplete?: (elementsJson: string) => void
   onCodeChunk?: (chunk: string) => void
   onCodeComplete?: (fullCode: string) => void
   onComplete?: (fullCode: string) => void
@@ -73,6 +79,15 @@ export async function connectSse(
       switch (message.type) {
         case 'thinking':
           callbacks.onThinking?.(message.content)
+          break
+        case 'analysis_chunk':
+          callbacks.onAnalysisChunk?.(message.content)
+          break
+        case 'analysis_complete':
+          callbacks.onAnalysisComplete?.(message.content)
+          break
+        case 'layout_complete':
+          callbacks.onLayoutComplete?.(message.content)
           break
         case 'code_chunk':
           codeBuffer.push(message.content)

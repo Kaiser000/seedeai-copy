@@ -7,18 +7,27 @@
  *        → complete event → setGeneratedCode(code), isGenerating=false (via useGenerate)
  *        OR error event  → setError(msg), isGenerating=false
  *
+ * Workflow stages track the generation progress in a structured way:
+ *   analysis → layout → image_gen (optional) → compose
+ * Each stage has a status: pending → active → complete | error
+ *
  * Canvas editing state (selectedElementId) is independent of the
- * generation lifecycle. chatHistory is reset by startGeneration to
- * show a fresh workflow for each new generation session.
+ * generation lifecycle. chatHistory stores user messages and simple
+ * assistant responses. Workflow progress is shown via workflowStages.
  */
 import { create } from 'zustand'
 import type { PosterSize } from '@/features/input/components/SizeSelector'
 
 type Page = 'input' | 'editor'
 
+/* ── SSE 原始消息类型 ─────────────────────────────────────────────── */
+
 export interface SseMessage {
   type:
     | 'thinking'
+    | 'analysis_chunk'
+    | 'analysis_complete'
+    | 'layout_complete'
     | 'code_chunk'
     | 'code_complete'
     | 'complete'
@@ -30,13 +39,9 @@ export interface SseMessage {
   retryable?: boolean
 }
 
-export type ChatMessageType =
-  | 'message'
-  | 'thinking'
-  | 'code_complete'
-  | 'image_progress'
-  | 'complete'
-  | 'error'
+/* ── 对话消息类型 ─────────────────────────────────────────────────── */
+
+export type ChatMessageType = 'message' | 'error'
 
 export interface ChatMessage {
   role: 'user' | 'assistant'
@@ -44,6 +49,32 @@ export interface ChatMessage {
   timestamp: number
   msgType?: ChatMessageType
 }
+
+/* ── 工作流阶段类型 ───────────────────────────────────────────────── */
+
+export type WorkflowStageId = 'analysis' | 'layout' | 'image_gen' | 'compose'
+export type WorkflowStageStatus = 'pending' | 'active' | 'complete' | 'error'
+
+/** 页面布局阶段解析出的元素 */
+export interface LayoutElement {
+  type: 'shape' | 'text' | 'image'
+  label: string
+}
+
+/** 单个工作流阶段的完整状态 */
+export interface WorkflowStage {
+  id: WorkflowStageId
+  label: string
+  status: WorkflowStageStatus
+  /** 阶段右侧的简短摘要，如 "4015 代码已生成" */
+  summary?: string
+  /** 页面布局阶段解析出的元素列表 */
+  elements?: LayoutElement[]
+  /** 图片生成等阶段的进度详情 */
+  details?: string[]
+}
+
+/* ── Store 接口定义 ──────────────────────────────────────────────── */
 
 interface EditorState {
   // Page navigation
@@ -66,12 +97,25 @@ interface EditorState {
   setGeneratedCode: (code: string) => void
   clearSseMessages: () => void
 
+  // Workflow stages — 分阶段展示生成进度
+  workflowStages: WorkflowStage[]
+  accumulatedCode: string
+  /** 需求分析阶段的流式文本内容（由后端 analysis_chunk 事件累积） */
+  analysisContent: string
+  updateWorkflowStage: (id: WorkflowStageId, updates: Partial<Omit<WorkflowStage, 'id'>>) => void
+  appendAccumulatedCode: (chunk: string) => void
+  /** 追加需求分析阶段的流式文本片段 */
+  appendAnalysisContent: (chunk: string) => void
+  addStageDetail: (id: WorkflowStageId, detail: string) => void
+  /** 将所有 active 阶段标记为 error（生成失败时调用） */
+  failActiveStages: (message: string) => void
+
   // Canvas state
   selectedElementId: string | null
   selectElement: (id: string | null) => void
   clearSelection: () => void
 
-  // Chat history
+  // Chat history — 仅存用户消息和简单助手回复，工作流进度由 workflowStages 展示
   chatHistory: ChatMessage[]
   addChatMessage: (msg: ChatMessage) => void
   clearChatHistory: () => void
@@ -80,6 +124,19 @@ interface EditorState {
   error: string | null
   setError: (error: string | null) => void
 }
+
+/* ── 工作流初始阶段定义 ──────────────────────────────────────────── */
+
+function createInitialStages(): WorkflowStage[] {
+  return [
+    { id: 'analysis', label: '需求分析', status: 'pending' },
+    { id: 'layout', label: '页面布局', status: 'pending' },
+    { id: 'image_gen', label: '图片生成', status: 'pending' },
+    { id: 'compose', label: '设计合成', status: 'pending' },
+  ]
+}
+
+/* ── Store 实现 ──────────────────────────────────────────────────── */
 
 export const useEditorStore = create<EditorState>()((set) => ({
   currentPage: 'input',
@@ -98,9 +155,12 @@ export const useEditorStore = create<EditorState>()((set) => ({
       sseMessages: [],
       generatedCode: '',
       error: null,
+      accumulatedCode: '',
+      analysisContent: '',
       chatHistory: [
         { role: 'user', content: prompt, timestamp: Date.now(), msgType: 'message' as ChatMessageType },
       ],
+      workflowStages: createInitialStages(),
     }),
 
   isGenerating: false,
@@ -112,15 +172,50 @@ export const useEditorStore = create<EditorState>()((set) => ({
   setGeneratedCode: (code) => set({ generatedCode: code }),
   clearSseMessages: () => set({ sseMessages: [] }),
 
+  // ── Workflow stages ────────────────────────────────────────────
+  workflowStages: [],
+  accumulatedCode: '',
+  analysisContent: '',
+
+  updateWorkflowStage: (id, updates) =>
+    set((state) => ({
+      workflowStages: state.workflowStages.map((s) =>
+        s.id === id ? { ...s, ...updates } : s
+      ),
+    })),
+
+  appendAccumulatedCode: (chunk) =>
+    set((state) => ({ accumulatedCode: state.accumulatedCode + chunk })),
+
+  appendAnalysisContent: (chunk) =>
+    set((state) => ({ analysisContent: state.analysisContent + chunk })),
+
+  addStageDetail: (id, detail) =>
+    set((state) => ({
+      workflowStages: state.workflowStages.map((s) =>
+        s.id === id ? { ...s, details: [...(s.details || []), detail] } : s
+      ),
+    })),
+
+  failActiveStages: (message) =>
+    set((state) => ({
+      workflowStages: state.workflowStages.map((s) =>
+        s.status === 'active' ? { ...s, status: 'error' as const, summary: message } : s
+      ),
+    })),
+
+  // ── Canvas state ───────────────────────────────────────────────
   selectedElementId: null,
   selectElement: (id) => set({ selectedElementId: id }),
   clearSelection: () => set({ selectedElementId: null }),
 
+  // ── Chat history ───────────────────────────────────────────────
   chatHistory: [],
   addChatMessage: (msg) =>
     set((state) => ({ chatHistory: [...state.chatHistory, msg] })),
   clearChatHistory: () => set({ chatHistory: [] }),
 
+  // ── Error state ────────────────────────────────────────────────
   error: null,
   setError: (error) => set({ error }),
 }))

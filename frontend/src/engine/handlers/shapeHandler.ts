@@ -88,6 +88,10 @@ export function createShapeObject(
     top: layout.top,
     width: layout.width,
     height: layout.height,
+    // fabric.js v6 默认 originX/Y 为 'center'，需显式设为 'left'/'top'
+    // 确保 left/top 表示元素左上角而非中心点
+    originX: 'left',
+    originY: 'top',
     fill,
     // 圆角：fabric.js Rect 使用 rx/ry 属性
     rx: style.borderRadius,

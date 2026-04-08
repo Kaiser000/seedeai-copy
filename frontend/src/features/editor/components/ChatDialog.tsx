@@ -1,7 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { Send, Bot, User, Loader2, Sparkles, Code2, ImageIcon, CheckCircle2, AlertCircle } from 'lucide-react'
+import {
+  Send, Bot, User, Loader2, CheckCircle2, AlertCircle,
+  ChevronDown, ImageIcon, Layers, Type, Square,
+} from 'lucide-react'
 import { useEditorStore } from '../stores/useEditorStore'
-import type { ChatMessage, ChatMessageType } from '../stores/useEditorStore'
+import type {
+  ChatMessage, WorkflowStage, WorkflowStageStatus, LayoutElement,
+} from '../stores/useEditorStore'
 import { useCanvasCommands } from '../hooks/useCanvasCommands'
 import type { Command } from '../hooks/useCanvasCommands'
 import { connectSse } from '@/features/generation/services/sseClient'
@@ -12,46 +17,197 @@ import { getGlobalCanvas } from '../canvasRegistry'
 import React from 'react'
 import * as ReactDOMClient from 'react-dom/client'
 
-/** 根据消息类型返回对应的图标 */
-function MsgIcon({ msgType }: { msgType?: ChatMessageType }) {
-  switch (msgType) {
-    case 'thinking':
-      return <Sparkles size={11} className="text-amber-500" />
-    case 'code_complete':
-      return <Code2 size={11} className="text-blue-500" />
-    case 'image_progress':
-      return <ImageIcon size={11} className="text-emerald-500" />
+/* ══════════════════════════════════════════════════════════════════
+ *  工作流阶段状态图标
+ * ══════════════════════════════════════════════════════════════════ */
+
+/** 根据阶段状态渲染对应图标（spinner / 勾选 / 错误 / 空圈） */
+function StageStatusIcon({ status, isActive }: { status: WorkflowStageStatus; isActive: boolean }) {
+  // 生成中且阶段为 active → 转圈动画
+  if (isActive) {
+    return <Loader2 size={14} className="text-blue-500 animate-spin flex-shrink-0" />
+  }
+  switch (status) {
     case 'complete':
-      return <CheckCircle2 size={11} className="text-green-600" />
+      return <CheckCircle2 size={14} className="text-green-500 flex-shrink-0" />
     case 'error':
-      return <AlertCircle size={11} className="text-red-500" />
+      return <AlertCircle size={14} className="text-red-500 flex-shrink-0" />
+    case 'active':
+      return <Loader2 size={14} className="text-blue-500 animate-spin flex-shrink-0" />
     default:
-      return <Bot size={11} className="text-violet-500" />
+      // pending：灰色空圈
+      return <div className="w-3.5 h-3.5 rounded-full border-2 border-gray-200 flex-shrink-0" />
   }
 }
 
-/** 工作流步骤消息的样式 */
-function workflowStyle(msgType?: ChatMessageType): string {
-  switch (msgType) {
-    case 'thinking':
-      return 'bg-amber-50 text-amber-700 border border-amber-200'
-    case 'code_complete':
-      return 'bg-blue-50 text-blue-700 border border-blue-200'
-    case 'image_progress':
-      return 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-    case 'complete':
-      return 'bg-green-50 text-green-700 border border-green-200'
-    case 'error':
-      return 'bg-red-50 text-red-600 border border-red-200'
-    default:
-      return 'bg-gray-100 text-gray-700'
+/* ══════════════════════════════════════════════════════════════════
+ *  布局元素小圆点颜色
+ * ══════════════════════════════════════════════════════════════════ */
+
+function elementDotColor(type: LayoutElement['type']): string {
+  switch (type) {
+    case 'text': return 'bg-blue-400'
+    case 'image': return 'bg-emerald-400'
+    case 'shape': return 'bg-amber-400'
+    default: return 'bg-gray-400'
   }
 }
 
-function isWorkflowStep(msgType?: ChatMessageType): boolean {
-  return msgType === 'thinking' || msgType === 'code_complete' ||
-    msgType === 'image_progress' || msgType === 'complete' || msgType === 'error'
+/** 布局元素类型的中文显示名 */
+function elementTypeLabel(el: LayoutElement): string {
+  switch (el.type) {
+    case 'text': return `文本 ${el.label}`
+    case 'image': return '图片'
+    case 'shape': return '形状'
+    default: return el.label
+  }
 }
+
+/** 布局元素类型图标 */
+function ElementIcon({ type }: { type: LayoutElement['type'] }) {
+  switch (type) {
+    case 'text': return <Type size={10} className="text-blue-400" />
+    case 'image': return <ImageIcon size={10} className="text-emerald-400" />
+    case 'shape': return <Square size={10} className="text-amber-400" />
+    default: return null
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+ *  阶段卡片的边框颜色
+ * ══════════════════════════════════════════════════════════════════ */
+
+function stageBorderColor(status: WorkflowStageStatus): string {
+  switch (status) {
+    case 'complete': return 'border-green-100'
+    case 'active': return 'border-blue-200'
+    case 'error': return 'border-red-200'
+    default: return 'border-gray-100'
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+ *  单个工作流阶段卡片（可展开/折叠）
+ * ══════════════════════════════════════════════════════════════════ */
+
+function StageCard({ stage, analysisContent, isGenerating }: {
+  stage: WorkflowStage
+  /** 需求分析阶段用：实时累积的分析文本 */
+  analysisContent?: string
+  isGenerating: boolean
+}) {
+  const [expanded, setExpanded] = useState(false)
+
+  // 判断该阶段是否有可展开的内容
+  const hasContent =
+    (stage.id === 'analysis' && !!analysisContent) ||
+    (stage.id === 'layout' && !!stage.elements && stage.elements.length > 0) ||
+    (stage.id === 'image_gen' && !!stage.details && stage.details.length > 0)
+
+  const canExpand = hasContent && stage.status !== 'pending'
+
+  return (
+    <div className={`rounded-lg border ${stageBorderColor(stage.status)} overflow-hidden bg-white`}>
+      {/* ── 阶段标题行 ─────────────────────────────────────────── */}
+      <button
+        onClick={() => canExpand && setExpanded(!expanded)}
+        className={`
+          flex items-center gap-2 w-full px-3 py-2 text-left text-xs
+          ${canExpand ? 'cursor-pointer hover:bg-gray-50' : 'cursor-default'}
+          transition-colors
+        `}
+      >
+        <StageStatusIcon
+          status={stage.status}
+          isActive={isGenerating && stage.status === 'active'}
+        />
+        <span className="font-medium text-gray-700">{stage.label}</span>
+        {stage.summary && (
+          <span className="text-[10px] text-gray-400 ml-1 truncate">{stage.summary}</span>
+        )}
+        <div className="flex-1" />
+        {canExpand && (
+          <ChevronDown
+            size={12}
+            className={`text-gray-300 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+          />
+        )}
+      </button>
+
+      {/* ── 可展开内容区 ───────────────────────────────────────── */}
+      {expanded && (
+        <div className="px-3 pb-2.5 border-t border-gray-50">
+          {/* 需求分析：设计方案文本 */}
+          {stage.id === 'analysis' && analysisContent && (
+            <div className="text-[10px] leading-relaxed text-gray-600 max-h-48 overflow-auto mt-2 whitespace-pre-wrap bg-gray-50 rounded p-2">
+              {analysisContent.slice(0, 3000)}
+              {analysisContent.length > 3000 && '\n...（内容已截断）'}
+            </div>
+          )}
+
+          {/* 页面布局：元素列表 */}
+          {stage.id === 'layout' && stage.elements && (
+            <div className="space-y-1 mt-2">
+              {stage.elements.map((el, i) => (
+                <div key={i} className="flex items-center gap-2 text-[11px] text-gray-600">
+                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${elementDotColor(el.type)}`} />
+                  <ElementIcon type={el.type} />
+                  <span>{elementTypeLabel(el)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 图片生成：进度详情 */}
+          {stage.id === 'image_gen' && stage.details && (
+            <div className="space-y-0.5 mt-2">
+              {stage.details.map((detail, i) => (
+                <div key={i} className="text-[10px] text-gray-500 flex items-center gap-1.5">
+                  <ImageIcon size={9} className="text-emerald-400 flex-shrink-0" />
+                  <span>{detail}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════
+ *  工作流阶段组
+ * ══════════════════════════════════════════════════════════════════ */
+
+function WorkflowSection({ stages, analysisContent, isGenerating }: {
+  stages: WorkflowStage[]
+  analysisContent: string
+  isGenerating: boolean
+}) {
+  // 过滤：图片生成阶段仅在被激活后显示（status 非 pending）
+  const visibleStages = stages.filter(
+    (s) => s.id !== 'image_gen' || s.status !== 'pending'
+  )
+
+  if (visibleStages.length === 0) return null
+
+  return (
+    <div className="space-y-1.5 px-2 py-1.5">
+      {visibleStages.map((stage) => (
+        <StageCard
+          key={stage.id}
+          stage={stage}
+          analysisContent={stage.id === 'analysis' ? analysisContent : undefined}
+          isGenerating={isGenerating}
+        />
+      ))}
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════
+ *  ChatDialog 主组件
+ * ══════════════════════════════════════════════════════════════════ */
 
 export function ChatDialog() {
   const [input, setInput] = useState('')
@@ -64,15 +220,18 @@ export function ChatDialog() {
   const chatHistory = useEditorStore((s) => s.chatHistory)
   const addChatMessage = useEditorStore((s) => s.addChatMessage)
   const isGenerating = useEditorStore((s) => s.isGenerating)
+  const workflowStages = useEditorStore((s) => s.workflowStages)
+  const analysisContent = useEditorStore((s) => s.analysisContent)
   const pushCommand = useCanvasCommands((s) => s.pushCommand)
 
-  // Auto-scroll on new messages
+  // 新消息时自动滚动到底部
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
-  }, [chatHistory, isSending])
+  }, [chatHistory, workflowStages, isSending])
 
+  /* ── 发送对话修改请求 ──────────────────────────────────────────── */
   const handleSend = useCallback(async () => {
     const canvas = getGlobalCanvas()
     if (!canvas || !input.trim()) return
@@ -148,55 +307,39 @@ export function ChatDialog() {
     }
   }
 
-  const renderMessage = (msg: ChatMessage, i: number) => {
-    // 工作流步骤：紧凑的横向卡片样式
-    if (msg.role === 'assistant' && isWorkflowStep(msg.msgType)) {
-      return (
-        <div key={i} className="flex items-center gap-2 px-2">
-          <div className={`
-            flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] leading-relaxed w-full
-            ${workflowStyle(msg.msgType)}
-          `}>
-            <MsgIcon msgType={msg.msgType} />
-            <span>{msg.content}</span>
-          </div>
-        </div>
-      )
-    }
-
-    // 普通对话消息：气泡样��
-    return (
-      <div key={i} className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-        <div className={`
-          w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center
-          ${msg.role === 'user' ? 'bg-gray-800' : 'bg-violet-100'}
-        `}>
-          {msg.role === 'user'
-            ? <User size={11} className="text-white" />
-            : <Bot size={11} className="text-violet-500" />}
-        </div>
-        <div className={`
-          max-w-[80%] px-3 py-2 rounded-xl text-xs leading-relaxed
-          ${msg.role === 'user'
-            ? 'bg-gray-800 text-white rounded-tr-sm'
-            : 'bg-gray-100 text-gray-700 rounded-tl-sm'}
-        `}>
-          {msg.content}
-        </div>
+  /* ── 渲染单条对话消息（用户/助手气泡） ────────────────────────── */
+  const renderMessage = (msg: ChatMessage, i: number) => (
+    <div key={i} className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+      <div className={`
+        w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center
+        ${msg.role === 'user' ? 'bg-gray-800' : 'bg-violet-100'}
+      `}>
+        {msg.role === 'user'
+          ? <User size={11} className="text-white" />
+          : <Bot size={11} className="text-violet-500" />}
       </div>
-    )
-  }
+      <div className={`
+        max-w-[80%] px-3 py-2 rounded-xl text-xs leading-relaxed
+        ${msg.role === 'user'
+          ? 'bg-gray-800 text-white rounded-tr-sm'
+          : 'bg-gray-100 text-gray-700 rounded-tl-sm'}
+      `}>
+        {msg.content}
+      </div>
+    </div>
+  )
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
+      {/* ── Header ─────────────────────────────────────────────── */}
       <div className="flex items-center gap-2 px-4 py-2.5 border-b border-gray-100 flex-shrink-0">
-        <Bot size={14} className="text-violet-500" />
+        <Layers size={14} className="text-violet-500" />
         <span className="text-xs font-semibold text-gray-700">AI 工作流</span>
       </div>
 
-      {/* Chat history */}
+      {/* ── 内容区域 ───────────────────────────────────────────── */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-2 min-h-0">
+        {/* 空状态 */}
         {chatHistory.length === 0 && !isGenerating && (
           <div className="text-center py-6">
             <Bot size={28} className="text-gray-300 mx-auto mb-2" />
@@ -204,8 +347,24 @@ export function ChatDialog() {
             <p className="text-[11px] text-gray-300 mt-0.5">生成过程将在此显示工作流</p>
           </div>
         )}
-        {chatHistory.map((msg, i) => renderMessage(msg, i))}
-        {(isSending || (isGenerating && chatHistory.length === 0)) && (
+
+        {/* 第一条消息（初始用户 prompt） */}
+        {chatHistory.length > 0 && renderMessage(chatHistory[0], 0)}
+
+        {/* 工作流阶段展示 */}
+        {workflowStages.length > 0 && (
+          <WorkflowSection
+            stages={workflowStages}
+            analysisContent={analysisContent}
+            isGenerating={isGenerating}
+          />
+        )}
+
+        {/* 后续对话消息（对话修改产生的用户/助手消息） */}
+        {chatHistory.slice(1).map((msg, i) => renderMessage(msg, i + 1))}
+
+        {/* 对话修改中的加载指示器 */}
+        {isSending && (
           <div className="flex gap-2">
             <div className="w-6 h-6 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
               <Bot size={11} className="text-violet-500" />
@@ -215,12 +374,14 @@ export function ChatDialog() {
             </div>
           </div>
         )}
+
+        {/* 对话错误 */}
         {chatError && (
           <div className="text-[11px] text-red-500 bg-red-50 rounded-lg px-3 py-2">{chatError}</div>
         )}
       </div>
 
-      {/* Input area */}
+      {/* ── 输入区域 ───────────────────────────────────────────── */}
       <div className="flex-shrink-0 px-3 pb-3 pt-2 border-t border-gray-100">
         <div className="flex gap-2 items-end">
           <textarea

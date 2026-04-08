@@ -51,6 +51,10 @@ export function createTextObject(
     left: layout.left,
     top: layout.top,
     width: layout.width,
+    // fabric.js v6 默认 originX/Y 为 'center'，需显式设为 'left'/'top'
+    // 确保 left/top 表示元素左上角而非中心点
+    originX: 'left',
+    originY: 'top',
 
     // 字体
     fontSize: style.fontSize,

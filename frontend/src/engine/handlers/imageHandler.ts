@@ -69,6 +69,10 @@ export async function createImageObject(
     img.set({
       left: layout.left,
       top: layout.top,
+      // fabric.js v6 默认 originX/Y 为 'center'，需显式设为 'left'/'top'
+      // 确保 left/top 表示元素左上角而非中心点
+      originX: 'left',
+      originY: 'top',
       scaleX: containerW / imgWidth,
       scaleY: containerH / imgHeight,
       selectable: true,
@@ -86,7 +90,10 @@ export async function createImageObject(
       height: displayH,
       rx: borderRadius / (img.scaleX || 1),
       ry: borderRadius / (img.scaleY || 1),
-      // clipPath 原点在对象中心，需偏移到左上角
+      // fabric.js v6 默认 originX/Y 为 'center'，需显式设为 'left'/'top'
+      // clipPath 坐标相对于对象中心，偏移到左上角以居中裁切区域
+      originX: 'left',
+      originY: 'top',
       left: -displayW / 2,
       top: -displayH / 2,
     })
@@ -158,6 +165,10 @@ function applyCover(
   img.set({
     left: layout.left,
     top: layout.top,
+    // fabric.js v6 默认 originX/Y 为 'center'，需显式设为 'left'/'top'
+    // 确保 left/top 表示元素左上角而非中心点
+    originX: 'left',
+    originY: 'top',
     cropX,
     cropY,
     width: visibleW,
@@ -189,6 +200,10 @@ function applyContain(
   img.set({
     left: layout.left + offsetX,
     top: layout.top + offsetY,
+    // fabric.js v6 默认 originX/Y 为 'center'，需显式设为 'left'/'top'
+    // 确保 left/top 表示元素左上角而非中心点
+    originX: 'left',
+    originY: 'top',
     scaleX: scale,
     scaleY: scale,
     selectable: true,

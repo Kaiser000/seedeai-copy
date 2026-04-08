@@ -118,6 +118,33 @@ public class SseMessage {
     }
 
     /**
+     * 创建 analysis_chunk 事件，携带需求分析阶段的流式文本片段。
+     *
+     * @param content 分析文本片段（如设计思路、配色方案等）
+     */
+    public static SseMessage analysisChunk(String content) {
+        return new SseMessage("analysis_chunk", content);
+    }
+
+    /**
+     * 创建 analysis_complete 事件，标记需求分析阶段完成。
+     *
+     * @param content 完整的分析文本
+     */
+    public static SseMessage analysisComplete(String content) {
+        return new SseMessage("analysis_complete", content);
+    }
+
+    /**
+     * 创建 layout_complete 事件，携带页面布局阶段解析出的元素列表。
+     *
+     * @param content JSON 格式的元素列表（如 {@code {"elements":[{"type":"text","label":"标题"}]}}）
+     */
+    public static SseMessage layoutComplete(String content) {
+        return new SseMessage("layout_complete", content);
+    }
+
+    /**
      * 创建 error 事件，通知前端发生错误。
      *
      * @param content   用户可读的错误描述

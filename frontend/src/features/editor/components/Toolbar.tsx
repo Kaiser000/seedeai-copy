@@ -74,6 +74,10 @@ export function Toolbar() {
       left: (canvas.width || 500) / 2 - 100,
       top: (canvas.height || 500) / 2 - 20,
       width: 200,
+      // fabric.js v6 默认 originX/Y 为 'center'，需显式设为 'left'/'top'
+      // 确保 left/top 表示元素左上角而非中心点
+      originX: 'left',
+      originY: 'top',
       fontSize: 24,
       fontFamily: 'AlibabaPuHuiTi, NotoSansSC, sans-serif',
       fill: '#000000',

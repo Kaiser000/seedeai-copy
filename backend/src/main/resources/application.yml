@@ -28,5 +28,9 @@ web-search:
   result-limit: ${WEB_SEARCH_RESULT_LIMIT:5}
   timeout-ms: ${WEB_SEARCH_TIMEOUT_MS:5000}
 
+openrouter:
+  api-url: ${OPENROUTER_API_URL:https://openrouter.ai/api/v1/chat/completions}
+  api-key: ${OPENROUTER_API_KEY:}
+
 cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://10.10.115.73:5173}

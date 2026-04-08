@@ -67,7 +67,7 @@ public class PosterGenerateService {
      * @return SSE 事件流，按阶段顺序推送
      */
     public Flux<ServerSentEvent<SseMessage>> generate(GenerateRequest request) {
-        log.info("收到生成请求: prompt={}", request.getPrompt());
+        log.info("收到生成请求: prompt={}, modelName={}", request.getPrompt(), request.getModelName());
 
         // ── 步骤 0：加载提示词模板 ──────────────────────────────────
         String analyzePrompt;
@@ -93,6 +93,7 @@ public class PosterGenerateService {
 
         // ── 步骤 1：联网搜索（可选） ────────────────────────────────
         Flux<SseMessage> searchStream;
+        log.info("联网搜索功能状态: enabled={}", webSearchClient.isEnabled());
         if (webSearchClient.isEnabled()) {
             searchStream = Flux.defer(() -> {
                 String keywords = request.getPrompt();
@@ -101,6 +102,7 @@ public class PosterGenerateService {
                     keywords = keywords.substring(0, 20);
                 }
                 String searchKeywords = keywords;
+                log.info("联网搜索阶段启动: 原始prompt长度={}, 搜索关键词={}", request.getPrompt().length(), searchKeywords);
 
                 return Mono.just(SseMessage.searchStart(searchKeywords))
                         .flux()
@@ -119,6 +121,7 @@ public class PosterGenerateService {
                         });
             });
         } else {
+            log.info("联网搜索未启用，跳过搜索阶段");
             searchStream = Flux.empty();
         }
 
@@ -136,7 +139,7 @@ public class PosterGenerateService {
                 log.info("搜索结果已注入分析 prompt，参考资料 {} 条", searchResults.size());
             }
 
-            return llmClient.streamChat(analyzePrompt, userPrompt)
+            return llmClient.streamChat(analyzePrompt, userPrompt, request.getModelName())
                     .doOnSubscribe(s -> log.info("开始需求分析 LLM 调用"))
                     .doOnComplete(() -> log.info("需求分析 LLM 流结束"))
                     .doOnError(e -> log.error("需求分析 LLM 流异常", e))
@@ -176,7 +179,7 @@ public class PosterGenerateService {
             String enrichedPrompt = buildEnrichedPrompt(request.getPrompt(), analysisResult, request.getHeight());
             log.info("开始代码生成 LLM 调用，enriched prompt 长度: {} 字符", enrichedPrompt.length());
 
-            return llmClient.streamChat(generatePrompt, enrichedPrompt)
+            return llmClient.streamChat(generatePrompt, enrichedPrompt, request.getModelName())
                     .doOnSubscribe(s -> log.info("代码生成 LLM 流开始"))
                     .doOnComplete(() -> log.info("代码生成 LLM 流结束"))
                     .doOnError(e -> log.error("代码生成 LLM 流异常", e))
@@ -209,7 +212,14 @@ public class PosterGenerateService {
 
         // ── 步骤 6：拼接所有阶段 ──────────────────────────────────
         return Flux.concat(searchStream, thinkingMsg, analysisStream, codeStream, imageStream)
-                .doOnNext(msg -> log.info("SSE发送: type={}", msg.getType()))
+                .doFirst(() -> log.info("SSE 流开始推送"))
+                .doOnNext(msg -> {
+                    if ("error".equals(msg.getType())) {
+                        log.error("SSE 推送错误事件: {}", msg.getContent());
+                    }
+                })
+                .doOnComplete(() -> log.info("SSE 流推送完成"))
+                .doOnError(e -> log.error("SSE 流异常终止: {}", e.getMessage()))
                 .map(msg -> ServerSentEvent.<SseMessage>builder()
                         .data(msg)
                         .build());

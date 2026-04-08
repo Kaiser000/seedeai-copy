@@ -38,6 +38,9 @@ public class RollRequest {
     @Positive(message = "height 必须为正整数")
     private int height;
 
+    /** 指定使用的 LLM 模型名称（可选）。为空时使用后端默认配置的模型 */
+    private String modelName;
+
     public String getElementDescription() { return elementDescription; }
     public void setElementDescription(String elementDescription) { this.elementDescription = elementDescription; }
     public String getCanvasContext() { return canvasContext; }
@@ -46,4 +49,6 @@ public class RollRequest {
     public void setWidth(int width) { this.width = width; }
     public int getHeight() { return height; }
     public void setHeight(int height) { this.height = height; }
+    public String getModelName() { return modelName; }
+    public void setModelName(String modelName) { this.modelName = modelName; }
 }

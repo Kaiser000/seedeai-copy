@@ -48,8 +48,8 @@ public class RollService {
      * @return 由 thinking → code_chunk* → complete（或 error）组成的 SSE 事件流
      */
     public Flux<ServerSentEvent<SseMessage>> roll(RollRequest request) {
-        log.info("开始重新生成元素 - 尺寸: {}x{}, 元素描述: {}",
-                request.getWidth(), request.getHeight(), request.getElementDescription());
+        log.info("开始重新生成元素 - 尺寸: {}x{}, 元素描述: {}, modelName: {}",
+                request.getWidth(), request.getHeight(), request.getElementDescription(), request.getModelName());
 
         // 步骤 1：加载提示词模板，注入画布尺寸
         log.debug("加载提示词模板: poster-roll.md");
@@ -71,7 +71,7 @@ public class RollService {
 
         // 步骤 4：向 LLM 发起流式请求，解析响应；异常降级为可重试的 error 事件
         Flux<SseMessage> llmStream = responseParser.parseStream(
-                llmClient.streamChat(systemPrompt, userMessage)
+                llmClient.streamChat(systemPrompt, userMessage, request.getModelName())
         ).doOnNext(msg -> log.debug("收到 LLM 解析消息 - type: {}", msg.getType()))
          .doOnComplete(() -> log.info("元素重新生成流结束"))
          .doOnError(e -> log.error("元素重新生成 LLM 流异常", e))

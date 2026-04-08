@@ -57,7 +57,8 @@ public class ChatOptimizeService {
      */
     public Flux<ServerSentEvent<SseMessage>> chat(ChatRequest request) {
         int historySize = request.getChatHistory() != null ? request.getChatHistory().size() : 0;
-        log.info("开始对话优化 - 尺寸: {}x{}, 历史轮数: {}", request.getWidth(), request.getHeight(), historySize);
+        log.info("开始对话优化 - 尺寸: {}x{}, 历史轮数: {}, modelName: {}",
+                request.getWidth(), request.getHeight(), historySize, request.getModelName());
 
         // 步骤 1：加载提示词模板，注入画布尺寸和当前 canvasState
         // canvasState 让 LLM 了解当前海报代码上下文，从而进行精准的局部修改
@@ -94,7 +95,7 @@ public class ChatOptimizeService {
 
         // 步骤 4：携带历史消息调用 LLM，解析流式响应；异常降级为可重试的 error 事件
         Flux<SseMessage> llmStream = responseParser.parseStream(
-                llmClient.streamChatWithHistory(systemPrompt, messages)
+                llmClient.streamChatWithHistory(systemPrompt, messages, request.getModelName())
         ).doOnNext(msg -> log.debug("收到 LLM 解析消息 - type: {}", msg.getType()))
          .doOnComplete(() -> log.info("对话优化流结束"))
          .doOnError(e -> log.error("对话优化 LLM 流异常", e))

@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.net.URI;
-import java.net.URLEncoder;
+
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
@@ -72,26 +72,27 @@ public class WebSearchClient {
             return Mono.just(Collections.emptyList());
         }
 
-        log.info("开始联网搜索: keywords={}", keywords);
+        log.info("开始联网搜索: keywords={}, enabled={}, appId={}, apiUrl={}",
+                keywords, config.isEnabled(), config.getAppId(), config.getApiUrl());
 
         try {
             // 构建签名 URL
-            String signedUrl = buildSignedUrl();
+            URI signedUri = buildSignedUrl();
 
             // 构建请求体
             String requestBody = buildRequestBody(keywords);
 
-            log.info("联网搜索请求: url={}", signedUrl.substring(0, Math.min(signedUrl.length(), 120)) + "...");
-            log.debug("联网搜索请求体: {}", requestBody);
+            log.info("联网搜索请求: signedUri={}", signedUri);
+            log.info("联网搜索请求体: {}", requestBody);
 
             return webClient.post()
-                    .uri(signedUrl)
+                    .uri(signedUri)
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(String.class)
                     .timeout(Duration.ofMillis(config.getTimeoutMs()))
-                    .doOnNext(body -> log.info("联网搜索原始响应: 长度={}字符, 前200字={}",
-                            body.length(), body.substring(0, Math.min(body.length(), 200))))
+                    .doOnNext(body -> log.info("联网搜索原始响应: 长度={}字符, 内容={}",
+                            body.length(), body.substring(0, Math.min(body.length(), 1000))))
                     .map(this::parseResponse)
                     .doOnNext(results -> {
                         log.info("联网搜索完成: keywords={}, 结果数={}", keywords, results.size());
@@ -102,7 +103,8 @@ public class WebSearchClient {
                         }
                     })
                     .onErrorResume(e -> {
-                        log.error("联网搜索失败: keywords={}, error={}", keywords, e.getMessage(), e);
+                        log.error("联网搜索失败: keywords={}, errorType={}, error={}",
+                                keywords, e.getClass().getSimpleName(), e.getMessage(), e);
                         return Mono.just(Collections.emptyList());
                     });
 
@@ -123,7 +125,7 @@ public class WebSearchClient {
      *   <li>将 authorization、date、host 作为 URL query 参数</li>
      * </ol>
      */
-    private String buildSignedUrl() throws Exception {
+    private URI buildSignedUrl() throws Exception {
         URI uri = new URI(config.getApiUrl());
         String host = uri.getHost();
         String path = uri.getPath();
@@ -150,18 +152,21 @@ public class WebSearchClient {
         String authBase64 = Base64.getEncoder().encodeToString(
                 authorization.getBytes(StandardCharsets.UTF_8));
 
-        // 拼接最终 URL（使用 http 协议，与原实现一致）
-        String encodedDate = URLEncoder.encode(date, StandardCharsets.UTF_8);
-        String encodedHost = URLEncoder.encode(host, StandardCharsets.UTF_8);
-        String encodedAuth = URLEncoder.encode(authBase64, StandardCharsets.UTF_8);
+        // 使用 UriComponentsBuilder 构建 URI，由它统一处理编码，避免双重编码
+        // 使用 http 协议，与原讯飞 SDK 实现一致
+        URI signedUri = org.springframework.web.util.UriComponentsBuilder.newInstance()
+                .scheme("http")
+                .host(host)
+                .path(path)
+                .queryParam("authorization", authBase64)
+                .queryParam("date", date)
+                .queryParam("host", host)
+                .build()
+                .encode()
+                .toUri();
 
-        String signedUrl = "http://" + host + path
-                + "?authorization=" + encodedAuth
-                + "&date=" + encodedDate
-                + "&host=" + encodedHost;
-
-        log.debug("签名 URL 构建完成: host={}, path={}", host, path);
-        return signedUrl;
+        log.info("签名 URL 构建完成: host={}, path={}, date={}", host, path, date);
+        return signedUri;
     }
 
     /**
@@ -193,8 +198,9 @@ public class WebSearchClient {
             String errCode = root.path("err_code").asText("");
 
             if (!"0".equals(errCode)) {
-                log.warn("搜索 API 返回错误: err_code={}, response={}", errCode,
-                        responseBody.substring(0, Math.min(responseBody.length(), 200)));
+                String errMsg = root.path("err_msg").asText(root.path("message").asText("unknown"));
+                log.warn("搜索 API 返回错误: err_code={}, err_msg={}, 完整响应={}",
+                        errCode, errMsg, responseBody.substring(0, Math.min(responseBody.length(), 500)));
                 return Collections.emptyList();
             }
 

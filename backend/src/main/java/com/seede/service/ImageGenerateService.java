@@ -17,6 +17,8 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -205,9 +207,14 @@ public class ImageGenerateService {
                             Flux.just(progressMsg),
                             callSeedreamApiReactive(p.prompt, p.width, p.height)
                                     .map(imageUrl -> {
-                                        // 替换代码中的占位 URL
-                                        codeRef.updateAndGet(code -> code.replace(p.originalUrl, imageUrl));
-                                        log.info("第 {}/{} 张图片生成成功: seed={}", i + 1, total, p.seed);
+                                        // 使用后端代理 URL 替换占位图，解决浏览器 CORS 限制
+                                        // 前端 fabric.js canvas 操作需要图片支持 CORS，
+                                        // 外部 CDN 通常不提供 CORS 头，通过 /api/proxy/image 代理解决
+                                        String proxyUrl = "/api/proxy/image?url="
+                                                + URLEncoder.encode(imageUrl, StandardCharsets.UTF_8);
+                                        codeRef.updateAndGet(code -> code.replace(p.originalUrl, proxyUrl));
+                                        log.info("第 {}/{} 张图片生成成功: seed={}, url={}", i + 1, total, p.seed, imageUrl);
+                                        // image_complete 消息中返回原始 URL，供前端 UI 预览展示
                                         return SseMessage.imageComplete(String.format(
                                                 "{\"index\":%d,\"prompt\":\"%s\",\"url\":\"%s\"}",
                                                 i, escapeJson(p.prompt), escapeJson(imageUrl)));
@@ -282,12 +289,12 @@ public class ImageGenerateService {
         }
     }
 
-    /** 将任意宽高映射为 Seedream 支持的尺寸 */
+    /** 将任意宽高映射为 Seedream 支持的尺寸（最小像素数 921600） */
     private String resolveSeedreamSize(int width, int height) {
         double ratio = (double) width / height;
-        if (ratio > 1.3) return "1024x576";        // 横版 16:9
-        if (ratio > 0.9) return "1024x1024";        // 方形 1:1
-        return "576x1024";                           // 竖版 9:16
+        if (ratio > 1.3) return "1280x720";         // 横版 16:9（921600px）
+        if (ratio > 0.9) return "1024x1024";         // 方形 1:1（1048576px）
+        return "720x1280";                            // 竖版 9:16（921600px）
     }
 
     private String escapeJson(String value) {

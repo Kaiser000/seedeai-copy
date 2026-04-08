@@ -6,15 +6,27 @@ spring:
     name: seede-ai
 
 llm:
+  # provider: openai（智谱/DeepSeek 等 OpenAI 兼容格式）或 anthropic（Claude 原生格式）
+  provider: ${LLM_PROVIDER:openai}
   api-url: ${LLM_API_URL:https://open.bigmodel.cn/api/paas/v4/chat/completions}
   api-key: ${LLM_API_KEY:}
-  model-name: ${LLM_MODEL:glm-4.7}
+  model-name: ${LLM_MODEL:glm-5}
+  max-tokens: ${LLM_MAX_TOKENS:8192}
 
 image-generate:
   enabled: ${IMAGE_GENERATE_ENABLED:true}
   api-url: ${IMAGE_GENERATE_API_URL:https://ark.cn-beijing.volces.com/api/v3/images/generations}
   api-key: ${IMAGE_GENERATE_API_KEY:}
   model-name: ${IMAGE_GENERATE_MODEL:doubao-seedream-4-0-250828}
+
+web-search:
+  enabled: ${WEB_SEARCH_ENABLED:false}
+  api-url: ${WEB_SEARCH_API_URL:https://cbm-search-api.cn-huabei-1.xf-yun.com/biz/search}
+  app-id: ${WEB_SEARCH_APP_ID:}
+  api-key: ${WEB_SEARCH_API_KEY:}
+  api-secret: ${WEB_SEARCH_API_SECRET:}
+  result-limit: ${WEB_SEARCH_RESULT_LIMIT:5}
+  timeout-ms: ${WEB_SEARCH_TIMEOUT_MS:5000}
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}

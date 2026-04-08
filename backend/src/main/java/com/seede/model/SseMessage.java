@@ -118,6 +118,24 @@ public class SseMessage {
     }
 
     /**
+     * 创建 search_start 事件，通知前端开始联网搜索。
+     *
+     * @param content 搜索关键词
+     */
+    public static SseMessage searchStart(String content) {
+        return new SseMessage("search_start", content);
+    }
+
+    /**
+     * 创建 search_complete 事件，携带搜索结果摘要。
+     *
+     * @param content JSON 格式的搜索结果列表
+     */
+    public static SseMessage searchComplete(String content) {
+        return new SseMessage("search_complete", content);
+    }
+
+    /**
      * 创建 analysis_chunk 事件，携带需求分析阶段的流式文本片段。
      *
      * @param content 分析文本片段（如设计思路、配色方案等）

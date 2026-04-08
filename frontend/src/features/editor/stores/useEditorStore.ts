@@ -25,6 +25,8 @@ type Page = 'input' | 'editor'
 export interface SseMessage {
   type:
     | 'thinking'
+    | 'search_start'
+    | 'search_complete'
     | 'analysis_chunk'
     | 'analysis_complete'
     | 'layout_complete'
@@ -52,7 +54,7 @@ export interface ChatMessage {
 
 /* ── 工作流阶段类型 ───────────────────────────────────────────────── */
 
-export type WorkflowStageId = 'analysis' | 'layout' | 'image_gen' | 'compose'
+export type WorkflowStageId = 'search' | 'analysis' | 'layout' | 'image_gen' | 'compose'
 export type WorkflowStageStatus = 'pending' | 'active' | 'complete' | 'error'
 
 /** 页面布局阶段解析出的元素 */
@@ -129,6 +131,7 @@ interface EditorState {
 
 function createInitialStages(): WorkflowStage[] {
   return [
+    { id: 'search', label: '联网搜索', status: 'pending' },
     { id: 'analysis', label: '需求分析', status: 'pending' },
     { id: 'layout', label: '页面布局', status: 'pending' },
     { id: 'image_gen', label: '图片生成', status: 'pending' },

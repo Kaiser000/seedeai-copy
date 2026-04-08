@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import {
   Send, Bot, User, Loader2, CheckCircle2, AlertCircle,
-  ChevronDown, ImageIcon, Layers, Type, Square,
+  ChevronDown, ImageIcon, Layers, Type, Square, ExternalLink,
 } from 'lucide-react'
 import { useEditorStore } from '../stores/useEditorStore'
 import type {
@@ -100,6 +100,7 @@ function StageCard({ stage, analysisContent, isGenerating }: {
 
   // 判断该阶段是否有可展开的内容
   const hasContent =
+    (stage.id === 'search' && !!stage.details && stage.details.length > 0) ||
     (stage.id === 'analysis' && !!analysisContent) ||
     (stage.id === 'layout' && !!stage.elements && stage.elements.length > 0) ||
     (stage.id === 'image_gen' && !!stage.details && stage.details.length > 0)
@@ -137,6 +138,18 @@ function StageCard({ stage, analysisContent, isGenerating }: {
       {/* ── 可展开内容区 ───────────────────────────────────────── */}
       {expanded && (
         <div className="px-3 pb-2.5 border-t border-gray-50">
+          {/* 联网搜索：搜索结果标题列表 */}
+          {stage.id === 'search' && stage.details && (
+            <div className="space-y-1 mt-2">
+              {stage.details.map((title, i) => (
+                <div key={i} className="flex items-center gap-1.5 text-[10px] text-gray-500">
+                  <ExternalLink size={9} className="text-blue-400 flex-shrink-0" />
+                  <span className="truncate">{title}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* 需求分析：设计方案文本 */}
           {stage.id === 'analysis' && analysisContent && (
             <div className="text-[10px] leading-relaxed text-gray-600 max-h-48 overflow-auto mt-2 whitespace-pre-wrap bg-gray-50 rounded p-2">
@@ -185,6 +198,7 @@ function WorkflowSection({ stages, analysisContent, isGenerating }: {
   isGenerating: boolean
 }) {
   // 过滤：图片生成阶段仅在被激活后显示（status 非 pending）
+  // 搜索阶段始终显示，未启用时会被标记为"跳过"
   const visibleStages = stages.filter(
     (s) => s.id !== 'image_gen' || s.status !== 'pending'
   )

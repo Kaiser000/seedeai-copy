@@ -14,14 +14,17 @@ export default {
     'justify-center', 'justify-start', 'justify-end', 'justify-between', 'justify-around', 'justify-evenly',
     'self-start', 'self-center', 'self-end', 'self-stretch',
     'grid', 'grid-cols-1', 'grid-cols-2', 'grid-cols-3', 'grid-cols-4', 'grid-cols-5', 'grid-cols-6',
-    // gap：覆盖 0~16 完整范围（LLM 常用 gap-10、gap-12、gap-16）
-    { pattern: /^gap-\d+$/ },
+    // gap：覆盖 0~16 完整范围，含小数值（gap-0.5、gap-1.5 等）
+    { pattern: /^gap-(px|\d+(\.\d+)?)$/ },
 
-    // ========== 间距（p/m 全系列） ==========
-    { pattern: /^(p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr)-\d+$/ },
+    // ========== 间距（p/m 全系列），含小数值（py-1.5、px-0.5 等） ==========
+    { pattern: /^(p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr)-(px|auto|\d+(\.\d+)?)$/ },
 
-    // ========== 尺寸 ==========
-    { pattern: /^(w|h|min-w|min-h|max-w|max-h)-(full|screen|auto|fit|\d+)$/ },
+    // ========== Space 工具类（space-y-1、space-x-2 等） ==========
+    { pattern: /^space-(x|y)-(px|reverse|\d+(\.\d+)?)$/ },
+
+    // ========== 尺寸，含小数值（h-0.5、w-1.5 等）和分数值（w-1/2、w-1/3 等） ==========
+    { pattern: /^(w|h|min-w|min-h|max-w|max-h)-(full|screen|auto|fit|px|\d+(\.\d+)?|\d+\/\d+)$/ },
     'w-full', 'h-full', 'w-screen', 'h-screen', 'w-fit', 'h-fit',
     'min-h-full', 'min-h-screen',
 
@@ -72,9 +75,15 @@ export default {
     'object-center', 'object-top', 'object-bottom', 'object-left', 'object-right',
 
     // ========== 半透明背景（遮罩层/蒙版常用） ==========
-    { pattern: /^bg-black\/(10|20|30|40|50|60|70|80|90)$/ },
-    { pattern: /^bg-white\/(10|20|30|40|50|60|70|80|90)$/ },
+    { pattern: /^bg-black\/(5|10|15|20|25|30|40|50|60|70|75|80|90|95)$/ },
+    { pattern: /^bg-white\/(5|10|15|20|25|30|40|50|60|70|75|80|90|95)$/ },
     { pattern: /^border-white\/(10|20|30|40|50|60|70|80|90)$/ },
+    { pattern: /^border-black\/(10|20|30|40|50|60|70|80|90)$/ },
+
+    // ========== 文字/背景/边框颜色 + 透明度（text-white/60, bg-red-500/20 等） ==========
+    { pattern: /^text-(white|black)\/(5|10|15|20|25|30|40|50|60|70|75|80|90|95)$/ },
+    { pattern: /^text-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(50|100|200|300|400|500|600|700|800|900|950)\/(5|10|15|20|25|30|40|50|60|70|75|80|90|95)$/ },
+    { pattern: /^bg-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(50|100|200|300|400|500|600|700|800|900|950)\/(5|10|15|20|25|30|40|50|60|70|75|80|90|95)$/ },
 
     // ========== 透明度 ==========
     { pattern: /^opacity-\d+$/ },
@@ -89,10 +98,16 @@ export default {
     '-translate-x-1/2', '-translate-y-1/2',
     { pattern: /^scale-\d+$/ },
 
+    // ========== 分割线（LLM 用 divide-y 实现列表分隔线） ==========
+    'divide-x', 'divide-y', 'divide-x-0', 'divide-y-0', 'divide-x-2', 'divide-y-2',
+    { pattern: /^divide-(transparent|current|white|black|gray-\d+|slate-\d+)$/ },
+
     // ========== 其他 ==========
     'pointer-events-none', 'select-none', 'cursor-pointer',
     'transition', 'duration-200', 'duration-300',
     'aspect-square', 'aspect-video',
+    'shrink-0', 'grow', 'grow-0',
+    { pattern: /^order-\d+$/ },
   ],
   theme: {
     extend: {

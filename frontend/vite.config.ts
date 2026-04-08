@@ -15,6 +15,7 @@ export default defineConfig({
     },
   },
   server: {
+    host: true, // 监听 0.0.0.0，允许局域网访问
     proxy: {
       '/api': {
         target: 'http://localhost:8080',

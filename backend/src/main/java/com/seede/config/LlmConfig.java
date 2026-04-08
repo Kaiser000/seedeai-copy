@@ -41,6 +41,22 @@ public class LlmConfig {
     private String modelName = "glm-4-flash";
 
     /**
+     * LLM 提供商类型，决定请求/响应的协议格式。
+     * <ul>
+     *   <li>{@code openai} — OpenAI 兼容格式（智谱 GLM、DeepSeek 等均使用此格式）</li>
+     *   <li>{@code anthropic} — Anthropic Claude 原生格式</li>
+     * </ul>
+     */
+    private String provider = "openai";
+
+    /**
+     * LLM 生成的最大 token 数。
+     * OpenAI 格式可选（部分 API 有默认值），Anthropic 格式必填。
+     * 海报 JSX 代码通常较长，默认 8192。
+     */
+    private int maxTokens = 8192;
+
+    /**
      * 配置校验（Bean 初始化后自动执行）
      *
      * <p>校验项：</p>
@@ -87,4 +103,11 @@ public class LlmConfig {
     public void setApiKey(String apiKey) { this.apiKey = apiKey; }
     public String getModelName() { return modelName; }
     public void setModelName(String modelName) { this.modelName = modelName; }
+    public String getProvider() { return provider; }
+    public void setProvider(String provider) { this.provider = provider; }
+    public int getMaxTokens() { return maxTokens; }
+    public void setMaxTokens(int maxTokens) { this.maxTokens = maxTokens; }
+
+    /** 判断当前是否使用 Anthropic Claude 提供商 */
+    public boolean isAnthropic() { return "anthropic".equalsIgnoreCase(provider); }
 }

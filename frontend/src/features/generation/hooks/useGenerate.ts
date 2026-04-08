@@ -44,9 +44,45 @@ export function useGenerate() {
         '/api/posters/generate',
         { prompt, width: posterSize.width, height: posterSize.height },
         {
+          // ── 阶段 0：联网搜索 ──────────────────────────────────
+          onSearchStart: (keywords) => {
+            addSseMessage({ type: 'search_start', content: keywords })
+            updateWorkflowStage('search', {
+              status: 'active',
+              summary: `搜索"${keywords}"...`,
+            })
+          },
+
+          onSearchComplete: (resultsJson) => {
+            addSseMessage({ type: 'search_complete', content: resultsJson })
+            try {
+              const results = JSON.parse(resultsJson)
+              const count = Array.isArray(results) ? results.length : 0
+              updateWorkflowStage('search', {
+                status: 'complete',
+                summary: count > 0 ? `找到 ${count} 条参考资料` : '无搜索结果',
+                details: Array.isArray(results)
+                  ? results.map((r: { title?: string }) => r.title || '').filter(Boolean)
+                  : [],
+              })
+            } catch {
+              updateWorkflowStage('search', {
+                status: 'complete',
+                summary: '搜索完成',
+              })
+            }
+          },
+
           // ── 阶段 1：需求分析 ──────────────────────────────────
           onThinking: (content) => {
             addSseMessage({ type: 'thinking', content })
+
+            // 如果搜索阶段还是 pending（后端未配置搜索 API），标记为跳过
+            const searchStage = useEditorStore.getState().workflowStages.find((s) => s.id === 'search')
+            if (searchStage && searchStage.status === 'pending') {
+              updateWorkflowStage('search', { status: 'complete', summary: '跳过' })
+            }
+
             // 需求分析阶段开始
             updateWorkflowStage('analysis', {
               status: 'active',

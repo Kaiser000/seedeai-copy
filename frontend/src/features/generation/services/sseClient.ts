@@ -2,6 +2,10 @@ import type { SseMessage } from '../types/sseMessages'
 
 export interface SseCallbacks {
   onThinking?: (content: string) => void
+  /** 联网搜索开始，content 为搜索关键词 */
+  onSearchStart?: (keywords: string) => void
+  /** 联网搜索完成，content 为 JSON 格式结果列表 */
+  onSearchComplete?: (resultsJson: string) => void
   /** 需求分析阶段流式文本片段 */
   onAnalysisChunk?: (chunk: string) => void
   /** 需求分析阶段完成，content 为完整分析文本 */
@@ -79,6 +83,12 @@ export async function connectSse(
       switch (message.type) {
         case 'thinking':
           callbacks.onThinking?.(message.content)
+          break
+        case 'search_start':
+          callbacks.onSearchStart?.(message.content)
+          break
+        case 'search_complete':
+          callbacks.onSearchComplete?.(message.content)
           break
         case 'analysis_chunk':
           callbacks.onAnalysisChunk?.(message.content)

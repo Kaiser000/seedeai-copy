@@ -56,8 +56,8 @@ public class LlmResponseParser {
             log.debug("开始解析 LLM 响应流（新订阅，独立 codeBuffer）");
 
             return rawStream
-                    // 过滤空行，避免无效解析
-                    .filter(line -> !line.isBlank())
+                    // 过滤空行和 SSE event: 行（只保留 data 行）
+                    .filter(line -> !line.isBlank() && !line.startsWith("event:") && !line.startsWith("event: "))
                     .handle((line, sink) -> {
                         // 去除 SSE 协议前缀 "data: "，获得实际 JSON 内容
                         String data = line.startsWith("data: ") ? line.substring(6) : line;
@@ -71,28 +71,16 @@ public class LlmResponseParser {
                         try {
                             // 解析 JSON 响应体
                             JsonNode root = objectMapper.readTree(data);
-                            JsonNode choices = root.path("choices");
 
-                            if (choices.isArray() && !choices.isEmpty()) {
-                                JsonNode delta = choices.get(0).path("delta");
-
-                                // 情况 1：delta.content 有内容 → 推送代码片段并累积
-                                String content = delta.path("content").asText("");
-                                if (!content.isEmpty()) {
-                                    codeBuffer.append(content);
-                                    log.trace("推送 code_chunk，内容长度: {} 字符，累积总长: {} 字符",
-                                            content.length(), codeBuffer.length());
-                                    sink.next(SseMessage.codeChunk(content));
-                                    return;
-                                }
-
-                                // 情况 2：finish_reason 非空 → 生成完毕，推送完整代码
-                                String finishReason = choices.get(0).path("finish_reason").asText("");
-                                if (!finishReason.isEmpty()) {
-                                    log.info("LLM 生成完毕 - finish_reason: {}, 总代码长度: {} 字符",
-                                            finishReason, codeBuffer.length());
-                                    sink.next(SseMessage.complete(codeBuffer.toString()));
-                                }
+                            // 自动检测响应格式：有 "type" 字段 → Anthropic，有 "choices" 字段 → OpenAI
+                            if (root.has("type")) {
+                                // ===== Anthropic Claude 响应格式 =====
+                                parseAnthropicEvent(root, codeBuffer, sink);
+                            } else if (root.has("choices")) {
+                                // ===== OpenAI 兼容响应格式 =====
+                                parseOpenAiEvent(root, codeBuffer, sink);
+                            } else {
+                                log.debug("跳过无法识别的 JSON 行: {}", data.substring(0, Math.min(data.length(), 100)));
                             }
                         } catch (Exception e) {
                             // JSON 解析异常：记录原始行内容（便于排查 API 响应格式变更），
@@ -102,5 +90,84 @@ public class LlmResponseParser {
                         }
                     });
         });
+    }
+
+    /**
+     * 解析 OpenAI 兼容格式的 SSE 事件（智谱 GLM、DeepSeek 等）。
+     *
+     * <p>格式示例：{@code {"choices":[{"delta":{"content":"..."},"finish_reason":null}]}}</p>
+     */
+    private void parseOpenAiEvent(JsonNode root, StringBuilder codeBuffer,
+                                  reactor.core.publisher.SynchronousSink<SseMessage> sink) {
+        JsonNode choices = root.path("choices");
+        if (choices.isArray() && !choices.isEmpty()) {
+            JsonNode delta = choices.get(0).path("delta");
+
+            // 情况 1：delta.content 有内容 → 推送代码片段并累积
+            String content = delta.path("content").asText("");
+            if (!content.isEmpty()) {
+                codeBuffer.append(content);
+                log.trace("推送 code_chunk，内容长度: {} 字符，累积总长: {} 字符",
+                        content.length(), codeBuffer.length());
+                sink.next(SseMessage.codeChunk(content));
+                return;
+            }
+
+            // 情况 2：finish_reason 非空 → 生成完毕，推送完整代码
+            String finishReason = choices.get(0).path("finish_reason").asText("");
+            if (!finishReason.isEmpty()) {
+                log.info("LLM 生成完毕 - finish_reason: {}, 总代码长度: {} 字符",
+                        finishReason, codeBuffer.length());
+                sink.next(SseMessage.complete(codeBuffer.toString()));
+            }
+        }
+    }
+
+    /**
+     * 解析 Anthropic Claude 格式的 SSE 事件。
+     *
+     * <p>Claude 的流式响应事件类型：</p>
+     * <ul>
+     *   <li>{@code content_block_delta} — 文本增量，delta.text 为代码片段</li>
+     *   <li>{@code message_delta} — 消息级别状态，delta.stop_reason 非空表示完成</li>
+     *   <li>{@code message_start}、{@code content_block_start/stop}、{@code message_stop} — 生命周期事件，跳过</li>
+     * </ul>
+     */
+    private void parseAnthropicEvent(JsonNode root, StringBuilder codeBuffer,
+                                     reactor.core.publisher.SynchronousSink<SseMessage> sink) {
+        String type = root.path("type").asText("");
+
+        switch (type) {
+            case "content_block_delta" -> {
+                // 提取文本增量：delta.type=text_delta 时，delta.text 为代码片段
+                JsonNode delta = root.path("delta");
+                String deltaType = delta.path("type").asText("");
+                if ("text_delta".equals(deltaType)) {
+                    String text = delta.path("text").asText("");
+                    if (!text.isEmpty()) {
+                        codeBuffer.append(text);
+                        log.trace("Anthropic code_chunk，内容长度: {} 字符，累积总长: {} 字符",
+                                text.length(), codeBuffer.length());
+                        sink.next(SseMessage.codeChunk(text));
+                    }
+                }
+            }
+            case "message_delta" -> {
+                // 检查 stop_reason：非空表示生成完毕
+                String stopReason = root.path("delta").path("stop_reason").asText("");
+                if (!stopReason.isEmpty()) {
+                    log.info("Anthropic 生成完毕 - stop_reason: {}, 总代码长度: {} 字符",
+                            stopReason, codeBuffer.length());
+                    sink.next(SseMessage.complete(codeBuffer.toString()));
+                }
+            }
+            case "error" -> {
+                // Anthropic 流内错误事件
+                String errorMsg = root.path("error").path("message").asText("未知错误");
+                log.error("Anthropic 流内错误: {}", errorMsg);
+                sink.next(SseMessage.error("LLM 错误: " + errorMsg, false));
+            }
+            default -> log.trace("跳过 Anthropic 生命周期事件: {}", type);
+        }
     }
 }

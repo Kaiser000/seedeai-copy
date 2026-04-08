@@ -119,6 +119,30 @@
 - 区块之间可用装饰线、间距或色彩变化来区分
 - 避免整张海报从头到尾一个背景色
 
+### 布局填充规则（极其重要！）
+
+**海报内容必须填满整个画布高度（{{height}}px），不能有大面积空白。**
+
+实现方式（选择其一或组合使用）：
+1. **flex + justify-between**：最外层用 `flex flex-col justify-between h-full`，内容自动撑满
+2. **固定区块高度**：每个区块用 inline style 指定高度，各区块高度之和 = {{height}}px
+3. **flex-1 填充**：中间主体区块用 `flex-1` 自动占满剩余空间
+
+推荐做法：
+```jsx
+<div style={{ width: '{{width}}px', height: '{{height}}px' }} className="relative overflow-hidden flex flex-col">
+  {/* 头部：固定高度 */}
+  <div style={{ height: '480px' }} className="relative bg-red-600 flex-shrink-0">...</div>
+  {/* 中间：占满剩余空间 */}
+  <div className="flex-1 bg-white overflow-hidden">...</div>
+  {/* 底部：固定高度 */}
+  <div style={{ height: '200px' }} className="bg-gray-900 flex-shrink-0">...</div>
+</div>
+```
+
+**如果设计方案中提供了各区块的 heightPercent，请严格按照百分比分配高度。**
+例如：heightPercent=25 且总高度为 1920px → 该区块 style={{ height: '480px' }}。
+
 ## 设计质量标准
 
 ### 排版层级
@@ -153,11 +177,26 @@
 - 人物/人像展示区域
 
 ### 图片URL格式
-使用 picsum.photos 占位图服务，根据语义选 seed：
+使用 picsum.photos 占位图服务，seed 关键词必须与海报主题**直接相关**：
 ```
 https://picsum.photos/seed/{描述关键词}/{宽度}/{高度}
 ```
-常用 seed 示例：nature / city / tech / food / fashion / texture / flower / abstract / travel / business / sport / music
+
+**seed 关键词选择规则（不要用 nature/abstract 等泛化词！）：**
+- 食品/餐饮 → food, coffee, bakery, restaurant, cooking, dessert, sushi
+- 科技/数码 → technology, laptop, smartphone, digital, coding, gadget
+- 美妆/护肤 → beauty, cosmetics, skincare, makeup, perfume, spa
+- 运动/健身 → fitness, running, gym, sports, yoga, basketball
+- 旅行/酒店 → travel, beach, mountain, landmark, hotel, resort
+- 教育/学习 → education, study, book, classroom, library, graduation
+- 音乐/演出 → music, concert, guitar, piano, headphones, stage
+- 商务/办公 → business, office, meeting, professional, corporate
+- 时尚/服装 → fashion, clothing, style, dress, shoes, accessories
+- 节日/庆典 → celebration, festival, party, gift, fireworks, holiday
+- 家居/装修 → interior, furniture, kitchen, bedroom, decoration
+- 汽车/出行 → car, automotive, driving, motorcycle, transportation
+
+**如果设计方案中提供了 images 列表和推荐 seed，请优先使用方案中的 seed 关键词。**
 
 ### img 标签写法规范
 必须使用 `<img>` 标签，禁止 CSS `background-image` 写法：

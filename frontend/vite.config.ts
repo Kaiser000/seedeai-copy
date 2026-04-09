@@ -18,7 +18,7 @@ export default defineConfig({
     host: true, // 监听 0.0.0.0，允许局域网访问
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://10.10.115.73:8080',
         changeOrigin: true,
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq) => {

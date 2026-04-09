@@ -184,8 +184,45 @@ export function useGenerate() {
 
           // ── 阶段 4：设计合成（全部完成） ──────────────────────
           onComplete: (code) => {
-            addSseMessage({ type: 'complete', content: code })
-            setGeneratedCode(code)
+            // 客户端兜底：如果 complete 代码仍包含占位图 URL（后端替换失败或 SSE 传输异常），
+            // 使用 image_complete 事件收集到的真实图片 URL 在客户端做替换
+            let finalCode = code
+            const hasPicsum = /https:\/\/picsum\.photos\/seed\//.test(code)
+            if (hasPicsum) {
+              const imageGenStage = useEditorStore.getState().workflowStages.find(
+                (s) => s.id === 'image_gen',
+              )
+              const images = imageGenStage?.images || []
+              if (images.length > 0) {
+                console.warn(
+                  '[Generate] complete 代码仍含占位图 URL，执行客户端替换，图片数:',
+                  images.length,
+                )
+                // 提取代码中所有唯一的 picsum 占位图 URL（按出现顺序，与后端 parseImagePlaceholders 一致）
+                const allMatches = [
+                  ...code.matchAll(/https:\/\/picsum\.photos\/seed\/[^/]+\/\d+\/\d+/g),
+                ]
+                const uniqueUrls = [...new Set(allMatches.map((m) => m[0]))]
+                // image_complete 按 index 排序，确保与占位图顺序对应
+                const sortedImages = [...images].sort((a, b) => a.index - b.index)
+
+                for (let i = 0; i < uniqueUrls.length && i < sortedImages.length; i++) {
+                  const cdnUrl = sortedImages[i].url
+                  if (cdnUrl) {
+                    const proxyUrl = `/api/proxy/image?url=${encodeURIComponent(cdnUrl)}`
+                    finalCode = finalCode.replaceAll(uniqueUrls[i], proxyUrl)
+                  }
+                }
+                console.log(
+                  '[Generate] 客户端替换完成，处理了',
+                  Math.min(uniqueUrls.length, sortedImages.length),
+                  '张图片',
+                )
+              }
+            }
+
+            addSseMessage({ type: 'complete', content: finalCode })
+            setGeneratedCode(finalCode)
 
             // 图片生成阶段完成（如果曾激活）
             updateWorkflowStage('image_gen', { status: 'complete' })

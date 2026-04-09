@@ -62,6 +62,56 @@ export async function connectSse(
   let buffer = ''
   let lastCompleteCode = ''
 
+  // 统一的消息分发逻辑，供主循环和 buffer 残留处理共用。
+  // 返回值：complete 事件返回最终代码字符串，其它事件返回 undefined。
+  const dispatchMessage = (message: SseMessage): string | undefined => {
+    switch (message.type) {
+      case 'thinking':
+        callbacks.onThinking?.(message.content)
+        break
+      case 'search_start':
+        callbacks.onSearchStart?.(message.content)
+        break
+      case 'search_complete':
+        callbacks.onSearchComplete?.(message.content)
+        break
+      case 'analysis_chunk':
+        callbacks.onAnalysisChunk?.(message.content)
+        break
+      case 'analysis_complete':
+        callbacks.onAnalysisComplete?.(message.content)
+        break
+      case 'layout_complete':
+        callbacks.onLayoutComplete?.(message.content)
+        break
+      case 'code_chunk':
+        codeBuffer.push(message.content)
+        callbacks.onCodeChunk?.(message.content)
+        break
+      case 'code_complete':
+        lastCompleteCode = message.content
+        callbacks.onCodeComplete?.(message.content)
+        break
+      case 'image_analyzing':
+        callbacks.onImageAnalyzing?.(message.content)
+        break
+      case 'image_generating':
+        callbacks.onImageGenerating?.(message.content)
+        break
+      case 'image_complete':
+        callbacks.onImageComplete?.(message.content)
+        break
+      case 'complete':
+        lastCompleteCode = message.content
+        callbacks.onComplete?.(message.content)
+        return message.content
+      case 'error':
+        callbacks.onError?.(message.content, message.retryable ?? true)
+        break
+    }
+    return undefined
+  }
+
   while (true) {
     const { done, value } = await reader.read()
     if (done) break
@@ -80,58 +130,43 @@ export async function connectSse(
       const message = parseSseMessage(data)
       if (!message) continue
 
-      switch (message.type) {
-        case 'thinking':
-          callbacks.onThinking?.(message.content)
-          break
-        case 'search_start':
-          callbacks.onSearchStart?.(message.content)
-          break
-        case 'search_complete':
-          callbacks.onSearchComplete?.(message.content)
-          break
-        case 'analysis_chunk':
-          callbacks.onAnalysisChunk?.(message.content)
-          break
-        case 'analysis_complete':
-          callbacks.onAnalysisComplete?.(message.content)
-          break
-        case 'layout_complete':
-          callbacks.onLayoutComplete?.(message.content)
-          break
-        case 'code_chunk':
-          codeBuffer.push(message.content)
-          callbacks.onCodeChunk?.(message.content)
-          break
-        case 'code_complete':
-          lastCompleteCode = message.content
-          callbacks.onCodeComplete?.(message.content)
-          break
-        case 'image_analyzing':
-          callbacks.onImageAnalyzing?.(message.content)
-          break
-        case 'image_generating':
-          callbacks.onImageGenerating?.(message.content)
-          break
-        case 'image_complete':
-          callbacks.onImageComplete?.(message.content)
-          break
-        case 'complete':
-          lastCompleteCode = message.content
-          callbacks.onComplete?.(message.content)
-          return message.content
-        case 'error':
-          callbacks.onError?.(message.content, message.retryable ?? true)
-          reader.cancel()
-          throw new Error(message.content)
+      if (message.type === 'error') {
+        dispatchMessage(message)
+        reader.cancel()
+        throw new Error(message.content)
+      }
+
+      const result = dispatchMessage(message)
+      if (result !== undefined) {
+        return result // complete 事件，返回最终代码
       }
     }
   }
 
-  // If we reach here without a complete message, stream ended unexpectedly
+  // 流结束后，检查 buffer 中是否有未处理的最后一行。
+  // 当 SSE 最后一个事件没有尾部 \n 时，它会卡在 buffer 中不被处理，
+  // 这会导致 complete 事件丢失，前端拿到的仍是 code_complete 的旧代码。
+  if (buffer.trim()) {
+    const trimmed = buffer.trim()
+    if (trimmed.startsWith('data:')) {
+      const data = trimmed.slice(5).trim()
+      if (data && data !== '[DONE]') {
+        const message = parseSseMessage(data)
+        if (message) {
+          console.log('[SSE] 处理 buffer 残留事件:', message.type)
+          const result = dispatchMessage(message)
+          if (result !== undefined) {
+            return result
+          }
+        }
+      }
+    }
+  }
+
+  // 流异常结束且未收到 complete 事件，使用已收到的最佳代码
   const accumulated = lastCompleteCode || codeBuffer.join('')
   if (accumulated) {
-    console.warn('[SSE] Stream ended without complete message, using accumulated code:', {
+    console.warn('[SSE] 流结束未收到 complete 事件，使用已有代码:', {
       url,
       codeLength: accumulated.length,
     })

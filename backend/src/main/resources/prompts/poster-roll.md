@@ -17,6 +17,13 @@
 - 全屏背景图写法：`<img src="..." className="absolute inset-0 w-full h-full object-cover" />`
 - 背景图层设置 `z-0`，内容层设置 `relative z-10`，最外层容器设置 `relative overflow-hidden`
 
+### 图片蒙版透明度（极其重要！）
+
+- 蒙版最大透明度：`bg-black/40`（40%），推荐 `bg-black/20` ~ `bg-black/30`
+- **禁止**使用 >40% 的蒙版（`bg-black/60`、`bg-black/70`）或不透明蒙版（`bg-gray-900`）
+- 图片上方的内容层**不能有不透明背景色**，否则图片会被完全遮挡
+- 使用 `textShadow` 确保文字在图片上可读，而不是用重蒙版压暗图片
+
 ## 视觉效果
 
 替代元素应使用与原海报一致的视觉效果风格（**以下均完整支持**）：
@@ -28,6 +35,12 @@
 - 排版：`leading-tight`、`leading-relaxed`、`tracking-wide`
 
 **不要使用**：`backdrop-blur`、CSS `filter`、`clip-path`、`mix-blend-mode`、`background-image: url(...)`
+
+## 渲染引擎注意事项
+
+本系统使用 DOM→Canvas 转换引擎，每个有背景色的 div 会变成独立矩形对象。
+**背景色嵌套最多 3 层**（最外层 → 区块 → 卡片），超过 3 层会导致矩形互相遮挡。
+absolute 定位建议只用于背景图/遮罩场景，卡片内部优先用 flex/grid 布局。
 
 ## 严格禁止 Tailwind 任意值语法
 

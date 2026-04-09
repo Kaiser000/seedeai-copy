@@ -16,11 +16,39 @@ async function loadBabel() {
   return babelInstance
 }
 
+/**
+ * 清理 LLM 输出中的 markdown 代码块格式和前缀文本。
+ *
+ * LLM 有时会在 JSX 外面包裹 ```jsx ... ``` 或添加说明性文字，
+ * 这些内容会导致 Babel 编译失败（反引号不是合法 JS）。
+ */
+function stripCodeFences(code: string): string {
+  let cleaned = code.trim()
+
+  // 去除开头的 markdown 代码块标记：```jsx、```tsx、```html、```javascript 等
+  cleaned = cleaned.replace(/^```(?:jsx|tsx|javascript|js|html|react)?\s*\n?/, '')
+  // 去除结尾的 markdown 代码块标记
+  cleaned = cleaned.replace(/\n?```\s*$/, '')
+
+  // 去除开头可能的非代码文本（LLM 有时加说明），定位到 function 或 const 声明
+  const funcStart = cleaned.search(/^(function |const |export )/m)
+  if (funcStart > 0) {
+    cleaned = cleaned.substring(funcStart)
+  }
+
+  return cleaned.trim()
+}
+
 export async function compileJsx(jsxCode: string): Promise<string> {
   const babel = await loadBabel()
+  // 清理 LLM 输出中可能的 markdown 代码块格式
+  const cleanedCode = stripCodeFences(jsxCode)
   try {
-    const result = babel.transform(jsxCode, {
-      presets: ['react'],
+    // 必须使用 classic runtime（React.createElement）而非 automatic（jsx-runtime）。
+    // automatic runtime 编译后会生成 require("react/jsx-runtime")，
+    // 在 new Function 执行上下文中 require 不可用，导致运行时错误。
+    const result = babel.transform(cleanedCode, {
+      presets: [['react', { runtime: 'classic' }]],
       filename: 'poster.jsx',
     })
     if (!result.code) {

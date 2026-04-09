@@ -41,6 +41,14 @@ public class LlmResponseParser {
     /** Jackson ObjectMapper，复用实例以避免频繁创建开销 */
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /** 匹配 markdown 代码块开头标记：```jsx、```tsx、```javascript 等 */
+    private static final java.util.regex.Pattern CODE_FENCE_START =
+            java.util.regex.Pattern.compile("^```(?:jsx|tsx|javascript|js|html|react)?\\s*\\n?");
+
+    /** 匹配 markdown 代码块结尾标记 */
+    private static final java.util.regex.Pattern CODE_FENCE_END =
+            java.util.regex.Pattern.compile("\\n?```\\s*$");
+
     /**
      * 将原始 LLM 响应行流解析为 SSE 消息流。
      *
@@ -116,9 +124,10 @@ public class LlmResponseParser {
             // 情况 2：finish_reason 非空 → 生成完毕，推送完整代码
             String finishReason = choices.get(0).path("finish_reason").asText("");
             if (!finishReason.isEmpty()) {
+                String fullCode = stripCodeFences(codeBuffer.toString());
                 log.info("LLM 生成完毕 - finish_reason: {}, 总代码长度: {} 字符",
-                        finishReason, codeBuffer.length());
-                sink.next(SseMessage.complete(codeBuffer.toString()));
+                        finishReason, fullCode.length());
+                sink.next(SseMessage.complete(fullCode));
             }
         }
     }
@@ -156,9 +165,10 @@ public class LlmResponseParser {
                 // 检查 stop_reason：非空表示生成完毕
                 String stopReason = root.path("delta").path("stop_reason").asText("");
                 if (!stopReason.isEmpty()) {
+                    String fullCode = stripCodeFences(codeBuffer.toString());
                     log.info("Anthropic 生成完毕 - stop_reason: {}, 总代码长度: {} 字符",
-                            stopReason, codeBuffer.length());
-                    sink.next(SseMessage.complete(codeBuffer.toString()));
+                            stopReason, fullCode.length());
+                    sink.next(SseMessage.complete(fullCode));
                 }
             }
             case "error" -> {
@@ -169,5 +179,26 @@ public class LlmResponseParser {
             }
             default -> log.trace("跳过 Anthropic 生命周期事件: {}", type);
         }
+    }
+
+    /**
+     * 清理 LLM 输出中的 markdown 代码块格式。
+     *
+     * <p>LLM 有时会在 JSX 代码外面包裹 {@code ```jsx ... ```} 格式，
+     * 这些 markdown 标记会导致前端 Babel 编译失败。在后端统一清理，
+     * 确保推送给前端的代码是纯 JSX。</p>
+     */
+    private String stripCodeFences(String code) {
+        if (code == null || code.isBlank()) {
+            return code;
+        }
+        String cleaned = code.trim();
+
+        // 去除开头的 markdown 代码块标记
+        cleaned = CODE_FENCE_START.matcher(cleaned).replaceFirst("");
+        // 去除结尾的 markdown 代码块标记
+        cleaned = CODE_FENCE_END.matcher(cleaned).replaceFirst("");
+
+        return cleaned.trim();
     }
 }

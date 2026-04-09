@@ -174,6 +174,42 @@ export function useGenerate() {
                   prompt: info.prompt || '',
                   url: info.url,
                 })
+
+                // 主动嵌入：每张图片生成后立即替换海报代码中对应的占位图 URL。
+                // 不再依赖 complete 事件（该事件在 SSE 传输中可能丢失或被截断），
+                // 而是在 image_complete 时就将图片嵌入，让用户实时看到图片出现在海报上。
+                const currentCode = useEditorStore.getState().generatedCode
+                if (currentCode && /https:\/\/picsum\.photos\/seed\//.test(currentCode)) {
+                  const allImages = useEditorStore.getState().workflowStages
+                    .find((s) => s.id === 'image_gen')?.images || []
+                  if (allImages.length > 0) {
+                    const allMatches = [
+                      ...currentCode.matchAll(/https:\/\/picsum\.photos\/seed\/[^/]+\/\d+\/\d+/g),
+                    ]
+                    const uniqueUrls = [...new Set(allMatches.map((m) => m[0]))]
+                    const sortedImages = [...allImages].sort((a, b) => a.index - b.index)
+
+                    let updatedCode = currentCode
+                    for (let i = 0; i < uniqueUrls.length && i < sortedImages.length; i++) {
+                      const cdnUrl = sortedImages[i].url
+                      if (cdnUrl) {
+                        const proxyUrl = `/api/proxy/image?url=${encodeURIComponent(cdnUrl)}`
+                        updatedCode = updatedCode.replaceAll(uniqueUrls[i], proxyUrl)
+                      }
+                    }
+
+                    if (updatedCode !== currentCode) {
+                      console.log(
+                        '[Generate] 主动嵌入图片到海报，已替换',
+                        sortedImages.length,
+                        '/',
+                        uniqueUrls.length,
+                        '张',
+                      )
+                      setGeneratedCode(updatedCode)
+                    }
+                  }
+                }
               } else if (info.error) {
                 addStageDetail('image_gen', `图片 ${info.index + 1} 生成失败: ${info.error}`)
               }
@@ -184,26 +220,38 @@ export function useGenerate() {
 
           // ── 阶段 4：设计合成（全部完成） ──────────────────────
           onComplete: (code) => {
-            // 客户端兜底：如果 complete 代码仍包含占位图 URL（后端替换失败或 SSE 传输异常），
-            // 使用 image_complete 事件收集到的真实图片 URL 在客户端做替换
-            let finalCode = code
-            const hasPicsum = /https:\/\/picsum\.photos\/seed\//.test(code)
-            if (hasPicsum) {
+            // 优先使用已通过 image_complete 主动嵌入的代码（包含 proxy URLs），
+            // 因为 complete 事件可能在 SSE 传输中丢失内容或仍包含占位图。
+            // 只有当 complete 事件的代码已包含 proxy URLs（后端替换成功）时才使用它。
+            const currentCode = useEditorStore.getState().generatedCode
+            const completeHasPicsum = /https:\/\/picsum\.photos\/seed\//.test(code)
+            const currentHasProxy = /\/api\/proxy\/image\?url=/.test(currentCode)
+
+            let finalCode: string
+            if (!completeHasPicsum) {
+              // 后端替换成功，complete 代码已包含 proxy URLs → 使用 complete 代码
+              finalCode = code
+              console.log('[Generate] complete 事件已包含 proxy URLs（后端替换成功）')
+            } else if (currentHasProxy) {
+              // complete 代码仍是占位图，但当前代码已被主动嵌入替换过 → 使用当前代码
+              finalCode = currentCode
+              console.log('[Generate] 使用已主动嵌入的代码（complete 事件仍含占位图）')
+            } else {
+              // 兜底：complete 代码仍含占位图，当前代码也没有替换过 → 客户端手动替换
+              finalCode = code
               const imageGenStage = useEditorStore.getState().workflowStages.find(
                 (s) => s.id === 'image_gen',
               )
               const images = imageGenStage?.images || []
               if (images.length > 0) {
                 console.warn(
-                  '[Generate] complete 代码仍含占位图 URL，执行客户端替换，图片数:',
+                  '[Generate] 兜底替换：complete 和当前代码均含占位图，图片数:',
                   images.length,
                 )
-                // 提取代码中所有唯一的 picsum 占位图 URL（按出现顺序，与后端 parseImagePlaceholders 一致）
                 const allMatches = [
                   ...code.matchAll(/https:\/\/picsum\.photos\/seed\/[^/]+\/\d+\/\d+/g),
                 ]
                 const uniqueUrls = [...new Set(allMatches.map((m) => m[0]))]
-                // image_complete 按 index 排序，确保与占位图顺序对应
                 const sortedImages = [...images].sort((a, b) => a.index - b.index)
 
                 for (let i = 0; i < uniqueUrls.length && i < sortedImages.length; i++) {
@@ -214,7 +262,7 @@ export function useGenerate() {
                   }
                 }
                 console.log(
-                  '[Generate] 客户端替换完成，处理了',
+                  '[Generate] 兜底替换完成，处理了',
                   Math.min(uniqueUrls.length, sortedImages.length),
                   '张图片',
                 )

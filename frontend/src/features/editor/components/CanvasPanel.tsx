@@ -155,7 +155,14 @@ export function CanvasPanel({ onLayersChange }: CanvasPanelProps) {
     document.body.appendChild(hiddenDiv)
 
     try {
+      // 调试：输出原始 JSX 代码的前 500 字符，用于排查 LLM 输出格式问题
+      console.log('[CanvasPanel] 原始 JSX 代码 (前500字符):', codeToRender.slice(0, 500))
+      console.log('[CanvasPanel] 代码总长度:', codeToRender.length)
+
       const compiledJs = await compileJsx(codeToRender)
+
+      // 调试：输出 Babel 编译后代码的前 500 字符
+      console.log('[CanvasPanel] Babel 编译后 (前500字符):', compiledJs.slice(0, 500))
 
       renderToHiddenDom(compiledJs, hiddenDiv, React, ReactDOMClient)
 

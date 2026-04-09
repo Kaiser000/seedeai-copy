@@ -244,6 +244,31 @@ public class PosterGenerateService {
             try {
                 JsonNode root = objectMapper.readTree(structuredJson);
 
+                // 提取设计基因参数（gene），约束代码生成阶段的风格一致性
+                JsonNode gene = root.path("gene");
+                if (!gene.isMissingNode()) {
+                    sb.append("【设计基因参数（必须严格遵循）】\n");
+                    String scene = gene.path("scene").asText("");
+                    String emotion = gene.path("emotion").asText("");
+                    if (!scene.isEmpty()) {
+                        sb.append("- 场景类型：").append(scene).append("\n");
+                    }
+                    if (!emotion.isEmpty()) {
+                        sb.append("- 目标情绪：").append(emotion).append("\n");
+                    }
+                    JsonNode style = gene.path("style");
+                    if (!style.isMissingNode()) {
+                        appendIfPresent(sb, "主色", style.path("primaryColor"));
+                        appendIfPresent(sb, "强调色", style.path("accentColor"));
+                        appendIfPresent(sb, "卡片边框", style.path("borderStyle"));
+                        appendIfPresent(sb, "统一圆角", style.path("cornerRadius"));
+                        appendIfPresent(sb, "统一阴影", style.path("shadowLevel"));
+                        appendIfPresent(sb, "字间距", style.path("tracking"));
+                    }
+                    sb.append("\n");
+                }
+
+                // 提取区块高度分配，包含密度和焦点信息
                 JsonNode sections = root.path("sections");
                 if (sections.isArray() && !sections.isEmpty()) {
                     sb.append("【区块高度分配（必须严格遵循）】\n");
@@ -252,11 +277,22 @@ public class PosterGenerateService {
                         int percent = section.path("heightPercent").asInt(0);
                         String bg = section.path("background").asText("");
                         int height = (int) Math.round(totalHeight * percent / 100.0);
-                        sb.append(String.format("- %s：高度 %dpx（%d%%），背景 %s\n", name, height, percent, bg));
+                        String density = section.path("density").asText("");
+                        String focalPoint = section.path("focalPoint").asText("");
+                        StringBuilder line = new StringBuilder();
+                        line.append(String.format("- %s：高度 %dpx（%d%%），背景 %s", name, height, percent, bg));
+                        if (!density.isEmpty()) {
+                            line.append("，密度=").append(density);
+                        }
+                        if (!focalPoint.isEmpty()) {
+                            line.append("，焦点=").append(focalPoint);
+                        }
+                        sb.append(line).append("\n");
                     }
                     sb.append("\n");
                 }
 
+                // 提取图片 seed 关键词
                 JsonNode images = root.path("images");
                 if (images.isArray() && !images.isEmpty()) {
                     sb.append("【图片 seed 关键词（必须使用以下 seed）】\n");
@@ -270,7 +306,7 @@ public class PosterGenerateService {
                     sb.append("\n");
                 }
             } catch (Exception e) {
-                log.warn("解析结构化 JSON 失败，回退为原文注入: {}", e.getMessage());
+                log.warn("[PosterGenerate] 解析结构化 JSON 失败，回退为原文注入: {}", e.getMessage());
             }
         }
 
@@ -278,6 +314,15 @@ public class PosterGenerateService {
         sb.append(analysisResult);
 
         return sb.toString();
+    }
+
+    /**
+     * 辅助方法：如果 JsonNode 有值则追加到 StringBuilder。
+     */
+    private void appendIfPresent(StringBuilder sb, String label, JsonNode node) {
+        if (!node.isMissingNode() && !node.asText("").isEmpty()) {
+            sb.append("- ").append(label).append("：").append(node.asText()).append("\n");
+        }
     }
 
     /**

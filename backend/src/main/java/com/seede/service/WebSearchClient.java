@@ -211,20 +211,25 @@ public class WebSearchClient {
             }
 
             List<SearchResult> results = new ArrayList<>();
-            int limit = config.getResultLimit();
+            // 只取前 3 条高质量结果，减少 token 消耗同时保证信息充足
+            int limit = Math.min(config.getResultLimit(), 3);
 
             for (int i = 0; i < documents.size() && results.size() < limit; i++) {
                 JsonNode doc = documents.get(i);
                 String title = doc.path("name").asText(doc.path("title").asText(""));
-                String content = doc.path("summary").asText(doc.path("content").asText(""));
+                // 优先使用正文内容（content），比摘要（summary）信息更完整
+                String content = doc.path("content").asText("");
+                if (content.isBlank()) {
+                    content = doc.path("summary").asText("");
+                }
                 String url = doc.path("url").asText("");
 
                 // 跳过无内容的结果
                 if (title.isBlank() && content.isBlank()) continue;
 
-                // 截断过长的内容，避免 token 浪费
-                if (content.length() > 500) {
-                    content = content.substring(0, 500) + "...";
+                // 正文内容截断到 800 字符，保留更多有效信息（如价格、参数、日期）
+                if (content.length() > 800) {
+                    content = content.substring(0, 800) + "...";
                 }
 
                 results.add(new SearchResult(title, content, url));
@@ -262,16 +267,19 @@ public class WebSearchClient {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("【联网搜索参考资料】以下信息来自实时网络搜索，请参考以创作更真实、更具时效性的内容：\n\n");
+        sb.append("══════════════════════════════════════════\n");
+        sb.append("【联网搜索参考资料】以下信息来自实时网络搜索，请提取其中的真实数据融入设计方案。\n");
+        sb.append("使用规则：\n");
+        sb.append("1. 提取价格、时间、地点、产品参数等真实数据，替代虚构内容\n");
+        sb.append("2. 将搜索内容提炼为适合海报展示的精炼文案，不要直接复制原文\n");
+        sb.append("3. 不要在海报中显示来源 URL 或「参考 1」等标注\n");
+        sb.append("══════════════════════════════════════════\n\n");
 
         for (int i = 0; i < results.size(); i++) {
             SearchResult r = results.get(i);
-            sb.append("参考 ").append(i + 1).append("：").append(r.title()).append("\n");
+            sb.append("--- 参考 ").append(i + 1).append("：").append(r.title()).append(" ---\n");
             if (!r.content().isBlank()) {
                 sb.append(r.content()).append("\n");
-            }
-            if (!r.url().isBlank()) {
-                sb.append("来源：").append(r.url()).append("\n");
             }
             sb.append("\n");
         }

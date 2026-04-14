@@ -69,6 +69,10 @@ export function createTextObject(
     lineHeight: style.lineHeight,
     charSpacing,
     textAlign: textAlign as 'left' | 'center' | 'right' | 'justify',
+    // CJK 文本支持：按字符边界断行，而非按空格断词。
+    // 中文/日文/韩文没有空格分隔，若不启用此选项，
+    // 整段文字被视为一个"单词"，超出宽度时不换行直接溢出，导致与相邻元素重叠。
+    splitByGrapheme: true,
 
     // 文本装饰
     underline: style.textDecoration.underline,

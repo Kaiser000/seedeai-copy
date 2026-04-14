@@ -94,9 +94,13 @@ function splitShadowLayers(raw: string): string[] {
 
 /** fabric.js Gradient 所需的结构化渐变数据 */
 export interface ParsedGradient {
-  type: 'linear'
-  angle: number // 角度（degree），0 = 从上到下
+  type: 'linear' | 'radial'
+  angle: number // 线性渐变角度（degree），0 = 从上到下；径向渐变不使用此字段
   stops: Array<{ offset: number; color: string }>
+  // 径向渐变专用字段
+  centerX?: number // 圆心 X（0-1 相对比例，默认 0.5）
+  centerY?: number // 圆心 Y（0-1 相对比例，默认 0.5）
+  shape?: 'circle' | 'ellipse' // 径向形状，默认 ellipse
 }
 
 /**
@@ -106,12 +110,8 @@ export interface ParsedGradient {
  *   - linear-gradient(to right, red, blue)
  *   - linear-gradient(135deg, #f00 0%, #00f 100%)
  *   - linear-gradient(to bottom right, red, blue)
- *
- * 暂不支持 radial-gradient（fabric.js 的 radial gradient API 比较复杂）。
  */
-export function parseGradient(backgroundImage: string): ParsedGradient | null {
-  if (!backgroundImage || backgroundImage === 'none') return null
-
+function parseLinearGradient(backgroundImage: string): ParsedGradient | null {
   const match = backgroundImage.match(/linear-gradient\((.+)\)/)
   if (!match) return null
 
@@ -135,6 +135,73 @@ export function parseGradient(backgroundImage: string): ParsedGradient | null {
   }
 
   // 解析颜色停靠点
+  const stops = parseColorStops(colorParts)
+  if (stops.length < 2) return null
+
+  return { type: 'linear', angle, stops }
+}
+
+/**
+ * 解析 CSS radial-gradient() 为结构化数据。
+ *
+ * 支持格式：
+ *   - radial-gradient(circle, red, blue)
+ *   - radial-gradient(ellipse at center, red 0%, blue 100%)
+ *   - radial-gradient(circle at 50% 50%, red 0%, blue 100%)
+ *   - radial-gradient(closest-side, red, blue)
+ *
+ * 提取形状（circle/ellipse）和圆心位置，颜色停靠点与 linear-gradient 复用逻辑。
+ */
+function parseRadialGradient(backgroundImage: string): ParsedGradient | null {
+  const match = backgroundImage.match(/radial-gradient\((.+)\)/)
+  if (!match) return null
+
+  const inner = match[1]
+  const parts = splitShadowLayers(inner)
+  if (parts.length < 2) return null
+
+  let shape: 'circle' | 'ellipse' = 'ellipse' // CSS 默认 ellipse
+  let centerX = 0.5
+  let centerY = 0.5
+  let colorParts = parts
+
+  // 第一个参数可能包含形状和位置信息
+  const firstPart = parts[0].trim()
+  const hasShapeOrPosition =
+    firstPart.includes('circle') ||
+    firstPart.includes('ellipse') ||
+    firstPart.includes('at ') ||
+    firstPart.includes('closest') ||
+    firstPart.includes('farthest')
+
+  if (hasShapeOrPosition) {
+    // 提取形状
+    if (firstPart.includes('circle')) shape = 'circle'
+
+    // 提取 "at X% Y%" 位置
+    const atMatch = firstPart.match(/at\s+([\d.]+)%?\s+([\d.]+)%?/)
+    if (atMatch) {
+      centerX = parseFloat(atMatch[1]) / 100
+      centerY = parseFloat(atMatch[2]) / 100
+    }
+
+    colorParts = parts.slice(1)
+  }
+
+  // 解析颜色停靠点
+  const stops = parseColorStops(colorParts)
+  if (stops.length < 2) return null
+
+  console.log('[StyleParser] 解析径向渐变:', { shape, centerX, centerY, stops: stops.length })
+
+  return { type: 'radial', angle: 0, stops, centerX, centerY, shape }
+}
+
+/**
+ * 从颜色部分列表中解析颜色停靠点。
+ * 线性渐变和径向渐变共用此逻辑。
+ */
+function parseColorStops(colorParts: string[]): Array<{ offset: number; color: string }> {
   const stops: Array<{ offset: number; color: string }> = []
   colorParts.forEach((part, idx) => {
     const trimmed = part.trim()
@@ -148,10 +215,25 @@ export function parseGradient(backgroundImage: string): ParsedGradient | null {
       stops.push({ offset, color: trimmed })
     }
   })
+  return stops
+}
 
-  if (stops.length < 2) return null
+/**
+ * 解析 CSS gradient 为结构化数据。
+ * 依次尝试：linear-gradient → radial-gradient。
+ */
+export function parseGradient(backgroundImage: string): ParsedGradient | null {
+  if (!backgroundImage || backgroundImage === 'none') return null
 
-  return { type: 'linear', angle, stops }
+  // 优先尝试线性渐变
+  const linear = parseLinearGradient(backgroundImage)
+  if (linear) return linear
+
+  // 其次尝试径向渐变
+  const radial = parseRadialGradient(backgroundImage)
+  if (radial) return radial
+
+  return null
 }
 
 /**

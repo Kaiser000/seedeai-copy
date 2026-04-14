@@ -50,12 +50,24 @@ public class LlmResponseParser {
             java.util.regex.Pattern.compile("\\n?```\\s*$");
 
     /**
-     * 将原始 LLM 响应行流解析为 SSE 消息流。
+     * 将原始 LLM 响应行流解析为 SSE 消息流（默认清理代码块标记）。
      *
      * @param rawStream LlmClient 返回的原始文本行 Flux
      * @return 解析后的 {@link SseMessage} Flux，事件类型为 code_chunk、complete 或 error
      */
     public Flux<SseMessage> parseStream(Flux<String> rawStream) {
+        return parseStream(rawStream, true);
+    }
+
+    /**
+     * 将原始 LLM 响应行流解析为 SSE 消息流。
+     *
+     * @param rawStream LlmClient 返回的原始文本行 Flux
+     * @param stripFences 是否清理 markdown 代码块标记（代码生成阶段需要清理，需求分析阶段不能清理，
+     *                    否则会破坏分析文本中的 {@code ```json ... ```} 结构化输出块）
+     * @return 解析后的 {@link SseMessage} Flux，事件类型为 code_chunk、complete 或 error
+     */
+    public Flux<SseMessage> parseStream(Flux<String> rawStream, boolean stripFences) {
         // 使用 Flux.defer 确保每次订阅都创建独立的 codeBuffer 实例
         // 防止并发请求或重试时共享同一 StringBuilder 导致代码串混
         return Flux.defer(() -> {
@@ -83,10 +95,10 @@ public class LlmResponseParser {
                             // 自动检测响应格式：有 "type" 字段 → Anthropic，有 "choices" 字段 → OpenAI
                             if (root.has("type")) {
                                 // ===== Anthropic Claude 响应格式 =====
-                                parseAnthropicEvent(root, codeBuffer, sink);
+                                parseAnthropicEvent(root, codeBuffer, sink, stripFences);
                             } else if (root.has("choices")) {
                                 // ===== OpenAI 兼容响应格式 =====
-                                parseOpenAiEvent(root, codeBuffer, sink);
+                                parseOpenAiEvent(root, codeBuffer, sink, stripFences);
                             } else {
                                 log.debug("跳过无法识别的 JSON 行: {}", data.substring(0, Math.min(data.length(), 100)));
                             }
@@ -106,7 +118,8 @@ public class LlmResponseParser {
      * <p>格式示例：{@code {"choices":[{"delta":{"content":"..."},"finish_reason":null}]}}</p>
      */
     private void parseOpenAiEvent(JsonNode root, StringBuilder codeBuffer,
-                                  reactor.core.publisher.SynchronousSink<SseMessage> sink) {
+                                  reactor.core.publisher.SynchronousSink<SseMessage> sink,
+                                  boolean stripFences) {
         JsonNode choices = root.path("choices");
         if (choices.isArray() && !choices.isEmpty()) {
             JsonNode delta = choices.get(0).path("delta");
@@ -124,7 +137,7 @@ public class LlmResponseParser {
             // 情况 2：finish_reason 非空 → 生成完毕，推送完整代码
             String finishReason = choices.get(0).path("finish_reason").asText("");
             if (!finishReason.isEmpty()) {
-                String fullCode = stripCodeFences(codeBuffer.toString());
+                String fullCode = stripFences ? stripCodeFences(codeBuffer.toString()) : codeBuffer.toString();
                 log.info("LLM 生成完毕 - finish_reason: {}, 总代码长度: {} 字符",
                         finishReason, fullCode.length());
                 sink.next(SseMessage.complete(fullCode));
@@ -143,7 +156,8 @@ public class LlmResponseParser {
      * </ul>
      */
     private void parseAnthropicEvent(JsonNode root, StringBuilder codeBuffer,
-                                     reactor.core.publisher.SynchronousSink<SseMessage> sink) {
+                                     reactor.core.publisher.SynchronousSink<SseMessage> sink,
+                                     boolean stripFences) {
         String type = root.path("type").asText("");
 
         switch (type) {
@@ -165,7 +179,7 @@ public class LlmResponseParser {
                 // 检查 stop_reason：非空表示生成完毕
                 String stopReason = root.path("delta").path("stop_reason").asText("");
                 if (!stopReason.isEmpty()) {
-                    String fullCode = stripCodeFences(codeBuffer.toString());
+                    String fullCode = stripFences ? stripCodeFences(codeBuffer.toString()) : codeBuffer.toString();
                     log.info("Anthropic 生成完毕 - stop_reason: {}, 总代码长度: {} 字符",
                             stopReason, fullCode.length());
                     sink.next(SseMessage.complete(fullCode));

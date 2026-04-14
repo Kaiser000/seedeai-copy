@@ -31,16 +31,18 @@
 - **卡片默认边框**：所有卡片/容器统一使用 `border border-white/5` 微妙边界，不喧宾夺主
 
 ### Emotion（情绪调校）— 微观心理参数
-根据目标情绪选择对应的微参数组合：
+根据目标情绪选择对应的微参数组合（基于 325 个真实模板统计）：
 
-| 情绪 | 字间距 | 圆角 | 阴影 | 色温 | 对比度 | 典型场景 |
-|------|--------|------|------|------|--------|---------|
-| 专业/权威 | tracking-wide | rounded-lg | shadow-lg | 冷色（blue/slate） | 高 | 商务报告、企业宣传 |
-| 活泼/年轻 | tracking-normal | rounded-3xl | shadow-xl | 暖色（orange/pink） | 中 | 校园活动、社交推广 |
-| 紧急/促销 | tracking-tight | rounded-xl | shadow-2xl | 高对比（red/yellow） | 极高 | 限时特卖、秒杀 |
-| 温暖/治愈 | tracking-wide | rounded-2xl | shadow-md | 暖色（amber/rose） | 低 | 母婴、美食、节日 |
-| 高端/奢华 | tracking-widest | rounded-sm~lg | shadow-lg | 深色+金（gray-900+yellow-400） | 中高 | 奢侈品、高端活动 |
-| 极简/现代 | tracking-wider | rounded-none~lg | shadow-none~md | 黑白+单色强调 | 中 | 科技发布、艺术展 |
+| 情绪 | 字间距 | 圆角 | 阴影 | 色温 | 对比度 | 推荐字体组合 | 典型场景 |
+|------|--------|------|------|------|--------|-------------|---------|
+| 专业/权威 | tracking-wide | rounded-lg | shadow-lg | 冷色（blue/slate） | 高 | `OPPO Sans 4.0` + `Noto Sans` + `Inter` | 商务报告、企业宣传 |
+| 活泼/年轻 | tracking-normal | rounded-3xl | shadow-xl | 暖色（orange/pink） | 中 | `Douyin Sans` + `Noto Sans` + `Inter` | 校园活动、社交推广 |
+| 紧急/促销 | tracking-tight | rounded-xl | shadow-2xl | 高对比（red/yellow） | 极高 | `OPPO Sans 4.0`(粗) + `Inter` | 限时特卖、秒杀 |
+| 温暖/治愈 | tracking-wide | rounded-2xl | shadow-md | 暖色（amber/rose） | 低 | `Noto Serif SC` + `Noto Sans` | 母婴、美食、节日 |
+| 高端/奢华 | tracking-widest | rounded-sm~lg | shadow-lg | 深色+金（#1A1A1A+#D4AF37） | 中高 | `LanternMingA` + `Inter` | 奢侈品、高端活动 |
+| 极简/现代 | tracking-wider | rounded-none~lg | shadow-none~md | 黑白+单色强调 | 中 | `Inter` + `Noto Sans` | 科技发布、艺术展 |
+| 文化/传统 | tracking-wide | rounded-sm | shadow-md | 古典色（棕/赤/墨绿） | 中 | `LanternMingA` + `Noto Serif SC` | 传统文化、非遗、历史 |
+| 手绘/笔记 | tracking-normal | rounded-2xl | shadow-sm | 马克笔色系 | 低 | `Muyao-Softbrush` + `Smiley Sans Oblique` | 手绘风、读书笔记 |
 
 ---
 
@@ -167,12 +169,20 @@
     "scene": "社交媒体长图",
     "emotion": "高端/奢华",
     "style": {
-      "primaryColor": "gray-900",
-      "accentColor": "yellow-400",
-      "borderStyle": "border border-white/5",
+      "primaryColor": "#1A1A1A",
+      "accentColor": "#D4AF37",
+      "bgColor": "#F9F8F6",
+      "textColor": "#1A1A1A",
+      "textMutedColor": "#6C6863",
+      "borderColor": "rgba(26,26,26,0.1)",
       "cornerRadius": "rounded-2xl",
       "shadowLevel": "shadow-lg",
       "tracking": "tracking-wide"
+    },
+    "fonts": {
+      "title": "LanternMingA",
+      "body": "Noto Sans",
+      "numeric": "Inter"
     }
   },
   "sections": [
@@ -209,7 +219,7 @@
 ```
 
 **JSON 字段说明：**
-- `gene`：设计决策矩阵参数，包含场景类型、目标情绪、风格 Token（主色/强调色/边框/圆角/阴影/字间距）
+- `gene`：设计决策矩阵参数，包含场景类型、目标情绪、风格 Token（颜色系统用 HEX 值，便于代码直接引用）和字体推荐（title/body/numeric 三级）
 - `sections`：区块列表，`heightPercent` 之和必须为 100，`density` 为内容密度（low/medium/high），`focalPoint` 为该区块的视觉焦点
 - `images`：图片需求列表，`seed` 为 picsum.photos 的 seed 关键词
 - `elements`：所有可见元素的扁平列表
@@ -229,6 +239,15 @@
 本系统使用 DOM→Canvas 转换引擎，每个有背景色的 div 会变成独立矩形对象。
 **背景色嵌套最多 3 层**（最外层 → 区块 → 卡片），超过 3 层嵌套会导致矩形互相遮挡。
 设计方案中规划区块时请注意控制背景嵌套深度。
+
+**禁止使用的 CSS 效果（引擎不支持，会导致视觉降级）：**
+
+- `backdrop-blur`、`backdrop-filter` — 毛玻璃效果会完全丢失，变成纯色块
+- CSS `filter`（blur、brightness 等）— 不会渲染
+- `mix-blend-mode` — 不支持
+- `clip-path` — 不支持
+
+**替代方案：** 用更高透明度的纯色蒙版或渐变蒙版代替 backdrop-blur。
 
 ## 文字可读性规划（WCAG AA 对比度）
 

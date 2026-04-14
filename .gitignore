@@ -19,3 +19,7 @@ Thumbs.db
 
 # Claude Code
 .claude/
+
+# JVM / Bash 崩溃日志
+hs_err_pid*.log
+*.stackdump

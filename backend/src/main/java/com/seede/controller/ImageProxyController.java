@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.time.Duration;
 
 /**
@@ -56,8 +57,11 @@ public class ImageProxyController {
 
         log.info("代理图片请求: {}", url.substring(0, Math.min(100, url.length())));
 
+        // 必须使用 URI.create() 传入预构建的 URI 对象，
+        // 不能直接传 String——WebClient 的 DefaultUriBuilderFactory 会对 String 模板
+        // 重新编码，导致已有的 %2F 变成 %252F，签名 URL 失效
         return webClient.get()
-                .uri(url)
+                .uri(URI.create(url))
                 .retrieve()
                 .bodyToMono(byte[].class)
                 .timeout(Duration.ofSeconds(30))

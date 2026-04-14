@@ -1,0 +1,702 @@
+[
+  {
+    "id": "7e0c3144-d3eb-4ab2-a457-7e18071ee3cc",
+    "name": "皮肤科主任的防晒笔记",
+    "description": "大学生手绘笔记风格的防晒科普宝典，重点突出，易于阅读。",
+    "category": "健康医疗",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 1920,
+    "colors": [
+      "#FDFCF8",
+      "#1A1A1A",
+      "#FFEB3B"
+    ],
+    "quality": 10,
+    "codeLength": 11701
+  },
+  {
+    "id": "278641d4-82c6-461c-9208-e479fc4babc5",
+    "name": "优必选2025年度财报核心解读",
+    "description": "多维展示优必选在人形机器人及具身智能领域的财务表现、技术突破与市场布局。",
+    "category": "报告报表",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#0046FF",
+      "#00D4FF",
+      "#0A1128"
+    ],
+    "quality": 10,
+    "codeLength": 13152
+  },
+  {
+    "id": "9f5409c7-cdf3-4ae5-8db5-64b50a15651a",
+    "name": "心理学自我滋养视觉长页",
+    "description": "以‘每个人都要学的心理学来滋养自己’为核心，通过超现实主义插图与高级排版，呈现心理学的疗愈与生长力量。",
+    "category": "综合海报",
+    "emotion": "温暖治愈",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#FDFBF7",
+      "#334139",
+      "#C89B7B"
+    ],
+    "quality": 10,
+    "codeLength": 11695
+  },
+  {
+    "id": "2dac6384-b870-4925-a517-70a6426f4387",
+    "name": "青岛啤酒经典百年传承长图",
+    "description": "采用经典绿金配色，展现青岛啤酒1903年至今的匠心品质与欢聚时刻，极具高级感与品牌历史厚度的长篇内容视觉设计。",
+    "category": "品牌故事",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#006B3F",
+      "#D4AF37",
+      "#FDFCF8"
+    ],
+    "quality": 10,
+    "codeLength": 11997
+  },
+  {
+    "id": "72a5d676-8e74-4379-9d82-8b17c74a2a61",
+    "name": "周末去哪儿·上海梧桐区 Citywalk 指南",
+    "description": "在老洋房与咖啡香中，感受魔都的浪漫秋日，包含武康路至乌鲁木齐中路的深度路线与打卡建议。",
+    "category": "旅游行程",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#F9F7F2",
+      "#8C4B2F",
+      "#3E5A44"
+    ],
+    "quality": 10,
+    "codeLength": 12229
+  },
+  {
+    "id": "2b2a2d2f-7247-43f4-9d5c-c1366ef8bcac",
+    "name": "九江市生态环境损害赔偿工作规定政策解读",
+    "description": "由九江市生态环境局副局长郭桂彬对新出台的工作规定进行深度权威解读，涵盖背景、内容与亮点。",
+    "category": "政策解读",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#1B4332",
+      "#2D6A4F",
+      "#40916C"
+    ],
+    "quality": 10,
+    "codeLength": 9601
+  },
+  {
+    "id": "732b6d2d-aa8f-4e89-9fcb-3d915d489fe4",
+    "name": "香港重疾险核心优势深度解析",
+    "description": "专业、严谨且具有国际视野的香港重疾险产品优势长图，涵盖理赔、分红、保障范围及法制优势。",
+    "category": "电商产品",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#0F172A",
+      "#1E293B",
+      "#B5945F"
+    ],
+    "quality": 10,
+    "codeLength": 9066
+  },
+  {
+    "id": "28911a06-e603-4467-ada5-52c88e86c70a",
+    "name": "2026年个人所得税退税全攻略",
+    "description": "针对广东/清远地区的2026年度个税汇算清缴深度指南，包含办理时间、退税人群、操作步骤及专项扣除细节。",
+    "category": "综合海报",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#1E40AF",
+      "#EF4444",
+      "#10B981"
+    ],
+    "quality": 10,
+    "codeLength": 11854
+  },
+  {
+    "id": "74fc866d-257e-40ee-ae8a-7a3d704d2472",
+    "name": "有声书专辑详情",
+    "description": "采用中式卷轴风格设计的广播剧详情推广长图，包含制作组、配音组及内容简介等板块。",
+    "category": "设计创意",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 1920,
+    "colors": [
+      "#FDF7F2",
+      "#B32F2F",
+      "#D4AF37"
+    ],
+    "quality": 10,
+    "codeLength": 11399
+  },
+  {
+    "id": "ddad8bec-5336-4976-bb1c-c19a1bf1d64c",
+    "name": "111知行半月读复古报纸长图",
+    "description": "一份复古报刊风格的校园半月刊，涵盖暖心事、学风榜样、时事广角、心灵驿站等内容。",
+    "category": "综合海报",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#FDFBF5",
+      "#1A1A1A",
+      "#8B0000"
+    ],
+    "quality": 10,
+    "codeLength": 11949
+  },
+  {
+    "id": "e0bdb506-8ebc-4c3e-87e9-57982881eede",
+    "name": "OPC一人公司深圳注册全记录",
+    "description": "2026年最新深圳一人公司注册实操指南，涵盖流程、材料、避坑指南及AI辅助心得。",
+    "category": "科技AI",
+    "emotion": "极简现代",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#9333EA",
+      "#FAF5FF",
+      "#A855F7"
+    ],
+    "quality": 10,
+    "codeLength": 13864
+  },
+  {
+    "id": "87576568-8258-4d61-8aa3-6d6b68adde45",
+    "name": "垦利区属地管理五+模式深度解读",
+    "description": "详尽展示山东省东营市垦利区委编办通过五+模式破解基层社会治理难题，实现治理能力现代化的创新实践。",
+    "category": "政策解读",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#F97316",
+      "#EA580C",
+      "#DC2626"
+    ],
+    "quality": 10,
+    "codeLength": 14631
+  },
+  {
+    "id": "46aee846-a02c-4cef-a1de-f6b6c2196982",
+    "name": "清明节气口腔健康海报",
+    "description": "结合清明节气元素与口腔护理知识的深度长图海报，倡导洁净生活。",
+    "category": "健康医疗",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#4A7C59",
+      "#8FC0A9",
+      "#FAF3DD"
+    ],
+    "quality": 10,
+    "codeLength": 9197
+  },
+  {
+    "id": "79ebaace-79c0-4f62-9c82-35511895e600",
+    "name": "xx口腔10周年年终感恩钜惠长图",
+    "description": "采用森林绿简约风格，重点突出十周年庆典优惠政策与医疗匠心精神。",
+    "category": "健康医疗",
+    "emotion": "紧急促销",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#F3F1E8",
+      "#3D5A35",
+      "#FFFFFF"
+    ],
+    "quality": 10,
+    "codeLength": 12023
+  },
+  {
+    "id": "3ca0c061-5a0e-413c-a3d8-b458ede85b7f",
+    "name": "婴儿推车凉席详情页",
+    "description": "10A抗菌婴儿推车凉席电商详情页设计，强调凉感与抗菌特性。",
+    "category": "电商产品",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 1920,
+    "colors": [
+      "#6A8CAF",
+      "#A8D5BA",
+      "#F9F3E5"
+    ],
+    "quality": 10,
+    "codeLength": 10588
+  },
+  {
+    "id": "2c00f381-6afb-495a-8c44-3bc6434427e1",
+    "name": "瓯林自然研学长图海报",
+    "description": "专注于温州3-12岁儿童自然教育的长篇详情页，采用森林绿现代极简风格。",
+    "category": "电商产品",
+    "emotion": "极简现代",
+    "width": 1080,
+    "height": 1920,
+    "colors": [
+      "#F5F2E9",
+      "#324B2C",
+      "#4A6B43"
+    ],
+    "quality": 10,
+    "codeLength": 12609
+  },
+  {
+    "id": "60f5bb65-fc7f-4244-a84b-7e137cb2423c",
+    "name": "艺善享书苑公益读书会长图邀请函",
+    "description": "佛山爱娃读书会第176期家庭沟通情景剧场活动邀请函，包含活动主题、痛点分析、活动价值和报名信息",
+    "category": "活动邀请",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 1920,
+    "colors": [
+      "#C4A77D",
+      "#8B7355",
+      "#E8DCC8"
+    ],
+    "quality": 10,
+    "codeLength": 10423
+  },
+  {
+    "id": "77da4721-ecc4-4fa5-bd88-721a78638a43",
+    "name": "艺善享书苑公益读书会邀请函",
+    "description": "惠州江北第226期读书会邀请函，主题为读好书品好茶养好娃，周三上午举办",
+    "category": "活动邀请",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 1920,
+    "colors": [
+      "#5A7868",
+      "#8BA888",
+      "#F8F5F0"
+    ],
+    "quality": 10,
+    "codeLength": 10597
+  },
+  {
+    "id": "9fc3b907-b348-4234-9c5a-aed6a5967f17",
+    "name": "烧伤整形暨皮肤美容科宣传长图",
+    "description": "科室综合实力、专家团队及诊疗范围全面展示",
+    "category": "品牌故事",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 1920,
+    "colors": [
+      "#166534",
+      "#22C55E",
+      "#D97706"
+    ],
+    "quality": 10,
+    "codeLength": 14570
+  },
+  {
+    "id": "d8be3612-053d-49d7-afd4-ce680aa36520",
+    "name": "抗骨质疏松静脉用药安全指南",
+    "description": "专业版抗骨质疏松静脉药物输注规范与风险预警长图",
+    "category": "设计创意",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#2E7D8A",
+      "#5BA8B5",
+      "#E8F4F6"
+    ],
+    "quality": 10,
+    "codeLength": 11769
+  },
+  {
+    "id": "dc6d784c-6c5d-4b5d-9ad6-55b17f3b527a",
+    "name": "青少年生成式AI伦理风险及规避路径研究框架",
+    "description": "一张展示青少年生成式AI伦理风险实证研究及三维规避路径构建的学术研究长图。",
+    "category": "科技AI",
+    "emotion": "极简现代",
+    "width": 1080,
+    "height": 1920,
+    "colors": [
+      "#1A365D",
+      "#3182CE",
+      "#D97706"
+    ],
+    "quality": 10,
+    "codeLength": 12760
+  },
+  {
+    "id": "2085d98f-e4d1-4b2a-8676-f337d3694055",
+    "name": "小胖子12岁生日派对海报",
+    "description": "为12岁孩子小胖子设计的生日庆祝长图海报，包含生日祝福、成长记录和派对信息",
+    "category": "活动邀请",
+    "emotion": "活泼年轻",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#FF6B9D",
+      "#FFE66D",
+      "#4ECDC4"
+    ],
+    "quality": 10,
+    "codeLength": 13774
+  },
+  {
+    "id": "a3e3c52e-5198-4362-b07c-d53460a66eca",
+    "name": "琅勃拉邦三天两晚行程长图",
+    "description": "版纳起止琅勃拉邦高端商务小团行程介绍",
+    "category": "旅游行程",
+    "emotion": "高端奢华",
+    "width": 1080,
+    "height": 1920,
+    "colors": [
+      "#F7F5F0",
+      "#1B4D3E",
+      "#D4AF37"
+    ],
+    "quality": 10,
+    "codeLength": 17279
+  },
+  {
+    "id": "8ce8086d-3920-4b0a-b788-3a2ba3f67773",
+    "name": "鄂托克旗诚信建设宣传长图",
+    "description": "鄂托克旗工信和科技局关于诚信建设的视觉宣传海报，融合蒙元文化与现代科技元素",
+    "category": "品牌故事",
+    "emotion": "极简现代",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#0055A4",
+      "#D4AF37",
+      "#E63946"
+    ],
+    "quality": 10,
+    "codeLength": 10107
+  },
+  {
+    "id": "b6952f8e-1b25-4c9e-be42-076ee85554fa",
+    "name": "认知天性读书笔记长图",
+    "description": "认知天性第三章读书笔记：合意困难与三种高效学习策略",
+    "category": "读书笔记",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#1E3A8A",
+      "#3B82F6",
+      "#F59E0B"
+    ],
+    "quality": 10,
+    "codeLength": 14719
+  },
+  {
+    "id": "8ca3788b-3135-443b-b3aa-b713c3afcc95",
+    "name": "读书笔记：《认知天性》第一章",
+    "description": "《认知天性》第一章读书笔记长图，深度解析高效学习的科学方法与误区。",
+    "category": "读书笔记",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 1920,
+    "colors": [
+      "#F5F7FA",
+      "#1E3A8A",
+      "#3B82F6"
+    ],
+    "quality": 10,
+    "codeLength": 17139
+  },
+  {
+    "id": "5d5ef7c1-0490-450a-9a8a-87e18f78af75",
+    "name": "女神节烘焙营销课程长图",
+    "description": "烘焙门店女神节活动营销实战课程介绍长海报，包含讲师介绍、六大课程模块及赠品详情。",
+    "category": "教育培训",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#FDF6E3",
+      "#CD7F32",
+      "#A0522D"
+    ],
+    "quality": 10,
+    "codeLength": 13642
+  },
+  {
+    "id": "0129aafb-77c6-46e0-bc8a-5fe37374f515",
+    "name": "减痛分娩课程通知长图",
+    "description": "孕妇学校关于减痛分娩的课程通知，包含放松法与五感喜悦法介绍",
+    "category": "教育培训",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 1920,
+    "colors": [
+      "#FFF9F2",
+      "#FF8A65",
+      "#FFCCBC"
+    ],
+    "quality": 10,
+    "codeLength": 10369
+  },
+  {
+    "id": "8465a660-75fb-488a-8327-ba50f889bbd2",
+    "name": "外刊打卡学习长图",
+    "description": "英语外刊精读打卡任务与答案解析，包含核心句翻译与句型仿写",
+    "category": "读书笔记",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 1920,
+    "colors": [
+      "#F9F7F2",
+      "#FFFFFF",
+      "#1B365D"
+    ],
+    "quality": 10,
+    "codeLength": 12118
+  },
+  {
+    "id": "14f4da05-c7b3-45e0-a1a5-cc58dfeb40cd",
+    "name": "爆款短视频实战训练营长图",
+    "description": "6天短视频实战训练营宣传长图，包含课程大纲、适合人群及核心价值，绿色商务科技风格",
+    "category": "教育培训",
+    "emotion": "极简现代",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#022C22",
+      "#065F46",
+      "#ECFDF5"
+    ],
+    "quality": 10,
+    "codeLength": 15227
+  },
+  {
+    "id": "aae97afe-a2d7-412a-9f5a-e32ca307b817",
+    "name": "寒假进度条生活长图",
+    "description": "展示寒假生活不同侧面的趣味长图，包含美食、育儿、知识和运动四个维度的生活公式",
+    "category": "美食餐饮",
+    "emotion": "温暖治愈",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#FFF8F0",
+      "#FFFFFF",
+      "#FF6B6B"
+    ],
+    "quality": 10,
+    "codeLength": 13125
+  },
+  {
+    "id": "6498fd6e-a7f5-47ed-ae64-a21356ca94c9",
+    "name": "恒丰银行2025数据成果长图",
+    "description": "展示恒丰银行数据资源部2025年核心成果，包含党建、数据服务、AI赋能及经营创新四大板块。",
+    "category": "科技AI",
+    "emotion": "极简现代",
+    "width": 1080,
+    "height": 1920,
+    "colors": [
+      "#164e87",
+      "#0ea5e9",
+      "#b91c1c"
+    ],
+    "quality": 10,
+    "codeLength": 11716
+  },
+  {
+    "id": "a85d499e-ac15-440b-9d30-2667588944bd",
+    "name": "云南大理昆明5日游攻略",
+    "description": "适合4人小团体的云南昆明大理5天4晚深度旅游规划，包含详细行程、美食住宿及预算建议。",
+    "category": "旅游行程",
+    "emotion": "温暖治愈",
+    "width": 1080,
+    "height": 1920,
+    "colors": [
+      "#FDFBF7",
+      "#2E86AB",
+      "#D66853"
+    ],
+    "quality": 10,
+    "codeLength": 11330
+  },
+  {
+    "id": "b9ed9c63-97a3-4bc5-ac59-012c962b33e4",
+    "name": "2026年1月物业月度报告",
+    "description": "包含客服、工程、秩序、环境四个维度的物业服务月度汇报长图",
+    "category": "报告报表",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#1A365D",
+      "#C5A065",
+      "#F7F9FC"
+    ],
+    "quality": 10,
+    "codeLength": 14889
+  },
+  {
+    "id": "99a7c85a-a3bd-4d1b-b88e-aecad9b70629",
+    "name": "晖越田径招生简章长图",
+    "description": "晖越田径专业训练营招生海报，包含主教练团队资质、荣誉、课程安排及收费标准。",
+    "category": "招聘招生",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#0B1120",
+      "#1E293B",
+      "#3B82F6"
+    ],
+    "quality": 10,
+    "codeLength": 19032
+  },
+  {
+    "id": "fd467b2c-94c1-4118-bb20-ead582ea065e",
+    "name": "2026元旦跨年长图",
+    "description": "Modern and festive New Year 2026 vertical poster featuring 3D elements, vibrant red and gold color scheme, and structured sections for resolutions and holiday guide.",
+    "category": "节日节气",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#FFFAEB",
+      "#D90429",
+      "#FFB703"
+    ],
+    "quality": 10,
+    "codeLength": 13075
+  },
+  {
+    "id": "48bb31dd-1e3b-4446-93f3-fbd7f1715fe8",
+    "name": "杭州冬日胖果美食长图",
+    "description": "介绍杭州冬季传统街头美食“胖果”（爆米花）的怀旧长图，包含制作工艺、三种主要类型及童年回忆。",
+    "category": "美食餐饮",
+    "emotion": "温暖治愈",
+    "width": 1080,
+    "height": 1920,
+    "colors": [
+      "#F9F5EF",
+      "#8B4513",
+      "#D2691E"
+    ],
+    "quality": 10,
+    "codeLength": 13294
+  },
+  {
+    "id": "9a00d275-398e-4c10-a5b2-ed4318012bcb",
+    "name": "封关创作成果汇报长图",
+    "description": "重大题材报告文学《封关》创作成果与心路历程汇报",
+    "category": "报告报表",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 1920,
+    "colors": [
+      "#F7F5F0",
+      "#8B1E1E",
+      "#1F2937"
+    ],
+    "quality": 10,
+    "codeLength": 12270
+  },
+  {
+    "id": "989d07dd-0c8c-47d9-ac6e-193bbc5f7039",
+    "name": "DTlawtech商业计划长图",
+    "description": "法律AI创业项目商业计划书，涵盖痛点分析、解决方案、商业模式及团队介绍",
+    "category": "政策解读",
+    "emotion": "极简现代",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#0B1120",
+      "#1E293B",
+      "#3B82F6"
+    ],
+    "quality": 10,
+    "codeLength": 16001
+  },
+  {
+    "id": "7d969eeb-6858-4535-ac1c-fee3c6d6b9d6",
+    "name": "连云港专职消防队管理规定长图 4",
+    "description": "连云港市政府专职消防队伍管理规定政策解读长图，包含建设管理、职责任务、人员招聘与保障等核心内容",
+    "category": "招聘招生",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 1920,
+    "colors": [
+      "#B71C1C",
+      "#0D47A1",
+      "#FFD600"
+    ],
+    "quality": 10,
+    "codeLength": 14610
+  },
+  {
+    "id": "a6417899-b8a5-4393-b8ef-5dc9439ed74c",
+    "name": "清风小院民宿长图",
+    "description": "展现濮塘竹海深处清风小院的自然美学与生活方式的垂直长图设计",
+    "category": "设计创意",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#F9F8F4",
+      "#4A6C56",
+      "#8C9E8E"
+    ],
+    "quality": 10,
+    "codeLength": 13622
+  },
+  {
+    "id": "cd93be83-1108-4962-8cf3-c1cbb8c56022",
+    "name": "休闲体育专业长图介绍",
+    "description": "休闲体育专业招生宣传长图，展示专业优势、课程体系与就业前景",
+    "category": "招聘招生",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 3688,
+    "colors": [
+      "#FF5722",
+      "#2962FF",
+      "#FFC107"
+    ],
+    "quality": 10,
+    "codeLength": 19879
+  },
+  {
+    "id": "17f0174b-d315-4542-a6ce-0dda135f6c76",
+    "name": "2026马年春晚节目单",
+    "description": "2026马年春节联欢晚会温暖治愈风节目清单长图",
+    "category": "节日节气",
+    "emotion": "温暖治愈",
+    "width": 1080,
+    "height": 1920,
+    "colors": [
+      "#A81818",
+      "#FFF8F0",
+      "#FAD9A6"
+    ],
+    "quality": 9,
+    "codeLength": 7966
+  },
+  {
+    "id": "0511d72a-2812-4bfa-ac37-c4b6bf7e330c",
+    "name": "中华小当家风云吞面教程",
+    "description": "A manga-style vertical infographic teaching how to make authentic Wonton Noodles with dramatic visuals.",
+    "category": "美食餐饮",
+    "emotion": "专业权威",
+    "width": 1080,
+    "height": 1920,
+    "colors": [],
+    "quality": 8,
+    "codeLength": 16084
+  }
+]

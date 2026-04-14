@@ -4,10 +4,59 @@
 
 - 输出一段完整的JSX代码，使用React函数组件格式
 - 组件名称必须为 `Poster`
-- 使用Tailwind CSS类名进行样式设计
+- 使用Tailwind CSS类名 + inline style 混合进行样式设计
 - 海报尺寸为 {{width}}px × {{height}}px，最外层容器必须设置 style={{ width: '{{width}}px', height: '{{height}}px' }}
 - 所有文字使用中文
 - 代码必须能被React直接渲染
+
+## Design Token 模式（必须遵循）
+
+**在函数体开头定义结构化的色彩和排版 Token 对象，确保全篇风格一致。** 这是高质量模板的核心特征。
+
+```jsx
+function Poster() {
+  // ── 色彩 Token（限制 3 色系）──────────────────
+  const colors = {
+    primary: '#006B3F',     // 主色
+    accent: '#D4AF37',      // 强调色（仅标题/价格/按钮/装饰线）
+    bg: '#FDFCF8',          // 背景色
+    text: '#1A1A1A',        // 主文字色
+    textMuted: '#6B7280',   // 弱化文字色
+    border: 'rgba(0,0,0,0.08)', // 分割线
+  };
+
+  // ── 排版 Token（至少 4 级层次）────────────────
+  const typography = {
+    h1: { fontFamily: 'OPPO Sans 4.0', fontWeight: 900, lineHeight: 1.1 },
+    h2: { fontFamily: 'OPPO Sans 4.0', fontWeight: 700, lineHeight: 1.2 },
+    body: { fontFamily: 'Noto Sans', fontWeight: 400, lineHeight: 1.7 },
+    caption: { fontFamily: 'Noto Sans', fontWeight: 400, lineHeight: 1.5 },
+    numeric: { fontFamily: 'Inter', fontWeight: 800 },
+  };
+
+  return (
+    <div style={{ width: '{{width}}px', height: '{{height}}px' }} className="relative overflow-hidden flex flex-col">
+      {/* 使用 colors.xxx 和 typography.xxx 确保全篇一致 */}
+    </div>
+  );
+}
+```
+
+**使用方式：** 通过 inline style 引用 Token：`style={{ ...typography.h1, fontSize: '64px', color: colors.primary }}`
+
+### 推荐字体组合（按使用频率排序）
+
+| 用途 | 推荐字体 | 适用场景 |
+|------|---------|---------|
+| 中文无衬线（正文首选） | `Noto Sans` | 所有场景通用 |
+| 中文衬线（标题/高端） | `Noto Serif SC` | 品牌、文化、高端 |
+| 英文/数字 | `Inter` | 数据、价格、英文标签 |
+| 中文品牌标题 | `OPPO Sans 4.0` | 科技、产品、现代感 |
+| 手写/活泼标题 | `Smiley Sans Oblique` | 年轻、活泼、创意 |
+| 潮流/抖音风 | `Douyin Sans` | 社交媒体、潮流 |
+| 古典/文化 | `LanternMingA` | 传统文化、古典、节日 |
+
+**字体搭配原则：** 标题和正文用不同字体家族，数字/价格单独用 `Inter`。
 
 ## 设计守则（6 大硬约束 — 违反任何一条即为不合格设计）
 
@@ -22,10 +71,11 @@
 - **垂直韵律**：相邻区块的内容密度应有节奏变化（密集卡片区 → 留白标题区 → 密集内容区），避免全程同一密度
 
 ### 守则 3：色彩纪律
+- **必须在代码开头定义 `colors` 对象**（见 Design Token 模式），全篇通过 `colors.xxx` 引用，不可随意引入未定义的颜色
 - 从主色派生所有颜色：**主色 + 主色的深/浅变体 + 1 个强调色**，全篇不超过 3 色系
 - 强调色**仅用于**关键信息（标题、价格、按钮、装饰线），不可大面积使用
-- 卡片/容器默认边框：`border border-white/5`（微妙的区分感，rgba(255,255,255,0.06)）
-- 文字色自动适配：深色背景 → `text-white` + `text-white/60`；浅色背景 → `text-gray-800` + `text-gray-500`
+- 卡片/容器默认边框：`border` + `style={{ borderColor: colors.border }}`
+- 文字色通过 Token 控制：深色背景 → `colors.text = '#FFFFFF'` + `colors.textMuted`；浅色背景 → `colors.text = '#1A1A1A'` + `colors.textMuted`
 
 ### 守则 4：排版精确控制
 - 中文正文每行**不超过 30-32 个字符**（通过容器 `px-8` 以上的 padding 和适当字号自然约束）
@@ -41,10 +91,10 @@
 - 固定宽度 {{width}}px，所有子元素宽度不得超出
 
 ### 守则 6：编译安全
-- 所有 className 必须来自 Tailwind **预编译安全列表**（见末尾"可用类名"章节）
-- 自定义数值一律用 `style={{ }}` inline style，不用 Tailwind 方括号任意值语法
+- Tailwind className 用于布局类（flex、grid、padding、margin 等），自定义数值（字号、颜色、宽高）优先用 `style={{ }}` inline style
+- 代码开头必须定义 `colors` 和 `typography` Token 对象，通过 inline style 引用（如 `style={{ ...typography.h1, color: colors.primary }}`）
 - 输出的 JSX 必须是完整的 `function Poster() { return (...) }` 格式，可直接被 React 渲染
-- 每个 `<img>` 标签必须有 `src`、`className` 属性，src 使用 picsum.photos 格式
+- 每个 `<img>` 标签必须有 `src`、`className` 属性
 
 ## 内容丰富度要求（最重要！！！）
 
@@ -275,6 +325,30 @@
 - 品牌类海报必须有：品牌口号 + 核心卖点(3个以上) + 联系方式
 - 活动类海报必须有：时间地点 + 活动流程 + 参与方式 + 注意事项
 
+### 数据驱动渲染（推荐）
+
+**对于重复性内容（卡片列表、特性展示、时间轴等），使用数据数组 + `.map()` 渲染，代码更简洁、更容易维护：**
+
+```jsx
+{/* ✓ 推荐：数据驱动渲染 */}
+const features = [
+  { title: '正品保证', desc: '100%官方正品', icon: '✓' },
+  { title: '极速物流', desc: '当日达服务', icon: '⚡' },
+  { title: '无忧售后', desc: '7天无理由退换', icon: '♻' },
+];
+
+{features.map((f, i) => (
+  <div key={i} className="text-center">
+    <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2"
+         style={{ backgroundColor: colors.accent }}>
+      <span className="text-white text-lg">{f.icon}</span>
+    </div>
+    <div style={{ ...typography.h2, fontSize: '14px', color: colors.text }}>{f.title}</div>
+    <div style={{ ...typography.caption, fontSize: '12px', color: colors.textMuted }}>{f.desc}</div>
+  </div>
+))}
+```
+
 ### 设计节奏（区块间的视觉变化）
 
 - 区块之间要有**视觉区分**，可以是背景色变化、装饰线、或充足的间距
@@ -285,27 +359,42 @@
 
 ### 布局填充规则（极其重要！）
 
-**海报内容必须填满整个画布高度（{{height}}px），不能有大面积空白。**
+**海报内容必须填满整个画布高度（{{height}}px），不能有大面积空白，也不能溢出。**
 
-实现方式（选择其一或组合使用）：
-1. **固定区块高度（推荐）**：每个区块用 inline style 指定高度，各区块高度之和 = {{height}}px
-2. **flex + justify-between**：最外层用 `flex flex-col justify-between h-full`，内容自动撑满
-3. **flex-1 填充**：中间主体区块用 `flex-1` 自动占满剩余空间
+#### 高度分配原则（防止底部内容被挤压！）
 
-推荐做法：
+**最常见的布局问题：内容总高度超过 {{height}}px，导致 flex 布局压缩底部区块，底部内容被挤掉变形。**
+
+防止方法：
+
+1. **每个区块必须用 inline style 指定固定高度**，各区块高度之和**精确等于** {{height}}px
+2. **先计算再编码**：编码前先列出所有区块的高度分配，确认总和 = {{height}}px
+3. **每个区块添加 `flex-shrink-0`**：防止 flex 布局压缩任何区块
+4. **内容必须适配区块高度**：如果某个区块只有 200px 高度，不要在里面放需要 400px 才能显示的内容
+
 ```jsx
+{/* ✓ 正确：所有区块固定高度，总和 = 1920px，全部 flex-shrink-0 */}
 <div style={{ width: '{{width}}px', height: '{{height}}px' }} className="relative overflow-hidden flex flex-col">
-  {/* 头部：固定高度 */}
-  <div style={{ height: '480px' }} className="relative bg-red-600 flex-shrink-0">...</div>
-  {/* 中间：占满剩余空间 */}
-  <div className="flex-1 bg-white overflow-hidden">...</div>
-  {/* 底部：固定高度 */}
-  <div style={{ height: '200px' }} className="bg-gray-900 flex-shrink-0">...</div>
+  <div style={{ height: '480px' }} className="relative flex-shrink-0">...</div>   {/* 头部 */}
+  <div style={{ height: '400px' }} className="flex-shrink-0">...</div>            {/* 主体 1 */}
+  <div style={{ height: '540px' }} className="flex-shrink-0">...</div>            {/* 主体 2 */}
+  <div style={{ height: '300px' }} className="flex-shrink-0">...</div>            {/* 底部信息 */}
+  <div style={{ height: '200px' }} className="flex-shrink-0">...</div>            {/* 页脚 */}
+  {/* 480 + 400 + 540 + 300 + 200 = 1920 ✓ */}
+</div>
+
+{/* ✗ 错误：没有固定高度，依赖内容撑开，容易溢出或被压缩 */}
+<div style={{ width: '{{width}}px', height: '{{height}}px' }} className="relative overflow-hidden flex flex-col">
+  <div className="py-12">头部内容很多...</div>
+  <div className="flex-1">中间内容...</div>
+  <div className="py-8">底部内容...</div>  {/* ✗ 可能被压缩到 0px！ */}
 </div>
 ```
 
 **如果设计方案中提供了各区块的 heightPercent，请严格按照百分比分配高度。**
 例如：heightPercent=25 且总高度为 1920px → 该区块 style={{ height: '480px' }}。
+
+**最多允许 1 个区块使用 `flex-1`**（占满剩余空间），其余区块必须有固定高度。
 
 ## 设计质量标准（高品质设计的关键！）
 
@@ -425,7 +514,11 @@
 - ✗ 特性卡片只用 emoji/符号当图标 → ✓ 放一张相关的小图片
 
 ### 图片URL格式
-使用 picsum.photos 占位图服务，seed 关键词必须与海报主题**直接相关**：
+使用 placehold.co 占位图服务（支持自定义尺寸和文字提示）：
+```
+https://placehold.co/{宽度}x{高度}/png?text={描述关键词}
+```
+或使用 picsum.photos 占位图：
 ```
 https://picsum.photos/seed/{描述关键词}/{宽度}/{高度}
 ```
@@ -447,15 +540,18 @@ https://picsum.photos/seed/{描述关键词}/{宽度}/{高度}
 **如果设计方案中提供了 images 列表和推荐 seed，请优先使用方案中的 seed 关键词。**
 
 ### img 标签写法规范
-必须使用 `<img>` 标签，禁止 CSS `background-image` 写法：
+必须使用 `<img>` 标签，优先于 CSS `background-image` 写法。
+**每个 `<img>` 标签添加 `prompt` 属性**，描述期望的图片内容（英文），供 AI 图片生成使用：
 
 ```jsx
-{/* 全屏背景图 */}
-<img src="https://picsum.photos/seed/nature/{{width}}/{{height}}"
+{/* 全屏背景图 — 带 prompt 属性 */}
+<img src="https://placehold.co/{{width}}x600/png?text=background"
+     prompt="A festive celebration scene with warm golden lighting and confetti"
      className="absolute inset-0 w-full h-full object-cover object-center" />
 
 {/* 区域内容图 */}
-<img src="https://picsum.photos/seed/product/800/600"
+<img src="https://placehold.co/800x600/png?text=product"
+     prompt="Premium skincare product bottle on marble surface with soft lighting"
      className="w-full h-full object-cover rounded-2xl shadow-lg" />
 ```
 
@@ -575,30 +671,71 @@ absolute 定位**只推荐用于**以下场景，其他场景优先使用 flex/g
 
 ## 严格禁止
 
-### 不支持的 CSS 效果
-- `backdrop-blur`、`backdrop-filter` — 不支持
-- CSS `filter`（blur、brightness 等）— 不支持
-- `clip-path` — 不支持
-- CSS animation / transition — 不支持
-- `mix-blend-mode` — 不支持
-- `background-image: url(...)` — 不支持，必须使用 `<img>` 标签
-- SVG 内部结构 — 不会被保留
+### CSS 效果支持情况（DOM→Canvas 引擎实际能力）
 
-### Tailwind 任意值语法（绝对禁止！）
-**绝对不要使用 Tailwind 的方括号任意值语法！** 例如：
-- ~~`text-[64px]`~~、~~`w-[500px]`~~、~~`h-[600px]`~~、~~`gap-[20px]`~~
-- 这些类名在运行时 **不会生成 CSS**，会导致布局完全崩溃！
+**渲染引擎将 DOM 转为 fabric.js 画布对象，以下 CSS 效果在画布中的表现：**
 
-**正确做法：** 需要自定义数值时，使用 **inline style** 代替：
+#### ✅ 完整支持（积极使用）
+
+- **纯色背景** — `bg-gray-900`、`style={{ backgroundColor: '#xxx' }}`
+- **线性渐变** — `bg-gradient-to-b from-gray-900 to-gray-800`、`style={{ backgroundImage: 'linear-gradient(...)' }}`
+- **径向渐变** — `style={{ backgroundImage: 'radial-gradient(circle, red, blue)' }}`
+- **透明度** — `bg-black/40`、`opacity-80`、`rgba()` 颜色
+- **阴影** — `shadow-lg`、`shadow-xl`、`shadow-2xl`，文字阴影 `textShadow`
+- **圆角** — `rounded-2xl`、`rounded-3xl`、`rounded-full`
+- **边框** — `border border-white/5`、`border-b-4 border-yellow-400`
+- **行高与字间距** — `leading-tight`、`tracking-widest`
+- **文字装饰** — `line-through`（删除线）、`underline`
+
+#### ❌ 不支持（绝对禁止使用！会导致效果丢失变成色块）
+
+- **`backdrop-blur`、`backdrop-filter`** — 引擎无法提取，毛玻璃效果会完全丢失，只剩下纯色块！**这是最常见的视觉降级原因**
+- **CSS `filter`**（`blur()`、`brightness()`、`contrast()` 等）— 不会渲染
+- **`mix-blend-mode`** — 不支持混合模式
+- **`clip-path`** — 不支持自定义裁切路径
+- **CSS animation / transition** — 静态海报无意义
+- **`background-image: url(...)`** — 优先使用 `<img>` 标签
+
+#### 替代方案（用这些代替被禁止的效果）
+
+**替代 `backdrop-blur`（毛玻璃效果）：**
 ```jsx
-{/* ✗ 错误 */}
-<div className="text-[64px] w-[500px]">
+{/* ✗ 禁止：backdrop-blur 在画布中完全失效 */}
+<div className="bg-white/10 backdrop-blur-md" />
 
-{/* ✓ 正确 — 用 inline style */}
+{/* ✓ 替代方案 1：使用更高透明度的纯色蒙版 */}
+<div className="bg-black/40" />
+
+{/* ✓ 替代方案 2：使用渐变蒙版营造层次感 */}
+<div style={{ backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.5))' }} />
+
+{/* ✓ 替代方案 3：使用带边框的半透明卡片 */}
+<div className="bg-black/30 border border-white/10 rounded-xl" />
+```
+
+**替代 CSS `filter`：**
+
+- 不要用 `filter: brightness(0.8)` → 直接用更深的背景色
+- 不要用 `filter: blur()` → 用渐变蒙版或更高透明度的覆盖层
+- SVG — 可用于简单图形装饰（如分割线、图标背景），但复杂 SVG 结构可能不完整保留
+
+### 自定义数值写法（inline style 优先）
+**需要自定义数值时（字号、宽高、间距等），优先使用 inline style：**
+
+```jsx
+{/* ✓ 推荐 — inline style，最可靠 */}
 <div style={{ fontSize: '64px', width: '500px' }}>
 
-{/* ✓ 也正确 — 用标准 Tailwind 类名 */}
+{/* ✓ 也可以 — 标准 Tailwind 预编译类名 */}
 <div className="text-6xl w-96">
+
+{/* ⚠ 可用但不推荐 — Tailwind 方括号任意值（safelist 中已有的可用） */}
+<div className="text-[64px] w-[500px]">
+```
+
+**推荐做法：** 用 Design Token + inline style 统一管理所有自定义数值：
+```jsx
+<h1 style={{ ...typography.h1, fontSize: '64px', color: colors.primary }}>标题</h1>
 ```
 
 ## Tailwind CSS 可用类名
@@ -641,11 +778,11 @@ absolute 定位**只推荐用于**以下场景，其他场景优先使用 flex/g
 
 1. **空旷海报**：只有标题+大片空白，没有实质内容 → 必须有多个内容区块
 2. **密度失衡**：内容全挤在上半部分，下半部分空旷 → 100% 填充 + 垂直韵律
-3. **彩虹配色**：超过 3 色系 → 主色+变体+1 强调色
-4. **字号单一**：全篇 1-2 个字号 → 至少 4 级字号层级
+3. **彩虹配色**：超过 3 色系 → 用 `colors` Token 对象约束
+4. **字号单一**：全篇 1-2 个字号 → 用 `typography` Token 对象定义至少 4 级
 5. **遮挡图片**：不透明蒙版盖住背景图 → 蒙版 ≤40%，用 textShadow 保可读性
 6. **emoji 冒充图片**：用 emoji/字母代替人物头像、亮点配图 → 用 `<img>` 标签
-7. **任意值语法**：使用 `text-[64px]` 等方括号值 → 用 inline style
+7. **散乱的样式**：不定义 Token 对象，颜色/字体散落各处 → 必须先定义 `colors` + `typography`
 8. **4 层嵌套背景**：超过 3 层有背景色的 div 嵌套 → 最多 3 层
 9. **断裂布局**：区块之间有未定义的空白间隙 → 区块高度之和 = {{height}}px
 

@@ -130,6 +130,119 @@ CREATE TABLE brand_configs (
 注入方式：将品牌配置序列化后追加到 System Prompt，
 要求 LLM 在生成代码时优先使用这些颜色和字体。
 
+### 5. 模板推荐模块
+
+**数据来源**：325 个真实生产模板（all_items.json），经质量评分筛选后保留 290 个合格模板。
+
+**架构设计**：
+
+```
+all_items.json (325 模板, ~4MB)
+       │
+       ▼  启动时加载
+┌─────────────────────────────┐
+│     TemplateService          │
+│  ┌────────────────────────┐ │
+│  │ metadataList (290条)   │ │ ← template-metadata.json（轻量索引）
+│  │ fullDataIndex (id→Node)│ │ ← all_items.json（完整数据按 id 索引）
+│  │ categories (15类)      │ │
+│  └────────────────────────┘ │
+│  • listByCategory(cat, n)   │ → 分类筛选
+│  • search(keyword, n)       │ → 关键词搜索（名称/描述/分类）
+│  • recommend(n)             │ → 随机推荐（从 top 50% 中选）
+│  • getDetail(id)            │ → 完整详情（含 sourceCode）
+└─────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────┐
+│     TemplateController       │
+│  GET /api/templates          │ → 列表（?category= &keyword= &limit=）
+│  GET /api/templates/categories│ → 分类列表
+│  GET /api/templates/recommend │ → 随机推荐
+│  GET /api/templates/{id}     │ → 完整详情
+└─────────────────────────────┘
+```
+
+**模板元数据字段**：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | UUID | 模板唯一标识 |
+| name | string | 模板名称 |
+| description | string | 模板描述 |
+| category | string | 分类（15 类） |
+| emotion | string | 情绪类型（8 种） |
+| width / height | int | 画布尺寸 |
+| colors | string[] | 主要色彩 HEX 值 |
+| quality | int | 质量评分（0-9） |
+
+**质量评分算法**：标准 React 格式(+2) + 色彩 Token 对象(+2) + 排版 Token 对象(+2) + 合理代码长度(+1) + 有意义名称(+1) + 有描述(+1)
+
+**前端集成**：`PresetCases` 组件从硬编码 3 个预设 → 动态加载推荐模板 + 分类标签栏 + 换一批，后端不可用时回退到本地预设。
+
+### 6. Design Token 与设计参考库模块
+
+**问题**：LLM 每次生成时颜色、字体即兴决定，风格一致性全靠"自律"。
+
+**方案**：通过 Prompt 工程强制 LLM 在代码开头定义结构化 Token 对象。
+
+**Design Token 模式（注入到 poster-generate.md）：**
+
+```jsx
+function Poster() {
+  const colors = {
+    primary: '#006B3F',     // 主色
+    accent: '#D4AF37',      // 强调色
+    bg: '#FDFCF8',          // 背景色
+    text: '#1A1A1A',        // 主文字色
+    textMuted: '#6B7280',   // 弱化文字色
+    border: 'rgba(0,0,0,0.08)',
+  };
+  const typography = {
+    h1: { fontFamily: 'OPPO Sans 4.0', fontWeight: 900, lineHeight: 1.1 },
+    h2: { fontFamily: 'OPPO Sans 4.0', fontWeight: 700, lineHeight: 1.2 },
+    body: { fontFamily: 'Noto Sans', fontWeight: 400, lineHeight: 1.7 },
+    numeric: { fontFamily: 'Inter', fontWeight: 800 },
+  };
+  // ... 后续通过 style={{ ...typography.h1, color: colors.primary }} 引用
+}
+```
+
+**设计参考库（design-reference.md）**：
+- 从 325 个模板中提炼的 5 种高频布局模式
+- 6 种场景配色方案（电商/科技/健康/高端/文化/清新）
+- 8 种字体组合推荐（按实际使用频率排序）
+- 8 种情绪→设计参数映射表
+
+**Gene 参数流水线打通**：
+
+```
+poster-analyze.md → gene JSON（含 HEX 色彩 + 字体推荐）
+       │
+       ▼ PosterGenerateService.buildEnrichedPrompt()
+提取 gene.style（primaryColor/accentColor/bgColor/textColor...）
+提取 gene.fonts（title/body/numeric）
+注入区块高度 + 密度 + 焦点
+       │
+       ▼
+poster-generate.md + design-reference.md → LLM 生成 JSX
+```
+
+### 7. Prompt 工程数据驱动优化
+
+**方法论**：对 325 个真实模板进行全量代码分析，对比 prompt 规则与实际代码模式，反向优化规则。
+
+**关键发现与调整**（详见 docs/design-data-analysis.md）：
+
+| 规则 | 调整方向 | 数据依据 |
+|------|---------|---------|
+| 样式写法 | inline style 优先 | 82.1% 使用 inline style |
+| 色彩管理 | Token 对象必须 | 63.6% 定义 colors 对象 |
+| 图片 URL | placehold.co + prompt 属性 | 85% 用 placehold.co，80% 有 prompt 属性 |
+| 字体推荐 | 8 种字体按频率推荐 | Noto Sans 606 次、Inter 237 次等 |
+| CSS 效果 | 放宽 backdrop-blur 等 | 52.8% 使用 backdrop-blur |
+| 列表渲染 | 推荐 .map() 模式 | 58.3% 使用 .map() |
+
 ## API 设计
 
 ```

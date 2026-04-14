@@ -78,7 +78,17 @@ public class PosterGenerateService {
                     "height", String.valueOf(request.getHeight())
             );
             analyzePrompt = promptManager.loadPrompt("poster-analyze.md", sizeVars);
-            generatePrompt = promptManager.loadPrompt("poster-generate.md", sizeVars);
+            // 将设计参考库追加到生成 prompt 末尾，为 LLM 提供真实模板数据支撑
+            String baseGeneratePrompt = promptManager.loadPrompt("poster-generate.md", sizeVars);
+            String designReference = "";
+            try {
+                designReference = promptManager.loadPrompt("design-reference.md", Collections.emptyMap());
+            } catch (Exception refErr) {
+                log.warn("加载设计参考库失败，跳过: {}", refErr.getMessage());
+            }
+            generatePrompt = designReference.isEmpty()
+                    ? baseGeneratePrompt
+                    : baseGeneratePrompt + "\n\n" + designReference;
         } catch (Exception e) {
             log.error("加载 prompt 失败", e);
             return Flux.just(ServerSentEvent.<SseMessage>builder()
@@ -90,6 +100,8 @@ public class PosterGenerateService {
                 new AtomicReference<>(Collections.emptyList());
         AtomicReference<String> analysisRef = new AtomicReference<>("");
         AtomicReference<String> codeRef = new AtomicReference<>("");
+        // 分析阶段提取的 images JSON 数组，传递给图片生成阶段以提供语义上下文
+        AtomicReference<String> analysisImagesRef = new AtomicReference<>("");
 
         // ── 步骤 1：联网搜索（可选） ────────────────────────────────
         Flux<SseMessage> searchStream;
@@ -143,7 +155,8 @@ public class PosterGenerateService {
                     .doOnSubscribe(s -> log.info("开始需求分析 LLM 调用"))
                     .doOnComplete(() -> log.info("需求分析 LLM 流结束"))
                     .doOnError(e -> log.error("需求分析 LLM 流异常", e))
-                    .transform(responseParser::parseStream)
+                    // 需求分析阶段不清理代码块标记，保留 ```json ... ``` 结构供元素列表解析
+                    .transform(stream -> responseParser.parseStream(stream, false))
                     .concatMap(msg -> {
                         if ("code_chunk".equals(msg.getType())) {
                             return Flux.just(SseMessage.analysisChunk(msg.getContent()));
@@ -152,6 +165,11 @@ public class PosterGenerateService {
                             String analysisText = msg.getContent();
                             analysisRef.set(analysisText);
                             log.info("需求分析完成，分析文本长度: {} 字符", analysisText.length());
+
+                            // 提取 images 数组，传递给图片生成阶段
+                            String imagesJson = extractImagesFromAnalysis(analysisText);
+                            analysisImagesRef.set(imagesJson);
+                            log.info("提取分析阶段图片需求: {}", imagesJson);
 
                             String elementsJson = parseElementsFromAnalysis(analysisText);
                             log.info("解析出元素列表: {}", elementsJson);
@@ -207,7 +225,8 @@ public class PosterGenerateService {
                 return Flux.empty();
             }
             log.info("代码生成完毕，开始图片生成阶段");
-            return imageGenerateService.generateImagesForCode(code, request.getPrompt());
+            return imageGenerateService.generateImagesForCode(
+                    code, request.getPrompt(), analysisImagesRef.get());
         });
 
         // ── 步骤 6：拼接所有阶段 ──────────────────────────────────
@@ -258,12 +277,24 @@ public class PosterGenerateService {
                     }
                     JsonNode style = gene.path("style");
                     if (!style.isMissingNode()) {
-                        appendIfPresent(sb, "主色", style.path("primaryColor"));
-                        appendIfPresent(sb, "强调色", style.path("accentColor"));
-                        appendIfPresent(sb, "卡片边框", style.path("borderStyle"));
+                        appendIfPresent(sb, "主色(HEX)", style.path("primaryColor"));
+                        appendIfPresent(sb, "强调色(HEX)", style.path("accentColor"));
+                        appendIfPresent(sb, "背景色(HEX)", style.path("bgColor"));
+                        appendIfPresent(sb, "文字色(HEX)", style.path("textColor"));
+                        appendIfPresent(sb, "弱化文字色", style.path("textMutedColor"));
+                        appendIfPresent(sb, "边框色", style.path("borderColor"));
                         appendIfPresent(sb, "统一圆角", style.path("cornerRadius"));
                         appendIfPresent(sb, "统一阴影", style.path("shadowLevel"));
                         appendIfPresent(sb, "字间距", style.path("tracking"));
+                    }
+
+                    // 提取推荐字体组合
+                    JsonNode fonts = gene.path("fonts");
+                    if (!fonts.isMissingNode()) {
+                        sb.append("- 推荐字体：");
+                        appendIfPresent(sb, "标题", fonts.path("title"));
+                        appendIfPresent(sb, "正文", fonts.path("body"));
+                        appendIfPresent(sb, "数字", fonts.path("numeric"));
                     }
                     sb.append("\n");
                 }
@@ -343,12 +374,35 @@ public class PosterGenerateService {
     }
 
     /**
+     * 从分析文本的结构化 JSON 中提取 images 数组。
+     * 返回 JSON 数组字符串（如 [{"purpose":"...","seed":"...","description":"..."}]），
+     * 传递给图片生成阶段以提供精确的语义上下文。
+     */
+    private String extractImagesFromAnalysis(String analysisText) {
+        try {
+            String jsonBlock = extractJsonBlock(analysisText);
+            if (jsonBlock != null) {
+                JsonNode root = objectMapper.readTree(jsonBlock);
+                JsonNode images = root.path("images");
+                if (images.isArray() && !images.isEmpty()) {
+                    return objectMapper.writeValueAsString(images);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("提取分析阶段 images 数组失败: {}", e.getMessage());
+        }
+        return "[]";
+    }
+
+    /**
      * 从分析文本中解析页面元素列表 JSON。
      */
     private String parseElementsFromAnalysis(String analysisText) {
         try {
             String jsonBlock = extractJsonBlock(analysisText);
+            log.info("从分析文本中提取 JSON 块: {}", jsonBlock != null ? "成功（" + jsonBlock.length() + " 字符）" : "未找到 ```json 代码块");
             if (jsonBlock != null) {
+                log.debug("JSON 块前 500 字符: {}", jsonBlock.substring(0, Math.min(500, jsonBlock.length())));
                 JsonNode node = objectMapper.readTree(jsonBlock);
                 if (node.has("elements")) {
                     log.debug("从 ```json 代码块中成功解析元素列表");

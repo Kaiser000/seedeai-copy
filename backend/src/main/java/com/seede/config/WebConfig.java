@@ -33,18 +33,19 @@ public class WebConfig implements WebFluxConfigurer {
     private static final Logger log = LoggerFactory.getLogger(WebConfig.class);
 
     /**
-     * 允许跨域的前端来源列表
-     * 通过 application.yml 的 cors.allowed-origins 配置，默认为本地 Vite 开发服务器
+     * 允许跨域的前端来源模式列表（支持通配符 *）
+     * 通过 application.yml 的 cors.allowed-origin-patterns 配置
+     * 例如 http://10.10.*:5173 可匹配同网段所有 IP，避免 DHCP 分配 IP 变化后需要重新配置
      */
-    @Value("${cors.allowed-origins:http://localhost:5173}")
-    private String[] allowedOrigins;
+    @Value("${cors.allowed-origin-patterns:http://localhost:5173}")
+    private String[] allowedOriginPatterns;
 
     /**
      * 启动时打印 CORS 配置信息，便于排查跨域问题
      */
     @PostConstruct
     public void logConfig() {
-        log.info("CORS 配置 - 允许来源: {}", Arrays.toString(allowedOrigins));
+        log.info("CORS 配置 - 允许来源模式: {}", Arrays.toString(allowedOriginPatterns));
     }
 
     /**
@@ -59,8 +60,8 @@ public class WebConfig implements WebFluxConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         log.debug("注册 CORS 映射规则: /api/**");
         registry.addMapping("/api/**")
-                // 仅允许配置的来源，防止任意域名跨域访问
-                .allowedOrigins(allowedOrigins)
+                // 使用 pattern 匹配，支持通配符（如 http://10.10.*:5173），适配动态 IP
+                .allowedOriginPatterns(allowedOriginPatterns)
                 // 允许标准 REST 方法
                 .allowedMethods("GET", "POST", "PUT", "DELETE")
                 // 允许所有请求头，前端可自由携带 Content-Type、Authorization 等

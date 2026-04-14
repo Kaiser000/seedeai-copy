@@ -39,7 +39,7 @@ public class SystemPromptManager {
     /** 允许加载的提示词模板文件名白名单，防止路径遍历攻击 */
     private static final Set<String> ALLOWED_TEMPLATES = Set.of(
             "poster-generate.md", "poster-chat.md", "poster-roll.md",
-            "image-prompt.md", "poster-analyze.md"
+            "image-prompt.md", "poster-analyze.md", "design-reference.md"
     );
 
     /** 模板内容缓存：templateName → 原始模板文本（未替换变量） */

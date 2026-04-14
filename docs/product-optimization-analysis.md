@@ -100,8 +100,8 @@
 决策矩阵 (The Gene)
   ◧ Scene 场景定义（仅固定尺寸，无 CSP 求解）
   ◧ Layout 版式引擎（LLM 直接生成，无算法化布局）
-  ◧ Style 风格映射（prompt 色彩推荐，无 Token 系统）
-  □ Emotion 情绪调校（无参数化情绪模型）
+  ■ Style 风格映射（Design Token 必须模式 + HEX 色彩 Gene + 字体推荐表）   ← 已实现
+  ◧ Emotion 情绪调校（8 种情绪×参数映射表已定义，含字体推荐，但无前端 UI）← 已增强
 
 弹性编码渲染
   ■ JSX 编译 + DOM 渲染
@@ -164,25 +164,23 @@
 
 ### P1 — 设计质量提升（对应愿景中的设计守则）
 
-#### 3.4 Design Token 系统
+#### 3.4 Design Token 系统 ✅ 已实现
 
-**现状：** 色彩、字体、间距全由 LLM 即兴决定，每次生成风格可能不一致。
+**现状：** ~~色彩、字体、间距全由 LLM 即兴决定~~ → 已通过 Prompt 工程 + Gene 流水线打通解决。
 
-**优化方案：**
-- 定义 Design Token 集合：
-  ```typescript
-  interface DesignTokens {
-    colors: { primary, secondary, accent, background, text, textMuted };
-    typography: { display, heading, subheading, body, caption };
-    spacing: { xs, sm, md, lg, xl, xxl };
-    radius: { sm, md, lg, full };
-    shadow: { sm, md, lg };
-  }
-  ```
-- LLM 分析阶段输出 Token 值，代码生成阶段引用 Token
+**已完成的实现：**
+
+1. **Design Token 必须模式**（poster-generate.md）：LLM 生成代码必须在函数体开头定义 `colors` + `typography` 对象，通过 inline style 引用确保全篇一致
+2. **Gene HEX 色彩系统**（poster-analyze.md）：分析阶段输出 HEX 值色彩 Token（primaryColor/accentColor/bgColor/textColor/textMutedColor/borderColor），取代之前的 Tailwind 类名
+3. **字体推荐表**：基于 325 个真实模板频率分析，8 种字体按场景推荐（Noto Sans、Inter、OPPO Sans 4.0 等）
+4. **Gene 流水线打通**（PosterGenerateService.buildEnrichedPrompt）：分析阶段的 gene.style HEX 色彩 + gene.fonts 字体推荐 → 注入代码生成阶段
+5. **设计参考库**（design-reference.md）：6 种场景配色方案 + 5 种布局模式 + 8 种情绪映射，随 system prompt 注入
+
+**数据支撑：** 基于 325 个真实模板分析，63.6% 已定义 JS 色彩对象，47% 定义排版对象（详见 docs/design-data-analysis.md）
+
+**待后续迭代：**
 - 用户可通过"风格面板"手动调整 Token 值并触发重新生成
-
-**预期收益：** 风格一致性从"LLM 自律"升级为"系统约束"，对应愿景中的"CSS 变量映射系统"。
+- spacing / radius / shadow 的 Token 化
 
 #### 3.5 视觉质量自动检测
 
@@ -234,15 +232,27 @@
 - 自动保存（每次画布变更后 debounce 3s 自动保存）
 - 导入/导出项目文件（JSON 格式）
 
-#### 3.9 模板化能力
+#### 3.9 模板化能力 ✅ 已实现（推荐系统）
 
-**现状：** LLM 每次从零生成，不维护设计模板库（这是架构决策）。
+**现状：** ~~LLM 每次从零生成~~ → 已构建模板推荐系统，用户可从 290 个高质量模板中选择参考。
 
-**优化方案（不违背核心理念）：**
-- "另存为模板"功能：将满意的生成结果保存为用户个人模板
-- 模板变量化：用户标记可替换区域（文字、图片），后续一键替换内容
-- 模板分享：社区模板市场（长期目标）
-- 注意：模板仍作为 LLM 的辅助参考，不替代生成能力
+**已完成的实现：**
+
+1. **模板元数据索引**（template-metadata.json）：从 325 个真实模板中筛选 290 个合格模板，按 15 个分类、8 种情绪类型、质量评分建立索引
+2. **后端服务**（TemplateService + TemplateController）：
+   - `GET /api/templates` — 列表（分类筛选 + 关键词搜索）
+   - `GET /api/templates/categories` — 15 个分类
+   - `GET /api/templates/recommend` — 随机推荐高质量模板
+   - `GET /api/templates/{id}` — 完整详情（含 sourceCode + prompt）
+3. **前端组件升级**（PresetCases.tsx）：从 3 个硬编码预设 → 动态加载推荐模板 + 分类标签栏 + 换一批 + 色彩预览 + 后端不可用时回退
+
+**架构设计详见** tech-plan.md 第 5 节。
+
+**待后续迭代：**
+- "另存为模板"功能
+- 模板变量化（标记可替换区域）
+- 语义搜索（接入向量数据库）
+- 社区模板市场
 
 #### 3.10 DOM→Canvas 引擎增强
 
@@ -434,42 +444,45 @@ userPrompt = userPrompt + "\n\n"
     + searchContext;
 ```
 
-### 7.2 Gene Token 流水线打通
+### 7.2 Gene Token 流水线打通 ✅ 已实现
 
-**现状：** `buildEnrichedPrompt()` 从分析 JSON 中提取 sections 和 images，但不提取 gene 字段。
+**现状：** ~~buildEnrichedPrompt() 不提取 gene 字段~~ → 已完整实现 Gene 提取与注入。
 
-**优化方案：**
+**已完成的实现：**
 
-```java
-private String buildEnrichedPrompt(String originalPrompt, String analysisResult, int totalHeight) {
-    // ... 现有代码 ...
-    
-    // 新增：提取 gene 风格参数
-    JsonNode gene = root.path("gene");
-    if (!gene.isMissingNode()) {
-        sb.append("\n【设计基因参数（必须严格遵循）】\n");
-        sb.append("- 场景类型：").append(gene.path("scene").asText()).append("\n");
-        sb.append("- 目标情绪：").append(gene.path("emotion").asText()).append("\n");
-        JsonNode style = gene.path("style");
-        if (!style.isMissingNode()) {
-            sb.append("- 主色：").append(style.path("primaryColor").asText()).append("\n");
-            sb.append("- 强调色：").append(style.path("accentColor").asText()).append("\n");
-            sb.append("- 卡片边框：").append(style.path("borderStyle").asText()).append("\n");
-            sb.append("- 圆角：").append(style.path("cornerRadius").asText()).append("\n");
-            sb.append("- 阴影：").append(style.path("shadowLevel").asText()).append("\n");
-            sb.append("- 字间距：").append(style.path("tracking").asText()).append("\n");
-        }
+`PosterGenerateService.buildEnrichedPrompt()` 现在提取以下 Gene 参数并注入代码生成阶段：
+
+- **gene.style**：primaryColor / accentColor / bgColor / textColor / textMutedColor / borderColor（全部 HEX 值）+ cornerRadius / shadowLevel / tracking
+- **gene.fonts**：title / body / numeric（推荐字体名称）
+- **sections**：name / heightPercent / background / density / focalPoint
+- **images**：purpose / seed / width / height
+
+同时，`design-reference.md` 设计参考库被追加到 system prompt 末尾，为 LLM 提供 325 模板数据支撑的设计模式库。
+
+**Gene JSON 格式已升级**（poster-analyze.md）：
+
+```json
+{
+  "gene": {
+    "scene": "社交媒体长图",
+    "emotion": "高端/奢华",
+    "style": {
+      "primaryColor": "#1A1A1A",
+      "accentColor": "#D4AF37",
+      "bgColor": "#F9F8F6",
+      "textColor": "#1A1A1A",
+      "textMutedColor": "#6C6863",
+      "borderColor": "rgba(26,26,26,0.1)",
+      "cornerRadius": "rounded-2xl",
+      "shadowLevel": "shadow-lg",
+      "tracking": "tracking-wide"
+    },
+    "fonts": {
+      "title": "LanternMingA",
+      "body": "Noto Sans",
+      "numeric": "Inter"
     }
-    
-    // 新增：提取区块密度和焦点
-    for (JsonNode section : sections) {
-        String density = section.path("density").asText("medium");
-        String focalPoint = section.path("focalPoint").asText("");
-        sb.append(String.format("- %s：高度 %dpx（%d%%），密度=%s，焦点=%s\n",
-            name, height, percent, density, focalPoint));
-    }
-    
-    // ... 其余代码不变 ...
+  }
 }
 ```
 
@@ -588,10 +601,18 @@ Seede AI 当前是一个**架构优秀的 MVP**，核心生成流水线（LLM→
 
 **愿景覆盖度变化：**
 - 优化前：约 40%（基础生成能力完整，设计质量依赖 LLM 自律）
-- 优化后：约 55%（Gene Token 系统嵌入流水线，6 大守则硬约束，WCAG 指导，负面提示）
-- 下一步目标 70%：需要代码层面实现 Gene Token 提取（7.2）、质量检测（8.3）、设计方案预览（8.1）
+- 第一轮 Prompt 优化后：约 55%（6 大守则硬约束，WCAG 指导，负面提示）
+- **第二轮数据驱动优化后：约 65%**（Design Token 必须模式，Gene HEX 色彩+字体流水线打通，设计参考库注入，模板推荐系统上线，325 模板数据支撑 prompt 规则校准）
+- 下一步目标 75%：需要前端 Gene 预览 UI（8.1）、质量检测（8.3）、属性编辑器（3.1）
+
+**本轮新增落地项（基于 325 模板数据分析）：**
+1. ✅ **Gene Token 流水线打通** — buildEnrichedPrompt() 提取 HEX 色彩 + 字体推荐注入代码生成
+2. ✅ **Design Token 必须模式** — LLM 必须先定义 colors + typography 对象
+3. ✅ **设计参考库** — 5 种布局模式 + 6 种配色方案 + 8 种情绪映射随 prompt 注入
+4. ✅ **模板推荐系统** — 后端 4 个 API + 前端动态推荐组件 + 290 模板索引
+5. ✅ **Prompt 规则校准** — 基于真实数据反向修正 12 条规则（详见 docs/design-data-analysis.md）
 
 **最大的剩余优化杠杆：**
-1. **后端 `buildEnrichedPrompt()` 提取 gene 字段** — 打通分析→生成的 Token 流水线（代码改动小、效果显著）
-2. **前端属性编辑器** — 从"只能对话修改"到"直接编辑"的核心体验跃迁
-3. **图片上传** — 从 Demo 到可用产品的关键特性
+1. **前端属性编辑器** — 从"只能对话修改"到"直接编辑"的核心体验跃迁
+2. **图片上传** — 从 Demo 到可用产品的关键特性
+3. **设计方案预览** — 在 ChatDialog 展示 Gene 色彩/区块卡片，用户可干预再生成

@@ -16,19 +16,56 @@ import type { ParsedStyle, ParsedGradient } from '../parsers/styleParser'
 /**
  * 将 ParsedGradient 转为 fabric.js Gradient 对象。
  *
- * fabric.js 线性渐变使用 coords {x1, y1, x2, y2}（相对对象尺寸的像素坐标）。
+ * 线性渐变：coords {x1, y1, x2, y2}（相对对象尺寸的像素坐标）。
  * CSS 角度 → fabric coords 映射：
  *   0deg   (to top)    → (0, h) → (0, 0)
  *   90deg  (to right)  → (0, 0) → (w, 0)
  *   180deg (to bottom) → (0, 0) → (0, h)
  *   270deg (to left)   → (w, 0) → (0, 0)
+ *
+ * 径向渐变：coords {x1, y1, r1, x2, y2, r2}（内外圆的圆心和半径）。
+ *   内圆 (x1,y1,r1) = 圆心，半径 0
+ *   外圆 (x2,y2,r2) = 圆心，半径为元素最大维度的一半（覆盖整个元素）
  */
 function createFabricGradient(
   gradient: ParsedGradient,
   width: number,
   height: number,
-): InstanceType<typeof Gradient<'linear'>> {
-  // 将 CSS 角度转为弧度，并计算起止坐标
+): InstanceType<typeof Gradient<'linear'>> | InstanceType<typeof Gradient<'radial'>> {
+  // 构建 fabric colorStops（线性和径向共用）
+  const colorStops = gradient.stops.map(stop => ({
+    offset: stop.offset,
+    color: stop.color,
+  }))
+
+  if (gradient.type === 'radial') {
+    // 径向渐变：根据 centerX/centerY 和 shape 计算 fabric 坐标
+    const cx = (gradient.centerX ?? 0.5) * width
+    const cy = (gradient.centerY ?? 0.5) * height
+    // 外圆半径：circle 用最大维度，ellipse 用对角线距离以覆盖整个元素
+    const radius = gradient.shape === 'circle'
+      ? Math.max(width, height) / 2
+      : Math.sqrt(width * width + height * height) / 2
+
+    console.log('[ShapeHandler] 创建径向渐变:', {
+      cx, cy, radius, shape: gradient.shape, stops: colorStops.length,
+    })
+
+    return new Gradient({
+      type: 'radial',
+      coords: {
+        x1: cx,
+        y1: cy,
+        r1: 0,       // 内圆半径为 0（从圆心开始）
+        x2: cx,
+        y2: cy,
+        r2: radius,  // 外圆半径覆盖整个元素
+      },
+      colorStops,
+    })
+  }
+
+  // 线性渐变：将 CSS 角度转为弧度，并计算起止坐标
   const angleRad = ((gradient.angle - 90) * Math.PI) / 180
   const cos = Math.cos(angleRad)
   const sin = Math.sin(angleRad)
@@ -44,12 +81,6 @@ function createFabricGradient(
     y2: halfH + sin * halfH,
   }
 
-  // 构建 fabric colorStops
-  const colorStops = gradient.stops.map(stop => ({
-    offset: stop.offset,
-    color: stop.color,
-  }))
-
   return new Gradient({
     type: 'linear',
     coords,
@@ -62,7 +93,7 @@ export function createShapeObject(
   style: ParsedStyle,
 ): Rect {
   // 决定填充：渐变优先，否则纯色背景
-  let fill: string | InstanceType<typeof Gradient<'linear'>>  = style.backgroundColor
+  let fill: string | InstanceType<typeof Gradient<'linear'>> | InstanceType<typeof Gradient<'radial'>> = style.backgroundColor
   if (style.gradient) {
     fill = createFabricGradient(style.gradient, layout.width, layout.height)
     console.log('[ShapeHandler] 应用渐变背景:', {

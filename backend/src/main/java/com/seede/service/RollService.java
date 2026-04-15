@@ -60,11 +60,41 @@ public class RollService {
         log.debug("提示词模板加载完成，长度: {} 字符", systemPrompt.length());
 
         // 步骤 2：拼接用户消息——元素描述 + 完整画布上下文
-        // 提供完整 canvasContext 让 LLM 了解当前海报整体风格，保持新元素与整体一致性
+        // 提供完整 canvasContext 让 LLM 了解当前海报整体风格，保持新元素与整体一致性。
+        //
+        // selectedElementId / selectedElementContext 在 DTO 层定义为可选字段，但在实际 Roll
+        // 交互中强烈建议前端传入——缺失会导致 LLM 无法唯一定位目标元素，可能误改其它元素。
+        // 这里做非阻塞式校验：缺失仅记录 warn，不中断流程（兼容旧客户端与可能的后台调用）。
         String canvasContext = request.getCanvasContext() != null ? request.getCanvasContext() : "";
-        String userMessage = "元素描述：" + request.getElementDescription()
-                + "\n\n画布上下文：" + canvasContext;
-        log.debug("用户消息构建完成，总长度: {} 字符", userMessage.length());
+        String selectedElementId = request.getSelectedElementId() != null
+                ? request.getSelectedElementId().trim() : "";
+        String selectedElementContext = request.getSelectedElementContext() != null
+                ? request.getSelectedElementContext() : "";
+
+        if (selectedElementId.isEmpty()) {
+            log.warn("Roll 请求缺少 selectedElementId——LLM 可能无法唯一定位目标元素，"
+                    + "存在误改其它元素的风险。elementDescription={}", request.getElementDescription());
+        }
+        if (selectedElementContext.isEmpty()) {
+            log.warn("Roll 请求缺少 selectedElementContext——LLM 失去目标元素的结构化上下文，"
+                    + "生成片段的尺寸/样式一致性会下降。elementDescription={}", request.getElementDescription());
+        }
+        if (canvasContext.isEmpty()) {
+            log.warn("Roll 请求缺少 canvasContext——LLM 失去整体画布风格参考，局部替换与整体风格一致性会下降。");
+        }
+
+        // selectedElementId 显式呈现为"未提供"而不是空字符串，避免 LLM 把空值误判为合法 id
+        String idForPrompt = selectedElementId.isEmpty() ? "（未提供）" : selectedElementId;
+        String ctxForPrompt = selectedElementContext.isEmpty() ? "（未提供）" : selectedElementContext;
+
+        String userMessage = "【本次只允许修改一个元素】\n"
+                + "目标元素ID：" + idForPrompt
+                + "\n元素描述：" + request.getElementDescription()
+                + "\n\n目标元素上下文（JSON）：" + ctxForPrompt
+                + "\n\n完整画布上下文：" + canvasContext
+                + "\n\n请仅输出该目标元素的替代 JSX 片段（单个根节点），不要输出整张海报，不要输出 function Poster()。";
+        log.debug("用户消息构建完成，总长度: {} 字符，selectedElementId: {}, hasContext: {}",
+                userMessage.length(), idForPrompt, !selectedElementContext.isEmpty());
 
         // 步骤 3：立即发出 thinking 事件，前端可据此展示"生成中"的 UI 状态
         Flux<SseMessage> thinkingMsg = Flux.just(SseMessage.thinking("正在重新生成元素..."));

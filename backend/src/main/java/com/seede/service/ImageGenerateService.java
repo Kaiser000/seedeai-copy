@@ -22,7 +22,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,6 +44,9 @@ public class ImageGenerateService {
     /** 匹配 picsum.photos 占位图 URL */
     private static final Pattern PICSUM_PATTERN =
             Pattern.compile("https://picsum\\.photos/seed/([^/]+)/(\\d+)/(\\d+)");
+    /** 匹配 img 标签（用于读取 data-seede-image-id 与 prompt 属性） */
+    private static final Pattern IMG_TAG_PATTERN =
+            Pattern.compile("<img\\b[^>]*>", Pattern.CASE_INSENSITIVE);
 
     private final ImageGenerateConfig config;
     private final LlmClient llmClient;
@@ -126,12 +128,16 @@ public class ImageGenerateService {
 
             List<ImagePlaceholder> enriched = new ArrayList<>();
             for (ImagePlaceholder p : placeholders) {
-                // 按 seed 关键词匹配分析阶段的图片描述
+                // 优先按 imageId 匹配；无 imageId 时退化为 seed 匹配
                 String matchedPurpose = null;
                 String matchedDescription = null;
                 for (JsonNode img : array) {
+                    String analysisImageId = img.path("imageId").asText("");
                     String analysisSeed = img.path("seed").asText("");
-                    if (analysisSeed.equalsIgnoreCase(p.seed)) {
+                    boolean imageIdMatch = p.imageId != null && !p.imageId.isBlank()
+                            && analysisImageId.equalsIgnoreCase(p.imageId);
+                    boolean seedMatch = analysisSeed.equalsIgnoreCase(p.seed);
+                    if (imageIdMatch || seedMatch) {
                         matchedPurpose = img.path("purpose").asText(null);
                         matchedDescription = img.path("description").asText(null);
                         break;
@@ -155,19 +161,54 @@ public class ImageGenerateService {
     /** 解析 JSX 代码中的 picsum.photos 占位图 URL */
     List<ImagePlaceholder> parseImagePlaceholders(String jsxCode) {
         List<ImagePlaceholder> result = new ArrayList<>();
-        Matcher matcher = PICSUM_PATTERN.matcher(jsxCode);
+        Matcher tagMatcher = IMG_TAG_PATTERN.matcher(jsxCode);
 
-        while (matcher.find()) {
+        while (tagMatcher.find()) {
+            String imgTag = tagMatcher.group();
+            String src = extractAttr(imgTag, "src");
+            if (src == null || src.isBlank()) {
+                continue;
+            }
+
+            Matcher picsumMatcher = PICSUM_PATTERN.matcher(src);
+            if (!picsumMatcher.find()) {
+                continue;
+            }
+
+            String imageId = extractAttr(imgTag, "data-seede-image-id");
+            String inlinePrompt = extractAttr(imgTag, "prompt");
             result.add(ImagePlaceholder.of(
-                    matcher.group(0),       // 完整 URL
-                    matcher.group(1),       // seed 关键词
-                    Integer.parseInt(matcher.group(2)),  // 宽度
-                    Integer.parseInt(matcher.group(3))   // 高度
+                    src,                   // 完整 URL
+                    picsumMatcher.group(1),// seed 关键词
+                    Integer.parseInt(picsumMatcher.group(2)),  // 宽度
+                    Integer.parseInt(picsumMatcher.group(3)),  // 高度
+                    imageId,
+                    inlinePrompt
             ));
         }
 
-        // 去重（基于 originalUrl）
-        return result.stream().distinct().toList();
+        return result;
+    }
+
+    /**
+     * 从 HTML 标签中提取属性值（支持单引号和双引号）。
+     */
+    private String extractAttr(String tag, String attrName) {
+        if (tag == null || attrName == null || attrName.isBlank()) {
+            return null;
+        }
+        String attr = Pattern.quote(attrName);
+        Pattern doubleQuote = Pattern.compile(attr + "\\s*=\\s*\"([^\"]*)\"", Pattern.CASE_INSENSITIVE);
+        Matcher m1 = doubleQuote.matcher(tag);
+        if (m1.find()) {
+            return m1.group(1);
+        }
+        Pattern singleQuote = Pattern.compile(attr + "\\s*=\\s*'([^']*)'", Pattern.CASE_INSENSITIVE);
+        Matcher m2 = singleQuote.matcher(tag);
+        if (m2.find()) {
+            return m2.group(1);
+        }
+        return null;
     }
 
     /**
@@ -183,12 +224,18 @@ public class ImageGenerateService {
             ImagePlaceholder p = placeholders.get(i);
             StringBuilder entry = new StringBuilder();
             entry.append(String.format("%d. seed=%s, 尺寸=%dx%d", i + 1, p.seed, p.width, p.height));
+            if (p.imageId != null && !p.imageId.isBlank()) {
+                entry.append(", imageId=").append(p.imageId);
+            }
             // 附加分析阶段的语义信息，让 LLM 理解每张图片的具体用途
             if (p.purpose != null && !p.purpose.isBlank()) {
                 entry.append(", 用途=").append(p.purpose);
             }
             if (p.description != null && !p.description.isBlank()) {
                 entry.append(", 内容描述=").append(p.description);
+            }
+            if (p.inlinePrompt != null && !p.inlinePrompt.isBlank()) {
+                entry.append(", 现有prompt=").append(p.inlinePrompt);
             }
             imageList.append(entry).append("\n");
         }
@@ -209,7 +256,10 @@ public class ImageGenerateService {
                 .onErrorResume(e -> {
                     log.warn("图片提示词生成失败，使用 seed 关键词作为备选", e);
                     return Mono.just(placeholders.stream()
-                            .map(p -> p.withPrompt(p.seed + ", professional poster design, high quality"))
+                            .map(p -> p.withPrompt(
+                                    p.inlinePrompt != null && !p.inlinePrompt.isBlank()
+                                            ? p.inlinePrompt
+                                            : p.seed + ", professional poster design, high quality"))
                             .toList());
                 });
     }
@@ -231,17 +281,28 @@ public class ImageGenerateService {
                 ImagePlaceholder p = placeholders.get(i);
                 if (array.isArray() && i < array.size()) {
                     JsonNode item = array.get(i);
-                    String prompt = item.has("prompt") ? item.get("prompt").asText() : p.seed;
+                    String prompt = item.has("prompt") ? item.get("prompt").asText() : "";
+                    if (prompt == null || prompt.isBlank()) {
+                        prompt = p.inlinePrompt != null && !p.inlinePrompt.isBlank()
+                                ? p.inlinePrompt
+                                : p.seed + ", professional poster design, high quality";
+                    }
                     result.add(p.withPrompt(prompt));
                 } else {
-                    result.add(p.withPrompt(p.seed + ", professional design, high quality"));
+                    String fallbackPrompt = p.inlinePrompt != null && !p.inlinePrompt.isBlank()
+                            ? p.inlinePrompt
+                            : p.seed + ", professional design, high quality";
+                    result.add(p.withPrompt(fallbackPrompt));
                 }
             }
             return result;
         } catch (Exception e) {
             log.warn("解析图片提示词 JSON 失败: {}", response, e);
             return placeholders.stream()
-                    .map(p -> p.withPrompt(p.seed + ", professional poster design, high quality"))
+                    .map(p -> p.withPrompt(
+                            p.inlinePrompt != null && !p.inlinePrompt.isBlank()
+                                    ? p.inlinePrompt
+                                    : p.seed + ", professional poster design, high quality"))
                     .toList();
         }
     }
@@ -272,18 +333,19 @@ public class ImageGenerateService {
                                         // 外部 CDN 通常不提供 CORS 头，通过 /api/proxy/image 代理解决
                                         String proxyUrl = "/api/proxy/image?url="
                                                 + URLEncoder.encode(imageUrl, StandardCharsets.UTF_8);
-                                        codeRef.updateAndGet(code -> code.replace(p.originalUrl, proxyUrl));
-                                        log.info("第 {}/{} 张图片生成成功: seed={}, url={}", i + 1, total, p.seed, imageUrl);
+                                        codeRef.updateAndGet(code -> replaceImagePlaceholderUrl(code, p, proxyUrl));
+                                        log.info("第 {}/{} 张图片生成成功: imageId={}, seed={}, url={}",
+                                                i + 1, total, p.imageId, p.seed, imageUrl);
                                         // image_complete 消息中返回原始 URL，供前端 UI 预览展示
                                         return SseMessage.imageComplete(String.format(
-                                                "{\"index\":%d,\"prompt\":\"%s\",\"url\":\"%s\"}",
-                                                i, escapeJson(p.prompt), escapeJson(imageUrl)));
+                                                "{\"index\":%d,\"imageId\":\"%s\",\"prompt\":\"%s\",\"url\":\"%s\"}",
+                                                i, escapeJson(p.imageId), escapeJson(p.prompt), escapeJson(imageUrl)));
                                     })
                                     .onErrorResume(e -> {
                                         log.error("第 {}/{} 张图片生成失败: {}", i + 1, total, e.getMessage());
                                         return Mono.just(SseMessage.imageComplete(String.format(
-                                                "{\"index\":%d,\"prompt\":\"%s\",\"url\":null,\"error\":\"%s\"}",
-                                                i, escapeJson(p.prompt), escapeJson(e.getMessage()))));
+                                                "{\"index\":%d,\"imageId\":\"%s\",\"prompt\":\"%s\",\"url\":null,\"error\":\"%s\"}",
+                                                i, escapeJson(p.imageId), escapeJson(p.prompt), escapeJson(e.getMessage()))));
                                     })
                                     .flux()
                     );
@@ -294,6 +356,63 @@ public class ImageGenerateService {
                 Flux.just(SseMessage.complete(codeRef.get())));
 
         return Flux.concat(imageFlux, completeFlux);
+    }
+
+    /**
+     * 按 imageId 精确替换对应 <img> 标签的 src。
+     * <p>优先使用 data-seede-image-id 精确定位；若缺失则退化为替换首个占位 URL（而非 replaceAll）。</p>
+     */
+    private String replaceImagePlaceholderUrl(String code, ImagePlaceholder placeholder, String replacementUrl) {
+        if (code == null || code.isBlank() || placeholder == null || replacementUrl == null) {
+            return code;
+        }
+
+        if (placeholder.imageId != null && !placeholder.imageId.isBlank()) {
+            Matcher matcher = IMG_TAG_PATTERN.matcher(code);
+            StringBuilder sb = new StringBuilder();
+            boolean replaced = false;
+
+            while (matcher.find()) {
+                String tag = matcher.group();
+                String tagImageId = extractAttr(tag, "data-seede-image-id");
+                String replacedTag = tag;
+                if (!replaced && placeholder.imageId.equals(tagImageId)) {
+                    replacedTag = replaceSrcInImgTag(tag, replacementUrl);
+                    replaced = true;
+                }
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(replacedTag));
+            }
+            matcher.appendTail(sb);
+            if (replaced) {
+                return sb.toString();
+            }
+        }
+
+        // 兜底：按 URL 仅替换第一个出现位置，避免同 URL 多图误替换
+        int idx = code.indexOf(placeholder.originalUrl);
+        if (idx < 0) return code;
+        return code.substring(0, idx) + replacementUrl + code.substring(idx + placeholder.originalUrl.length());
+    }
+
+    /**
+     * 替换 img 标签中的 src 属性值（单个标签内）。
+     */
+    private String replaceSrcInImgTag(String imgTag, String replacementUrl) {
+        if (imgTag == null || imgTag.isBlank()) return imgTag;
+
+        Pattern srcDoubleQuote = Pattern.compile("src\\s*=\\s*\"([^\"]*)\"", Pattern.CASE_INSENSITIVE);
+        Matcher m1 = srcDoubleQuote.matcher(imgTag);
+        if (m1.find()) {
+            return m1.replaceFirst("src=\"" + Matcher.quoteReplacement(replacementUrl) + "\"");
+        }
+
+        Pattern srcSingleQuote = Pattern.compile("src\\s*=\\s*'([^']*)'", Pattern.CASE_INSENSITIVE);
+        Matcher m2 = srcSingleQuote.matcher(imgTag);
+        if (m2.find()) {
+            return m2.replaceFirst("src='" + Matcher.quoteReplacement(replacementUrl) + "'");
+        }
+
+        return imgTag;
     }
 
     /**
@@ -377,6 +496,10 @@ public class ImageGenerateService {
         final String seed;
         final int width;
         final int height;
+        /** 图片唯一标识（来自 data-seede-image-id），用于精确替换 */
+        final String imageId;
+        /** 代码中 img 标签自带的 prompt 属性（若有，作为提示词回退） */
+        final String inlinePrompt;
         final String prompt;
         /** 图片用途（来自分析阶段），如"头部主视觉背景"、"活动亮点配图" */
         final String purpose;
@@ -384,39 +507,34 @@ public class ImageGenerateService {
         final String description;
 
         ImagePlaceholder(String originalUrl, String seed, int width, int height,
+                         String imageId, String inlinePrompt,
                          String prompt, String purpose, String description) {
             this.originalUrl = originalUrl;
             this.seed = seed;
             this.width = width;
             this.height = height;
+            this.imageId = imageId;
+            this.inlinePrompt = inlinePrompt;
             this.prompt = prompt;
             this.purpose = purpose;
             this.description = description;
         }
 
-        static ImagePlaceholder of(String originalUrl, String seed, int width, int height) {
-            return new ImagePlaceholder(originalUrl, seed, width, height, null, null, null);
+        static ImagePlaceholder of(String originalUrl, String seed, int width, int height,
+                                   String imageId, String inlinePrompt) {
+            return new ImagePlaceholder(originalUrl, seed, width, height,
+                    imageId, inlinePrompt, null, null, null);
         }
 
         ImagePlaceholder withPrompt(String newPrompt) {
-            return new ImagePlaceholder(originalUrl, seed, width, height, newPrompt, purpose, description);
+            return new ImagePlaceholder(originalUrl, seed, width, height,
+                    imageId, inlinePrompt, newPrompt, purpose, description);
         }
 
         /** 附加分析阶段的图片语义信息 */
         ImagePlaceholder withAnalysisInfo(String purpose, String description) {
-            return new ImagePlaceholder(originalUrl, seed, width, height, prompt, purpose, description);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof ImagePlaceholder that)) return false;
-            return Objects.equals(originalUrl, that.originalUrl);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(originalUrl);
+            return new ImagePlaceholder(originalUrl, seed, width, height,
+                    imageId, inlinePrompt, prompt, purpose, description);
         }
     }
 }

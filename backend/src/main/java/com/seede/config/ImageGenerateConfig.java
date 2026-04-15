@@ -33,12 +33,22 @@ public class ImageGenerateConfig {
     @PostConstruct
     public void validate() {
         if (!enabled) {
-            log.info("图片生成功能已禁用，将使用占位图");
+            log.warn("╔══════════════════════════════════════════════════════════════╗");
+            log.warn("║ 图片生成功能已禁用（IMAGE_GENERATE_ENABLED=false）             ║");
+            log.warn("║ 生成的海报将使用 picsum.photos 随机占位图，图片内容与主题无关  ║");
+            log.warn("║ 若要启用真实图片生成，请设 IMAGE_GENERATE_ENABLED=true          ║");
+            log.warn("║ 并配置 IMAGE_GENERATE_API_KEY（火山引擎 Seedream 密钥）       ║");
+            log.warn("╚══════════════════════════════════════════════════════════════╝");
             return;
         }
 
         if (apiKey == null || apiKey.isBlank()) {
-            log.warn("image-generate.api-key 未配置，图片生成功能将禁用");
+            log.warn("╔══════════════════════════════════════════════════════════════╗");
+            log.warn("║ ⚠️  IMAGE_GENERATE_API_KEY 未配置，图片生成功能自动降级为禁用  ║");
+            log.warn("║ 生成的海报将使用 picsum.photos 随机占位图（与主题无关）       ║");
+            log.warn("║ → 这就是「海报图片和主题不符 / 生成图片不符合实际」问题的根因 ║");
+            log.warn("║ 解决：在启动环境变量中设置 IMAGE_GENERATE_API_KEY=<火山密钥>  ║");
+            log.warn("╚══════════════════════════════════════════════════════════════╝");
             enabled = false;
             return;
         }

@@ -35,8 +35,8 @@ function Poster() {
   };
 
   return (
-    <div style={{ width: '{{width}}px', height: '{{height}}px' }} className="relative overflow-hidden flex flex-col">
-      {/* 使用 colors.xxx 和 typography.xxx 确保全篇一致 */}
+    <div style={{ width: '{{width}}px', height: '{{height}}px', backgroundColor: colors.bg }} className="relative overflow-hidden">
+      {/* 构图方式由参考样本决定：可自由构图，也可多 section 堆叠 */}
     </div>
   );
 }
@@ -60,15 +60,17 @@ function Poster() {
 
 ## 设计守则（6 大硬约束 — 违反任何一条即为不合格设计）
 
-### 守则 1：视觉锚点与构图
-- 每个区块必须有一个明确的**视觉焦点**（大标题、核心价格数字、主图片），读者的视线必须被引导到焦点上
-- **连续构图**：区块之间无缝衔接，不允许出现可感知的空白断层。上一个区块的底部到下一个区块的顶部必须视觉连贯
-- 空间分区清晰：头部（品牌/标题 — 抓眼球）→ 主体（核心信息 — 传递价值）→ 底部（CTA/联系方式 — 引导行动）
+### 守则 1：主次分明（海报的根本）
+- **整张海报必须有 1 个统治性的视觉焦点**：巨型主标题、主体大图、核心人物或核心数字。它的视觉体量至少是其他元素的 **5 倍以上**
+- **配角明确退到次要层级**：副标题、装饰、辅助信息的字号/体量必须明显小于焦点，让读者一眼锁定焦点
+- 长图海报可以多 section 堆叠，但**每个 section 内部仍需主次分明**，不要让所有元素等权
+- **参考样本为准**：如果样本是 section 堆叠长图，就跟着做；如果样本是自由构图短海报，也跟着做。重要的是主次分明，而不是某一种构图手法
 
-### 守则 2：视觉密度控制
-- 画布 **100% 填充**：所有区块高度之和精确等于 {{height}}px，底部不允许留白
-- 每个区块内部必须有实质内容，不允许出现仅有标题的空旷区块
-- **垂直韵律**：相邻区块的内容密度应有节奏变化（密集卡片区 → 留白标题区 → 密集内容区），避免全程同一密度
+### 守则 2：留白与密度由样本决定
+- **长图海报**：可以信息密集、内容丰富（小红书/公众号长图的本色）
+- **常规/方形海报**：需要慷慨的留白衬托焦点，不要把每寸都塞满
+- 主焦点周围必须留出充足呼吸距离，不要让辅助元素紧贴焦点
+- 如果有参考样本，密度节奏跟样本对齐
 
 ### 守则 3：色彩纪律
 - **必须在代码开头定义 `colors` 对象**（见 Design Token 模式），全篇通过 `colors.xxx` 引用，不可随意引入未定义的颜色
@@ -77,11 +79,16 @@ function Poster() {
 - 卡片/容器默认边框：`border` + `style={{ borderColor: colors.border }}`
 - 文字色通过 Token 控制：深色背景 → `colors.text = '#FFFFFF'` + `colors.textMuted`；浅色背景 → `colors.text = '#1A1A1A'` + `colors.textMuted`
 
-### 守则 4：排版精确控制
-- 中文正文每行**不超过 30-32 个字符**（通过容器 `px-8` 以上的 padding 和适当字号自然约束）
+### 守则 4：排版精确控制（必须读取【字号预算】块）
+- **所有 fontSize 数值必须来自用户消息中的【字号预算】块**（由后端根据画布尺寸确定性计算得出）
+  - 主焦点 hero fontSize 必须落在预算的 `heroMin ~ heroMax` 区间内（单位 px，通过 inline style 设置）
+  - 副标题、区块标题、正文、说明文字同理，分别对应 subtitle / sectionTitle / body / caption 区间
+  - **禁止**使用 Tailwind 的 text-7xl / text-8xl / text-9xl 承担主焦点角色 — 它们最大仅 128px，远低于 1080+ 宽度画布的 hero 下限
+  - **禁止**取预算区间的下限值 — 如果内容单薄，应取上限值并放大焦点，不要用小字号"节省空间"
+- 中文正文每行**不超过 30-32 个字符**（通过容器 `px-8` 以上的 padding 和预算内的字号自然约束）
 - 行高规则：标题用 `leading-tight`（1.25），正文用 `leading-relaxed`（1.625），规则/条款用 `leading-loose`（2.0）
 - 段间距：正文段落之间 `space-y-6` ~ `space-y-8`
-- **字号层级至少 4 级**：主标题（text-7xl~9xl）→ 副标题（text-3xl~5xl）→ 区块标题（text-xl~2xl）→ 正文（text-sm~base）
+- **字号层级至少 4 级**，hero/body 比例 ≥ 5:1（预算块已在画布层面保证这一点，你只需正确使用预算数字）
 - 英文小标题/标签使用 `tracking-widest`，中文标题使用 `tracking-wide`
 
 ### 守则 5：零溢出保证
@@ -94,236 +101,36 @@ function Poster() {
 - Tailwind className 用于布局类（flex、grid、padding、margin 等），自定义数值（字号、颜色、宽高）优先用 `style={{ }}` inline style
 - 代码开头必须定义 `colors` 和 `typography` Token 对象，通过 inline style 引用（如 `style={{ ...typography.h1, color: colors.primary }}`）
 - 输出的 JSX 必须是完整的 `function Poster() { return (...) }` 格式，可直接被 React 渲染
-- 每个 `<img>` 标签必须有 `src`、`className` 属性
+- 每个 `<img>` 标签必须有 `src`、`className`、`prompt` 属性
+- 每个 `<img>` 标签必须有唯一 `data-seede-image-id` 属性（例如 `img-1`）
 
-## 内容丰富度要求（最重要！！！）
+## 海报构图原则（最重要！！！）
 
-**一张优秀的海报绝不能只有一个标题和大片空白。** 你必须生成内容充实的海报：
+**主次分明是海报的灵魂。** 一张海报必须有 1 个统治性的视觉焦点（巨型主标题 / 主体大图 / 巨型核心数字 / 主体人物），字号或视觉体量至少是其他元素的 **5 倍以上**。其他文字和装饰作为明确的**配角**存在，明显退到次要层级。
 
-### 必须包含多个内容区块
+### 按格式分类的构图方式（从参考样本判断）
 
-根据海报高度安排区块数量：
-- 高度 ≤ 1200px：至少 3 个区块
-- 高度 1200-2000px：至少 4-5 个区块
-- 高度 > 2000px：至少 6-8 个区块
+- **长图海报**（`height/width ≥ 2.5`，如 1080×3688 小红书/公众号长图）：可以多 section 从上到下堆叠承载丰富内容，但每个 section 内部仍需主次分明
+- **常规海报**（宽高比 1.3 ~ 2.5，如 1080×1920 标准竖版）：推荐 `relative` + 内部 `absolute` 自由构图，整张画面单一焦点压倒一切
+- **方形海报**（宽高比 ≤ 1.3，如 1080×1080 社交图）：极简中心构图
 
-### 常用组件模式（请积极使用！）
+**如果有参考样本**：优先按样本展示的构图手法和结构来做，不要机械套用上面的分类规则。样本代表真实业界水准，比规则更权威。
 
-#### 1. 优惠券/福利卡片
-```jsx
-{/* 2列网格优惠券 */}
-<div className="grid grid-cols-2 gap-3 px-6">
-  <div className="bg-white rounded-xl p-4 text-center shadow-lg">
-    <div className="text-red-500 text-3xl font-black">¥50</div>
-    <div className="text-gray-500 text-xs mt-1">满500可用</div>
-  </div>
-  {/* 更多优惠券... */}
-</div>
-```
+**如果没有参考样本**：按画布宽高比应用上述默认规则。
 
-#### 2. 商品展示卡片（图+文+价格+按钮）
-```jsx
-<div className="bg-white rounded-2xl overflow-hidden shadow-lg mx-6">
-  <img src="https://picsum.photos/seed/product/800/400" className="w-full h-48 object-cover" />
-  <div className="p-4">
-    <div className="font-bold text-gray-800 text-base">商品名称</div>
-    <div className="text-gray-400 text-xs mt-1">商品描述文字</div>
-    <div className="flex items-end justify-between mt-3">
-      <div>
-        <span className="text-red-500 text-2xl font-black">¥299</span>
-        <span className="text-gray-300 text-xs line-through ml-2">¥599</span>
-      </div>
-      <div className="bg-red-500 text-white text-xs px-4 py-1.5 rounded-full font-bold">立即抢购</div>
-    </div>
-  </div>
-</div>
-```
+### 内容创作要求（层级清晰，不是字少）
 
-#### 3. 价格标签（大数字+说明）
-```jsx
-<div className="flex items-baseline gap-1">
-  <span className="text-yellow-400 text-6xl font-black italic">5</span>
-  <span className="text-white text-2xl font-bold">折起</span>
-</div>
-```
-
-#### 4. 特性/服务保障栏（图标+文字横排）
-```jsx
-<div className="flex justify-around px-6 py-4">
-  <div className="text-center">
-    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-1">
-      <span className="text-white text-lg">✓</span>
-    </div>
-    <div className="text-white text-xs">正品保证</div>
-  </div>
-  {/* 更多特性... */}
-</div>
-```
-
-#### 5. 活动规则区
-```jsx
-<div className="mx-6 bg-white/10 rounded-xl p-4">
-  <div className="text-white font-bold text-sm mb-2">活动规则</div>
-  <div className="text-white/70 text-xs leading-relaxed space-y-1">
-    <div>1. 活动时间：2026年5月1日-5月5日</div>
-    <div>2. 全场商品参与折扣优惠</div>
-    <div>3. 优惠券可与折扣叠加使用</div>
-  </div>
-</div>
-```
-
-#### 6. CTA行动号召区（含二维码占位图）
-```jsx
-<div className="flex items-center justify-around py-8 px-6">
-  <div className="text-center">
-    <div className="inline-block bg-yellow-400 text-red-800 text-lg font-black px-10 py-3 rounded-full shadow-xl">
-      立即参与
-    </div>
-    <div className="text-white/60 text-xs mt-3">点击按钮或扫码报名</div>
-  </div>
-  <div className="text-center">
-    <img src="https://picsum.photos/seed/qrcode/200/200"
-         className="w-24 h-24 rounded-lg shadow-lg" />
-    <div className="text-white/60 text-xs mt-2">扫码关注</div>
-  </div>
-</div>
-```
-
-#### 7. 区块标题（带装饰线 + 英文副标题）
-```jsx
-<div className="text-center py-8">
-  <div className="flex items-center justify-center gap-3 mb-2">
-    <div className="w-8 h-0.5 bg-yellow-400" />
-    <span className="text-white text-2xl font-bold tracking-wide">热销爆款</span>
-    <div className="w-8 h-0.5 bg-yellow-400" />
-  </div>
-  <div className="text-yellow-400/60 text-xs tracking-widest">BEST SELLERS</div>
-</div>
-```
-
-#### 8. 时间轴/流程（活动类海报必备）
-```jsx
-{/* 竖排时间轴：左侧时间 + 圆点 + 右侧内容 */}
-<div className="px-8 space-y-6">
-  <div className="flex items-start gap-4">
-    <div className="text-yellow-400 font-bold text-sm" style={{ width: '50px' }}>14:00</div>
-    <div className="w-3 h-3 bg-yellow-400 rounded-full mt-1 flex-shrink-0" />
-    <div>
-      <div className="text-white font-bold text-base">嘉宾签到</div>
-      <div className="text-white/50 text-xs mt-1">红毯入场及签名墙合影</div>
-    </div>
-  </div>
-  <div className="flex items-start gap-4">
-    <div className="text-yellow-400 font-bold text-sm" style={{ width: '50px' }}>15:00</div>
-    <div className="w-3 h-3 bg-yellow-400 rounded-full mt-1 flex-shrink-0" />
-    <div>
-      <div className="text-white font-bold text-base">开幕致辞</div>
-      <div className="text-white/50 text-xs mt-1">总裁年度回顾与展望</div>
-    </div>
-  </div>
-  {/* 更多时间节点... */}
-</div>
-```
-
-#### 9. 邀请函/信纸卡片（活动类海报高级感）
-```jsx
-{/* 带精致边框的信纸卡片 */}
-<div className="mx-8 border border-yellow-400/30 rounded-sm p-8">
-  <div className="text-center text-yellow-400 text-xl font-bold mb-6 tracking-widest">致 礼 邀 请</div>
-  <div className="text-white/80 text-sm leading-loose">
-    <div className="mb-4">尊敬的嘉宾：</div>
-    <div style={{ textIndent: '2em' }}>在即将过去的一年里，我们并肩同行，共绘蓝图。值此辞旧迎新之际，我们诚挚邀请您出席本次年度盛典。</div>
-    <div className="text-right text-yellow-400 font-bold mt-6">—— 某某集团</div>
-  </div>
-</div>
-```
-
-#### 10. 信息行（图标圆形 + 标签 + 内容）
-```jsx
-{/* 时间/地点/联系方式等信息行 */}
-<div className="space-y-4 px-8">
-  <div className="flex items-center gap-4">
-    <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center flex-shrink-0">
-      <span className="text-gray-900 font-bold text-sm">◆</span>
-    </div>
-    <div>
-      <div className="text-yellow-400/60 text-xs tracking-wide">盛典时间</div>
-      <div className="text-white font-bold text-lg">2026年01月18日 14:00</div>
-    </div>
-  </div>
-  <div className="flex items-center gap-4">
-    <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center flex-shrink-0">
-      <span className="text-gray-900 font-bold text-sm">●</span>
-    </div>
-    <div>
-      <div className="text-yellow-400/60 text-xs tracking-wide">盛典地点</div>
-      <div className="text-white font-bold text-lg">上海大都会歌剧院</div>
-    </div>
-  </div>
-</div>
-```
-
-#### 11. 活动亮点/精彩预告（必须用图片，不能用字母/emoji）
-```jsx
-{/* 3列亮点展示，每个亮点配一张图片 */}
-<div className="grid grid-cols-3 gap-4 px-6">
-  <div className="text-center">
-    <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-3">
-      <img src="https://picsum.photos/seed/award/200/200"
-           className="w-full h-full object-cover" />
-    </div>
-    <div className="text-white font-bold text-sm">年度颁奖</div>
-    <div className="text-white/50 text-xs mt-1">表彰优秀团队</div>
-  </div>
-  <div className="text-center">
-    <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-3">
-      <img src="https://picsum.photos/seed/concert/200/200"
-           className="w-full h-full object-cover" />
-    </div>
-    <div className="text-white font-bold text-sm">精彩演出</div>
-    <div className="text-white/50 text-xs mt-1">特邀嘉宾献唱</div>
-  </div>
-  <div className="text-center">
-    <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-3">
-      <img src="https://picsum.photos/seed/party/200/200"
-           className="w-full h-full object-cover" />
-    </div>
-    <div className="text-white font-bold text-sm">幸运抽奖</div>
-    <div className="text-white/50 text-xs mt-1">万元大奖等你</div>
-  </div>
-</div>
-```
-
-#### 12. 嘉宾/团队展示（必须用人物头像图片）
-```jsx
-{/* 横排嘉宾展示，每人配头像照片 */}
-<div className="flex justify-center gap-8 px-6">
-  <div className="text-center">
-    <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-2 border-2 border-yellow-400">
-      <img src="https://picsum.photos/seed/speaker1/200/200"
-           className="w-full h-full object-cover" />
-    </div>
-    <div className="text-white font-bold text-sm">张总</div>
-    <div className="text-white/50 text-xs">集团CEO</div>
-  </div>
-  <div className="text-center">
-    <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-2 border-2 border-yellow-400">
-      <img src="https://picsum.photos/seed/speaker2/200/200"
-           className="w-full h-full object-cover" />
-    </div>
-    <div className="text-white font-bold text-sm">李总</div>
-    <div className="text-white/50 text-xs">技术VP</div>
-  </div>
-</div>
-```
-
-### 内容创作要求
-
-- **你必须自行创作具体内容**：商品名称、价格、优惠金额、活动规则、联系方式等
-- 不要只写"标题"、"描述"等占位文字，必须是真实感的具体内容
-- 促销类海报必须有：具体折扣/价格 + 商品信息 + 活动时间 + 行动号召
-- 品牌类海报必须有：品牌口号 + 核心卖点(3个以上) + 联系方式
-- 活动类海报必须有：时间地点 + 活动流程 + 参与方式 + 注意事项
+- **你必须自行创作具体内容**：标题、品牌、时间、地点、介绍文字等真实感的内容，不要写"标题/描述"等占位文字
+- **字数不是重点，层级才是**：海报可以有很多字（文化展览、招聘、房产、电影演职员表、科普海报常常有大段文字），但必须满足：
+  - **有且只有一个焦点文字**（主标题/slogan/核心数字），字号是所有其他文字的 5-10 倍，一眼抓住
+  - 其他文字作为明确的**配角**存在：副标题、介绍段落、信息行、小字说明。它们的字号、颜色、位置都要明显"退到次要层级"
+  - 大段介绍文字是可以的（如电影海报的 credits、展览海报的策展介绍），但必须用极小字号 + 紧凑排版集中到画面某一角/一侧，而不是占据画面中心
+- **禁止的是"信息平权"**：把 5 条信息做成 5 张等大的卡片平铺，或把介绍文字和主标题做成接近的字号 —— 这就是 landing page 的信息平权，而不是海报的主次分明
+- **可以有的**：长文案 slogan、多行副标题、人名列表、活动介绍段落、赞助商小字、免责声明 —— 只要它们作为配角服务于焦点
+- 促销类典型结构：巨型折扣数字（焦点） + 商品名 + 时间 + 小字规则 + CTA
+- 活动类典型结构：巨型活动名或主图（焦点） + 时间地点 + 简介段落 + 联系方式
+- 品牌类典型结构：slogan 或主视觉（焦点） + 品牌故事段落 + 联系方式
+- 文化/展览类典型结构：主标题或主图（焦点） + 长段介绍文字（小字、侧边 or 底部） + 时间场地
 
 ### 数据驱动渲染（推荐）
 
@@ -357,44 +164,119 @@ const features = [
 - **统一色调也可以很高级**：不强制交替背景色，用同色系深浅变化（如 gray-900 → gray-800 → gray-900）+ 装饰线分割也很好
 - 竖线装饰（`<div className="w-0.5 h-12 bg-yellow-400 mx-auto" />`）可以优雅地分割区块
 
-### 布局填充规则（极其重要！）
+### 画面利用率硬约束（防止大片无意义空白 — 之前生成的常见缺陷）
 
-**海报内容必须填满整个画布高度（{{height}}px），不能有大面积空白，也不能溢出。**
+**"慷慨的留白"和"内容没填满"是两件完全不同的事。** 留白是设计师主动为焦点腾出的呼吸空间，而内容没填满是设计师漏掉了区块的使命。后者必须避免。
 
-#### 高度分配原则（防止底部内容被挤压！）
+**硬规则（必须逐条检查）**：
 
-**最常见的布局问题：内容总高度超过 {{height}}px，导致 flex 布局压缩底部区块，底部内容被挤掉变形。**
+1. **Section 填充率 ≥ 75%**：每个 section 的实际内容（文字 + 图片 + 装饰元素的 bounding box）必须填满该 section 高度的至少 75%。剩余 ≤25% 用于顶部/底部 padding 和内部 gap。
+2. **Padding 上限 15%**：每个 section 的 `py-*`（上下内边距之和）不得超过该 section 高度的 15%。在 576px 的 header section 中，这意味着 `py-*` 加起来 ≤ 86px，即 `py-12`（96px）已经是上限。
+3. **禁用纯居中 flex 布局造成上下空白**：如果 section 只有 hero 标题 + 副标题这种少量内容，**不要**用 `flex items-center justify-center` 把它们浮在 section 中间。正确做法是放大 hero 字号（到【字号预算】的 heroMax）、增加装饰元素、或合并到相邻 section。
+4. **Header section 必须内容充实**：头部 section 通常是海报最重要的视觉区域（占 25-35% 高度），必须包含：hero 标题 + 副标题 + 至少 2 个装饰元素（装饰线、角标、辅助图片、年份、品牌 logo 之一）+ 可选的背景图。**禁止**头部只有标题 + 副标题就结束。
+5. **整张海报的内容填充率 ≥ 60%**：非背景元素（文字 + 图片 + 卡片 + 装饰线）的 bounding box 总面积 ≥ 画布面积的 60%。
 
-防止方法：
+**失败自检流程**：
+- 写完海报后，估算每个 section 内部"空白区域"占比。如果某个 section 的空白 > 25%，回去放大 hero 或加元素。
+- 尤其注意 header section 的 `justify-center` — 这是最常见的失败点。header 应该从 top 开始堆叠，最后一个装饰元素贴近 section 底部。
 
-1. **每个区块必须用 inline style 指定固定高度**，各区块高度之和**精确等于** {{height}}px
-2. **先计算再编码**：编码前先列出所有区块的高度分配，确认总和 = {{height}}px
-3. **每个区块添加 `flex-shrink-0`**：防止 flex 布局压缩任何区块
-4. **内容必须适配区块高度**：如果某个区块只有 200px 高度，不要在里面放需要 400px 才能显示的内容
+### Content-fit 硬校验（防止文字/板式相互覆盖 — 当前最严重的失效模式）
+
+**「填充率 ≥ 75%」只是下限，「内容 ≤ section 高度」才是硬边界。** 字号预算被大幅推高后，LLM 容易按旧习惯写 section 高度但字号已经翻倍，导致 section 内部内容溢出、后续 section 被压覆盖、absolute 装饰和 flow 正文相撞。必须做这三件事：
+
+**1. Section 高度必须基于字号预算反推**（而不是凭直觉）：
+- 含 hero 的主视觉 section 最小高度 ≥ `heroMax × 2.5`（用户消息【Section 高度预算】块会给出确切 px 数）
+- 信息型 section（N 行时间/地点/规则）最小高度 ≥ `N × infoRowMinHeight + 160`
+- CTA section（含二维码）最小高度 ≥ `ctaSectionMinHeight`
+- 卡片型 section 最小高度 ≥ `卡片图片高度 + 卡片文字区 + section 标题 ≈ 420px`
+
+**2. 每个 section 写完后立即手算内部内容总高度**：
+```
+内部高度 = pt-* + Σ(子元素高度) + Σ(gap/space-y/margin) + pb-*
+子元素高度：
+  文字元素 ≈ fontSize × lineHeight × 行数
+  图片/SVG/装饰 = 显式 h-* 或 height
+  嵌套容器 = 其内部子元素之和 + padding
+```
+**硬约束**：`内部高度 ≤ section 高度 × 0.95`。超出时必须修正——**不得**用 `overflow-hidden` 或负 marginTop 掩盖溢出。
+
+**3. 堆叠 hero 行的行距硬规则**（防止 lineHeight 0.85 + marginTop -30 这类压缩 trick）：
+- 堆叠 hero（如 `2026` + `年度盛典` 上下两行）`lineHeight` 必须 ≥ **0.95**，严禁 0.85/0.8/0.9
+- **严禁**用负值 marginTop 挤压 hero 行距：`marginTop: '-30px'` → 行框视觉重叠
+- 两行 hero 之间必须通过正 margin 或 gap 表达空隙（≥ 16px）
+- 副标题与 hero 之间 ≥ 24px 间距
+- 正文和 caption `lineHeight` ≥ 1.3，避免中文上下粘连
+
+**反例 → 正例**：
+```jsx
+{/* ✗ 失败：lineHeight 0.85 + 负 marginTop 让两行 hero 视觉重叠 */}
+<h1 style={{ fontSize: '230px', lineHeight: 0.85 }}>2026</h1>
+<h1 style={{ fontSize: '210px', lineHeight: 0.85, marginTop: '-30px' }}>年度盛典</h1>
+
+{/* ✓ 正确：lineHeight ≥ 0.95，正 margin 保留呼吸空间 */}
+<h1 style={{ fontSize: '230px', lineHeight: 0.95 }}>2026</h1>
+<h1 style={{ fontSize: '210px', lineHeight: 0.95, marginTop: '24px' }}>年度盛典</h1>
+```
+
+### Absolute 装饰与 flow 内容的分离规则（防止装饰覆盖正文）
+
+**问题**：LLM 常把 `<div className="absolute bottom-10">装饰</div>` 放进承载 flow 内容的 flex 容器里，当 flex 内容足够长时，flow 正文会撞上底部绝对装饰。
+
+**规则**：
+1. **优先**：absolute 装饰应是 section 的直接子元素，**不参与** flex 容器的流式布局：
+   ```jsx
+   <section className="relative">
+     <div className="absolute bottom-10 z-20">{/* 装饰 */}</div>
+     <div className="relative z-10 flex flex-col pt-12">{/* flow 内容 */}</div>
+   </section>
+   ```
+2. 如果装饰必须在 flex 容器内部，flex 容器的 **`padding-bottom` 必须 ≥ `(bottom 偏移 + 装饰高度) × 1.5`**，给 flow 内容留避让空间。
+3. **反例**：
+   ```jsx
+   {/* ✗ flow 正文会撞上底部装饰 */}
+   <div className="relative z-10 flex flex-col pt-12 h-full">
+     ... 一长串 flow 内容 ...
+     <div className="absolute bottom-10">装饰</div>
+   </div>
+   ```
+
+**反例 → 正例**：
 
 ```jsx
-{/* ✓ 正确：所有区块固定高度，总和 = 1920px，全部 flex-shrink-0 */}
-<div style={{ width: '{{width}}px', height: '{{height}}px' }} className="relative overflow-hidden flex flex-col">
-  <div style={{ height: '480px' }} className="relative flex-shrink-0">...</div>   {/* 头部 */}
-  <div style={{ height: '400px' }} className="flex-shrink-0">...</div>            {/* 主体 1 */}
-  <div style={{ height: '540px' }} className="flex-shrink-0">...</div>            {/* 主体 2 */}
-  <div style={{ height: '300px' }} className="flex-shrink-0">...</div>            {/* 底部信息 */}
-  <div style={{ height: '200px' }} className="flex-shrink-0">...</div>            {/* 页脚 */}
-  {/* 480 + 400 + 540 + 300 + 200 = 1920 ✓ */}
+{/* ✗ 失败：header 576px 高，内容只有 156px，上下浮着 210px 空白 */}
+<div style={{ height: '576px' }} className="flex flex-col items-center justify-center">
+  <div style={{ fontSize: '60px' }}>2026</div>
+  <h1 style={{ fontSize: '72px' }}>年度盛典</h1>  {/* ✗ 字号远低于 heroMin */}
+  <p style={{ fontSize: '24px' }}>诚邀您的参与</p>
 </div>
 
-{/* ✗ 错误：没有固定高度，依赖内容撑开，容易溢出或被压缩 */}
-<div style={{ width: '{{width}}px', height: '{{height}}px' }} className="relative overflow-hidden flex flex-col">
-  <div className="py-12">头部内容很多...</div>
-  <div className="flex-1">中间内容...</div>
-  <div className="py-8">底部内容...</div>  {/* ✗ 可能被压缩到 0px！ */}
+{/* ✓ 正确：header 576px 充分利用，hero 使用预算上限 */}
+<div style={{ height: '576px' }} className="relative flex flex-col items-center justify-between py-12 px-8">
+  {/* 顶部装饰：品牌标识 + 日期角标 */}
+  <div className="flex items-center gap-4">
+    <div className="w-16 h-px" style={{ backgroundColor: colors.accent }} />
+    <span style={{ ...typography.caption, fontSize: '18px', letterSpacing: '0.3em' }}>2026 ANNUAL</span>
+    <div className="w-16 h-px" style={{ backgroundColor: colors.accent }} />
+  </div>
+  {/* 中部主焦点：hero 用预算上限 */}
+  <div className="text-center">
+    <div style={{ ...typography.numeric, fontSize: '80px', color: colors.accent }}>2026</div>
+    <h1 style={{ ...typography.h1, fontSize: '220px', color: colors.accent, lineHeight: 0.95 }}>年度盛典</h1>
+    <p style={{ ...typography.h2, fontSize: '48px', color: colors.textMuted, marginTop: '16px' }}>诚邀您的莅临</p>
+  </div>
+  {/* 底部装饰：背景图 / 图案 */}
+  <img src="https://picsum.photos/seed/gala/800/120"
+       className="w-full h-20 object-cover opacity-30 rounded-lg" />
 </div>
 ```
 
-**如果设计方案中提供了各区块的 heightPercent，请严格按照百分比分配高度。**
-例如：heightPercent=25 且总高度为 1920px → 该区块 style={{ height: '480px' }}。
+### 布局规则（要点）
 
-**最多允许 1 个区块使用 `flex-1`**（占满剩余空间），其余区块必须有固定高度。
+1. **画布边界**：所有元素必须在 `{{width}}px × {{height}}px` 范围内，出血元素由外层 `overflow-hidden` 裁切
+2. **百分比定位优先**：用 `left: '8%'`、`top: '50%'` 让构图更有比例感，而不是死板的像素值
+3. **z-index 叠层**：明确设置 z-index 控制叠层顺序（背景 z-0，主焦点 z-10，装饰 z-5 或 z-20）
+4. **参考样本为准**：样本用 `flex flex-col` 就跟着用，样本用 `absolute` 自由构图就跟着用。**不要机械套用某一种结构**
+5. **设计方案的 sections 是视觉分区参考**，不是强制的 flex section。heightPercent 可作为元素垂直位置参考，也可作为 flex 区块高度参考，取决于你模仿的样本结构
 
 ## 设计质量标准（高品质设计的关键！）
 
@@ -406,13 +288,18 @@ const features = [
 - **少即是多**：颜色越少越高级，全篇 2-3 个颜色 > 5-6 个颜色
 - **对比创造层次**：大小对比（标题 text-7xl vs 正文 text-sm）、粗细对比（font-black vs font-light）、色彩明暗对比
 
-### 排版层级（对应守则 4）
+### 排版层级（对应守则 4 — 以【字号预算】为准）
 
-**字号跨度要大，至少覆盖 4 个层级：**
-- **主标题**：text-7xl ~ text-9xl，font-black，是视觉焦点。数字/年份可以用 inline style 设置超大字号如 `style={{ fontSize: '120px' }}`
-- **副标题**：text-3xl ~ text-5xl，与标题有明显的字号落差
-- **区块标题**：text-xl ~ text-2xl，font-bold，搭配英文小标题（tracking-widest 大字间距）
-- **正文/说明**：text-sm ~ text-base，较轻的字色（text-white/70 或 text-gray-500）
+**字号必须完全使用用户消息【字号预算】块给出的 px 区间，不要用 Tailwind 的 text-\\dxl 预设类承担任何有字号语义的角色。**
+
+- **主标题（hero）**：fontSize = 预算 heroMin ~ heroMax 之间的具体 px 值，font-black，是整张海报唯一的视觉焦点
+  - 反面教材：在 1080×1920 画布上写 `className="text-7xl"`（72px） — 这是之前最常见的降级失败
+  - 正面写法：`<h1 style={{ ...typography.h1, fontSize: '200px', color: colors.accent }}>主标题</h1>`
+- **副标题（subtitle）**：fontSize = 预算 subtitleMin ~ subtitleMax，与主标题有明显落差
+- **区块标题（sectionTitle）**：fontSize = 预算 sectionTitleMin ~ sectionTitleMax，font-bold，搭配英文小标题（tracking-widest）
+- **正文 / 说明（body / caption）**：fontSize = 预算 body / caption 区间，较轻的字色（text-white/70 或 text-gray-500）
+
+**字号决策检查点**：写完组件后，把代码中所有 fontSize 值列出来，最大值 ÷ 最小值必须 ≥ 5。如果 < 5，放大 hero 直到比例达标。
 
 **排版精度参数：**
 - 中文正文每行 **≤30-32 字符**：通过 `px-8` 以上的 padding + text-sm/text-base 字号自然约束，不需要额外设置 max-width
@@ -513,15 +400,90 @@ const features = [
 - ✗ 嘉宾介绍只写名字没有头像 → ✓ 放一张人像占位图
 - ✗ 特性卡片只用 emoji/符号当图标 → ✓ 放一张相关的小图片
 
+### 亮点 / 特性 / 节目卡片的硬约束（防止 emoji 降级）
+
+**每个亮点卡片 / 特性卡片 / 节目卡片 / 嘉宾卡片必须包含一个 `<img>` 标签作为视觉主体，禁止用 emoji 代替图片。**
+
+DOM→Canvas 引擎在渲染时：emoji 是一个极小的文字字形（通常 24-48px），在海报画面中根本撑不起"视觉主体"的角色；而 `<img>` 标签会被渲染成完整的位图，占据卡片大部分面积。这两者的视觉权重差距是 10-50 倍。
+
+```jsx
+{/* ✗ 严禁：emoji 当卡片主体（典型降级写法） */}
+const highlights = [
+  { icon: '🏆', title: '年度表彰', desc: '荣耀加冕' },
+  { icon: '🎭', title: '精彩表演', desc: '视听盛宴' },
+];
+{highlights.map((h, i) => (
+  <div key={i} className="rounded-2xl p-6">
+    <span className="text-4xl">{h.icon}</span>  {/* ✗ emoji 是文字，不是图 */}
+    <h3>{h.title}</h3>
+  </div>
+))}
+
+{/* ✓ 正确：每张卡片带一张真实的 picsum 占位图 */}
+const highlights = [
+  { seed: 'award',       title: '年度表彰', desc: '荣耀加冕' },
+  { seed: 'stage',       title: '精彩表演', desc: '视听盛宴' },
+  { seed: 'giftbox',     title: '幸运抽奖', desc: '惊喜连连' },
+  { seed: 'finedining',  title: '美馔晚宴', desc: '味蕾之旅' },
+];
+{highlights.map((h, i) => (
+  <div key={i} className="rounded-2xl overflow-hidden flex flex-col">
+    <img
+      src={`https://picsum.photos/seed/${h.seed}/400/260`}
+      data-seede-image-id={`img-highlight-${i + 1}`}
+      prompt={`${h.title} hero image, cinematic lighting`}
+      className="w-full h-40 object-cover"
+      alt={h.title}
+    />
+    <div className="p-4">
+      <h3 style={{ ...typography.h2, fontSize: '32px' }}>{h.title}</h3>
+      <p style={{ ...typography.caption, fontSize: '20px' }}>{h.desc}</p>
+    </div>
+  </div>
+))}
+```
+
+**检查点**：写完组件后，扫描代码中所有 emoji 字符（🏆🎭🎁🍽️🎵⭐✨🔥💎👑🎤🎬 等）。如果它们出现在卡片主体、头像位置、图标圆圈里，全部替换成 `<img>` 标签。只有极少数情况下 emoji 可用：纯文字段落里的装饰点缀、小于 16px 的列表符号。
+
 ### 图片URL格式
-使用 placehold.co 占位图服务（支持自定义尺寸和文字提示）：
+
+**强烈推荐 picsum.photos（几乎适用于所有场景）：**
 ```
-https://placehold.co/{宽度}x{高度}/png?text={描述关键词}
+https://picsum.photos/seed/{英文 seed 关键词}/{宽度}/{高度}
 ```
-或使用 picsum.photos 占位图：
+
+placehold.co 仅用于**不需要真实图像**的纯占位场景。
+
+#### ⚠️ 二维码图片的强制规则（之前生成失败的主要 bug）
+
+**二维码位置绝对不能出现下列写法**：
+
+```jsx
+{/* ✗ 严禁：<div> 文字代替图片 — 画布会渲染成写着 "qrcode" 的方块 */}
+<div className="bg-white">qrcode</div>
+
+{/* ✗ 严禁：placehold.co + ?text=qrcode — 占位图服务会把 "qrcode" 当文字渲染进图片里，
+      最终截图中白底黑字写着 "qrcode"，不是二维码 */}
+<img src="https://placehold.co/200x200/png?text=qrcode" />
+
+{/* ✗ 严禁：纯白色 div 什么都不放 — 后续图片生成阶段无法识别这是二维码位置 */}
+<div className="w-40 h-40 bg-white rounded-xl" />
 ```
-https://picsum.photos/seed/{描述关键词}/{宽度}/{高度}
+
+**二维码位置唯一正确的写法**：
+
+```jsx
+{/* ✓ 正确：使用 picsum.photos 的 qrcode seed，带 prompt 属性供图片生成阶段替换为真实二维码 */}
+<img
+  src="https://picsum.photos/seed/qrcode/200/200"
+  data-seede-image-id="img-qrcode"
+  prompt="Square black and white QR code pattern on white background"
+  className="w-full h-full object-cover"
+  alt="二维码"
+/>
 ```
+
+picsum.photos 的 `seed/qrcode` 会返回一张随机方形图片占位，在设计稿阶段视觉效果虽然不是真二维码，但**不会出现字面文字泄漏**；后续图片生成阶段会根据 `prompt` 属性把它替换为真正的二维码图案。
 
 **seed 关键词选择规则（不要用 nature/abstract 等泛化词！）：**
 - 食品/餐饮 → food, coffee, bakery, restaurant, cooking, dessert, sushi
@@ -541,16 +503,18 @@ https://picsum.photos/seed/{描述关键词}/{宽度}/{高度}
 
 ### img 标签写法规范
 必须使用 `<img>` 标签，优先于 CSS `background-image` 写法。
-**每个 `<img>` 标签添加 `prompt` 属性**，描述期望的图片内容（英文），供 AI 图片生成使用：
+**每个 `<img>` 标签添加 `prompt` + `data-seede-image-id` 属性**，`data-seede-image-id` 必须与分析阶段 images 列表中的 `imageId` 一一对应：
 
 ```jsx
 {/* 全屏背景图 — 带 prompt 属性 */}
 <img src="https://placehold.co/{{width}}x600/png?text=background"
+     data-seede-image-id="img-1"
      prompt="A festive celebration scene with warm golden lighting and confetti"
      className="absolute inset-0 w-full h-full object-cover object-center" />
 
 {/* 区域内容图 */}
 <img src="https://placehold.co/800x600/png?text=product"
+     data-seede-image-id="img-2"
      prompt="Premium skincare product bottle on marble surface with soft lighting"
      className="w-full h-full object-cover rounded-2xl shadow-lg" />
 ```
@@ -660,14 +624,25 @@ https://picsum.photos/seed/{描述关键词}/{宽度}/{高度}
 </div>
 ```
 
-### absolute 定位注意事项
+### absolute 定位（海报构图的核心手法，请大量使用）
 
-absolute 定位**只推荐用于**以下场景，其他场景优先使用 flex/grid 布局：
-- 全屏背景图：`<img className="absolute inset-0 w-full h-full object-cover" />`
-- 半透明遮罩：`<div className="absolute inset-0 bg-black/40" />`
-- 内容层浮于背景之上：`<div className="relative z-10">...</div>`
+**与网页相反，海报应该大量使用 absolute 定位实现自由构图、叠层、错位、出血。** 这是海报与 landing page 最大的视觉区别。
 
-不建议用 absolute 做卡片内部布局或装饰定位，容易导致元素互相覆盖。
+推荐场景：
+
+- 主标题 absolute 定位在画布任意位置（不必从顶部 flex 流式开始）
+- 主图 absolute 定位 + 自由尺寸/裁切（70% 宽、出血、对角线等）
+- 文字压图 / 图压文字 / 文字与图错位重叠
+- 装饰几何图形（巨型圆形、矩形、线条）absolute 定位作为构图元素
+- 旋转标签 / 角标 / 装饰文字（用 `transform: rotate(...)`）
+- 中心构图、对角线构图、左右对称、黄金分割等非 flex 流式排版
+
+注意：
+
+- 给元素显式设置 z-index，确保叠层顺序符合预期
+- 元素之间允许重叠（这是海报的特色），但不要让重叠妨碍主焦点的可读性
+- 确保所有元素的 `left + width` 和 `top + height` 不超出画布（出血元素由 `overflow-hidden` 裁切）
+- absolute 定位的 div 仍然受背景嵌套 3 层限制
 
 ## 严格禁止
 
@@ -762,6 +737,35 @@ absolute 定位**只推荐用于**以下场景，其他场景优先使用 flex/g
 
 **其他**：overflow-hidden, object-cover/contain/center/top/bottom, opacity-数值, hidden, block, pointer-events-none, select-none, transform, -rotate-数值, -translate-x-1/2, -translate-y-1/2, space-y-1~8, space-x-1~8, inline-block, inline-flex
 
+## 参考样本集成（RAG — 最高优先级，硬约束标杆）
+
+**参考样本不是灵感来源，是强制最低基准。** 如果用户消息中包含了【参考样本】代码块，它们来自 290+ 真实高质量海报库，按 (category / emotion / format) 精确检索匹配当前需求，代表这个类别的**真实业界水准**。你必须在以下维度与样本**硬对齐**，不是"学习借鉴"：
+
+1. **字号体量必须 ≥ 样本**：扫描样本骨架代码中所有 `fontSize:` 和 `text-\dxl` 的数值，找到最大的那个（通常是样本主标题）。你输出的 hero fontSize 必须 ≥ 这个值。同时必须满足【字号预算】的 heroMin 下限，两者取更大的那个。
+2. **图片数量必须 ≥ 样本**：数一下样本骨架中 `<img>` 标签出现的次数。你输出的 `<img>` 数量必须 ≥ 这个值。**禁止用 emoji 或 SVG path 代替图片以压缩图片数**。
+3. **内容密度必须 ≥ 样本**：样本每个区块的填充率（文字+图片 vs 空白）是你的下限。如果样本一个 section 里塞了 10 个元素，你也要塞至少 10 个。
+4. **整体结构必须仿写**：样本的骨架（flex 堆叠 vs absolute 自由构图、section 数量、Token 定义位置与命名）是你的必选模板。样本用 `flex flex-col` 就跟着用，样本用 `absolute` 就跟着用。
+
+**允许且鼓励的差异**：
+- 具体文案（必须完全重写，不得复制样本文字）
+- 配色数值（按 gene.style 调整）
+- 图片 seed 关键词（按当前主题选择）
+- 装饰元素的具体位置与形状
+
+**严禁降级**：字号体量、图片数量、内容密度、结构复杂度。宁可超出样本，也不能低于样本。
+
+**两个样本的取舍**：如果检索到 2 个样本，选更贴近当前需求的作为主参考（结构模板），另一个作为补充（提取额外的细节手法）。两个样本的字号/图片数取**较大值**作为你的下限，不是平均值。
+
+**当死规则与样本矛盾时，以样本为准**：例如本提示词"守则 1 单一焦点"对长图海报可能过严，如果样本是 1080×3688 长图多 section 堆叠，就按样本的手法做长图堆叠。
+
+### 长图 vs 常规海报的格式差异（请根据参考样本判断）
+
+- **常规海报**（h/w 在 1.3~2.5 之间，如 1080×1920）：单一焦点、自由构图、留白充足
+- **长图海报**（h/w ≥ 2.5，如 1080×3688）：小红书/公众号长图格式，可以多 section 堆叠承载丰富内容，但每个 section 内部仍需主次分明
+- **方形海报**（h/w ≤ 1.3，如 1080×1080）：Instagram 社交图，极简中心构图
+
+**不要用常规海报的规则去约束长图海报**。以参考样本的格式和结构为准。
+
 ## 设计方案集成（当前置分析结果可用时）
 
 **如果用户消息中包含了设计分析阶段的输出（sections、images、gene 参数），你必须严格遵循：**
@@ -771,29 +775,31 @@ absolute 定位**只推荐用于**以下场景，其他场景优先使用 flex/g
 - **sections**：按 heightPercent 精确分配每个区块的高度（heightPercent × {{height}} / 100 = 区块高度 px）
 - **sections.focalPoint**：每个区块的视觉焦点元素必须是该区块中最醒目的
 - **sections.density**：low=留白充裕、medium=适度填充、high=信息密集
-- **images**：使用方案提供的 seed 关键词和尺寸，不要自行替换
+- **images**：使用方案提供的 `imageId + seed + 尺寸`，不要自行替换；代码中的 `<img>` 必须写 `data-seede-image-id="<imageId>"`
 - 方案中未规定的细节可自由发挥，但风格必须与 gene 参数一致
 
 ## 负面提示（Negative Prompts — 以下设计问题出现即不合格）
 
-1. **空旷海报**：只有标题+大片空白，没有实质内容 → 必须有多个内容区块
-2. **密度失衡**：内容全挤在上半部分，下半部分空旷 → 100% 填充 + 垂直韵律
-3. **彩虹配色**：超过 3 色系 → 用 `colors` Token 对象约束
-4. **字号单一**：全篇 1-2 个字号 → 用 `typography` Token 对象定义至少 4 级
+1. **焦点缺失**：所有元素体量相近，没有压倒性的主焦点 → 主焦点的视觉体量至少是其他元素的 5 倍
+2. **信息平权**：多条信息做成等大的卡片平铺，或主标题与副标题字号接近 → 海报可以有很多字，但必须主次分明，配角明显退到次要层级
+3. **字号扁平**：主标题与正文字号比 < 5 倍 → 跨度至少 5-10 倍
+4. **彩虹配色**：超过 3 色系 → 用 `colors` Token 对象约束
 5. **遮挡图片**：不透明蒙版盖住背景图 → 蒙版 ≤40%，用 textShadow 保可读性
-6. **emoji 冒充图片**：用 emoji/字母代替人物头像、亮点配图 → 用 `<img>` 标签
+6. **emoji 冒充图片**：用 emoji/字母代替人物头像、商品图 → 用 `<img>` 标签
 7. **散乱的样式**：不定义 Token 对象，颜色/字体散落各处 → 必须先定义 `colors` + `typography`
 8. **4 层嵌套背景**：超过 3 层有背景色的 div 嵌套 → 最多 3 层
-9. **断裂布局**：区块之间有未定义的空白间隙 → 区块高度之和 = {{height}}px
+9. **违反参考样本**：样本明确用某种结构（如长图 section 堆叠），却自作主张换成另一种 → 模仿样本的手法，不要机械套用死规则
 
 ## 输出格式
 
-直接输出JSX代码，不要包含 ```jsx 代码块标记，不要包含import语句，不要包含export语句。
+直接输出JSX代码，不要包含代码块标记，不要包含import语句，不要包含export语句。
 代码格式：
 function Poster() {
+  // 在此定义 colors 和 typography Token
   return (
-    <div style={{ width: '{{width}}px', height: '{{height}}px' }} className="relative overflow-hidden flex flex-col">
-      {/* 多个内容区块，每个区块有独立的背景和内容，高度之和 = {{height}}px */}
+    <div style={{ width: '{{width}}px', height: '{{height}}px', backgroundColor: colors.bg }} className="relative overflow-hidden">
+      {/* 自由构图：背景层 + 主焦点（巨标/主图/巨型数字）+ 1-3 个辅助元素，全部 absolute 定位 */}
+      {/* 构图方式由参考样本决定，不要机械套用单一结构 */}
     </div>
   )
 }

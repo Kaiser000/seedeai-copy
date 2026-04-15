@@ -1,7 +1,128 @@
 import { useRef, useCallback } from 'react'
 import { useEditorStore } from '@/features/editor/stores/useEditorStore'
-import type { LayoutElement } from '@/features/editor/stores/useEditorStore'
+import type {
+  LayoutElement,
+  RagCriteria,
+  RagSample,
+  PromptBuiltInfo,
+  GeneratedImage,
+} from '@/features/editor/stores/useEditorStore'
 import { connectSse } from '../services/sseClient'
+
+// 转义正则元字符，防止 attrName 中包含特殊字符时造成正则注入或解析异常
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function extractAttr(tag: string, attrName: string): string | null {
+  const name = escapeRegex(attrName)
+  const doubleQuote = new RegExp(`${name}\\s*=\\s*"([^"]*)"`, 'i')
+  const m1 = tag.match(doubleQuote)
+  if (m1?.[1]) return m1[1]
+  const singleQuote = new RegExp(`${name}\\s*=\\s*'([^']*)'`, 'i')
+  const m2 = tag.match(singleQuote)
+  if (m2?.[1]) return m2[1]
+  return null
+}
+
+function replaceImgSrc(tag: string, nextSrc: string): string {
+  if (/src\s*=\s*"[^"]*"/i.test(tag)) {
+    return tag.replace(/src\s*=\s*"[^"]*"/i, `src="${nextSrc}"`)
+  }
+  if (/src\s*=\s*'[^']*'/i.test(tag)) {
+    return tag.replace(/src\s*=\s*'[^']*'/i, `src='${nextSrc}'`)
+  }
+  return tag
+}
+
+function replaceByOrderFallback(code: string, images: GeneratedImage[]): { code: string; replacedCount: number } {
+  const allMatches = [...code.matchAll(/https:\/\/picsum\.photos\/seed\/[^/]+\/\d+\/\d+/g)]
+  const uniqueUrls = [...new Set(allMatches.map((m) => m[0]))]
+  if (uniqueUrls.length === 0) return { code, replacedCount: 0 }
+
+  const sortedImages = [...images]
+    .filter((img) => !!img.url)
+    .sort((a, b) => a.index - b.index)
+
+  let nextCode = code
+  let replacedCount = 0
+  for (let i = 0; i < uniqueUrls.length && i < sortedImages.length; i++) {
+    const proxyUrl = `/api/proxy/image?url=${encodeURIComponent(sortedImages[i].url)}`
+    nextCode = nextCode.replaceAll(uniqueUrls[i], proxyUrl)
+    replacedCount += 1
+  }
+  return { code: nextCode, replacedCount }
+}
+
+/**
+ * 统一的图片替换入口：先按 imageId 精确替换，再对仍残留的占位图走顺序兜底。
+ *
+ * 处理三种场景：
+ *   1. 所有图片都有 imageId → 一次命中，无需兜底
+ *   2. 所有图片都无 imageId（旧版 LLM 产物）→ id 阶段命中 0，整体走顺序兜底
+ *   3. 混合：部分有 id 部分没有 → id 命中部分图片后，用剩余未匹配的图片按顺序补充替换
+ *
+ * 混合场景下会输出 warn 日志，便于排查生成质量问题。
+ */
+function replaceImagesInCode(
+  code: string,
+  images: GeneratedImage[],
+): { code: string; replacedCount: number } {
+  // 步骤 1：按 imageId 精确替换
+  const imageMap = new Map<string, string>()
+  for (const image of images) {
+    if (!image.imageId || !image.url) continue
+    imageMap.set(image.imageId, `/api/proxy/image?url=${encodeURIComponent(image.url)}`)
+  }
+
+  const matchedIds = new Set<string>()
+  let idReplacedCount = 0
+  const afterIdReplace = imageMap.size === 0
+    ? code
+    : code.replace(/<img\b[^>]*>/gi, (tag) => {
+        const imageId = extractAttr(tag, 'data-seede-image-id')
+        if (!imageId) return tag
+        const nextSrc = imageMap.get(imageId)
+        if (!nextSrc) return tag
+        matchedIds.add(imageId)
+        idReplacedCount += 1
+        return replaceImgSrc(tag, nextSrc)
+      })
+
+  // 步骤 2：检查是否仍有占位图残留，如有则用未匹配的图片按顺序补齐
+  const stillHasPicsum = /https:\/\/picsum\.photos\/seed\//.test(afterIdReplace)
+  if (!stillHasPicsum) {
+    return { code: afterIdReplace, replacedCount: idReplacedCount }
+  }
+
+  const remainingImages = images.filter(
+    (img) => !img.imageId || !matchedIds.has(img.imageId),
+  )
+  if (remainingImages.length === 0) {
+    // 还有占位图但没有可用图片——可能是 LLM 产出的 <img> 数量多于实际生成的图片
+    if (idReplacedCount > 0) {
+      console.warn(
+        '[Generate] 图片替换后仍有占位图残留，但无剩余可用图片，可能 LLM 生成的 <img> 数量超过实际图片数',
+      )
+    }
+    return { code: afterIdReplace, replacedCount: idReplacedCount }
+  }
+
+  const fallback = replaceByOrderFallback(afterIdReplace, remainingImages)
+  if (idReplacedCount > 0 && fallback.replacedCount > 0) {
+    console.warn(
+      '[Generate] 混合图片场景兜底：按 id 替换',
+      idReplacedCount,
+      '张，按顺序补充',
+      fallback.replacedCount,
+      '张（建议检查 LLM 是否为所有 <img> 都输出了 data-seede-image-id）',
+    )
+  }
+  return {
+    code: fallback.code,
+    replacedCount: idReplacedCount + fallback.replacedCount,
+  }
+}
 
 /**
  * 海报生成 hook — 连接 SSE 并驱动多阶段工作流。
@@ -125,6 +246,70 @@ export function useGenerate() {
                 summary: '布局解析完成',
               })
             }
+            // layout 完成后，立即把 RAG 阶段标记为 active（后端马上会推 rag_retrieving）
+            updateWorkflowStage('rag', { status: 'active', summary: '检索同类样本...' })
+          },
+
+          // ── 阶段 RAG-1：参考样本检索开始 ──────────────────
+          onRagRetrieving: (criteriaJson) => {
+            addSseMessage({ type: 'rag_retrieving', content: criteriaJson })
+            try {
+              const criteria: RagCriteria = JSON.parse(criteriaJson)
+              const summaryParts: string[] = []
+              if (criteria.category) summaryParts.push(criteria.category)
+              if (criteria.emotion) summaryParts.push(criteria.emotion)
+              if (criteria.format) summaryParts.push(criteria.format)
+              const summary = criteria.fallback
+                ? `兜底检索：${criteria.fallbackScene || '-'} / ${criteria.fallbackEmotion || '-'}`
+                : summaryParts.length > 0
+                  ? `检索条件：${summaryParts.join(' · ')}`
+                  : '正在检索...'
+              updateWorkflowStage('rag', {
+                status: 'active',
+                summary,
+                ragCriteria: criteria,
+              })
+            } catch (parseErr) {
+              console.warn('[Generate] rag_retrieving JSON 解析失败:', parseErr)
+              updateWorkflowStage('rag', { status: 'active', summary: '正在检索...' })
+            }
+          },
+
+          // ── 阶段 RAG-2：参考样本检索完成 ──────────────────
+          onRagComplete: (samplesJson) => {
+            addSseMessage({ type: 'rag_complete', content: samplesJson })
+            try {
+              const parsed = JSON.parse(samplesJson) as { samples: RagSample[]; totalSampleChars?: number; error?: string }
+              const samples = parsed.samples || []
+              const summary = samples.length > 0
+                ? `命中 ${samples.length} 个样本（${parsed.totalSampleChars || 0} 字符注入）`
+                : (parsed.error ? `检索失败：${parsed.error}` : '未找到相似样本')
+              updateWorkflowStage('rag', {
+                status: samples.length > 0 ? 'complete' : 'complete', // 即使 0 条也算完成
+                summary,
+                ragSamples: samples,
+              })
+            } catch (parseErr) {
+              console.warn('[Generate] rag_complete JSON 解析失败:', parseErr)
+              updateWorkflowStage('rag', { status: 'complete', summary: '检索完成' })
+            }
+          },
+
+          // ── 阶段 RAG-3：enriched prompt 拼装完成 ──────────
+          onPromptBuilt: (infoJson) => {
+            addSseMessage({ type: 'prompt_built', content: infoJson })
+            try {
+              const info: PromptBuiltInfo = JSON.parse(infoJson)
+              updateWorkflowStage('code_gen', {
+                status: 'active',
+                summary: `Prompt ${info.totalChars} 字符（含 ${info.sampleTotalChars} 字符样本骨架）`,
+                promptInfo: info,
+                codeCharCount: 0,
+              })
+            } catch (parseErr) {
+              console.warn('[Generate] prompt_built JSON 解析失败:', parseErr)
+              updateWorkflowStage('code_gen', { status: 'active', summary: 'Prompt 已构建' })
+            }
           },
 
           // ── 阶段 2：代码生成（设计合成阶段） ──────────────────
@@ -137,6 +322,17 @@ export function useGenerate() {
             if (composeStage && composeStage.status === 'pending') {
               updateWorkflowStage('compose', { status: 'active', summary: '代码生成中...' })
             }
+
+            // 持续累计 code_gen 阶段已接收的字符数，用于 UI 展示进度
+            const codeGenStage = useEditorStore.getState().workflowStages.find((s) => s.id === 'code_gen')
+            if (codeGenStage) {
+              const next = (codeGenStage.codeCharCount || 0) + chunk.length
+              updateWorkflowStage('code_gen', {
+                status: codeGenStage.status === 'pending' ? 'active' : codeGenStage.status,
+                codeCharCount: next,
+                summary: `已生成 ${next} 字符 JSX`,
+              })
+            }
           },
 
           // 代码生成完成（后续还有图片生成阶段）
@@ -144,6 +340,11 @@ export function useGenerate() {
             addSseMessage({ type: 'code_complete', content: code })
             // 用占位图先预览
             setGeneratedCode(code)
+            // 标记 code_gen 阶段完成
+            updateWorkflowStage('code_gen', {
+              status: 'complete',
+              summary: `代码生成完成 (${code.length} 字符)`,
+            })
           },
 
           // ── 阶段 3：图片生成 ──────────────────────────────────
@@ -171,6 +372,7 @@ export function useGenerate() {
                 // 保存图片信息，供工作流 UI 预览展示
                 addStageImage('image_gen', {
                   index: info.index,
+                  imageId: info.imageId || undefined,
                   prompt: info.prompt || '',
                   url: info.url,
                 })
@@ -183,27 +385,15 @@ export function useGenerate() {
                   const allImages = useEditorStore.getState().workflowStages
                     .find((s) => s.id === 'image_gen')?.images || []
                   if (allImages.length > 0) {
-                    const allMatches = [
-                      ...currentCode.matchAll(/https:\/\/picsum\.photos\/seed\/[^/]+\/\d+\/\d+/g),
-                    ]
-                    const uniqueUrls = [...new Set(allMatches.map((m) => m[0]))]
-                    const sortedImages = [...allImages].sort((a, b) => a.index - b.index)
-
-                    let updatedCode = currentCode
-                    for (let i = 0; i < uniqueUrls.length && i < sortedImages.length; i++) {
-                      const cdnUrl = sortedImages[i].url
-                      if (cdnUrl) {
-                        const proxyUrl = `/api/proxy/image?url=${encodeURIComponent(cdnUrl)}`
-                        updatedCode = updatedCode.replaceAll(uniqueUrls[i], proxyUrl)
-                      }
-                    }
+                    const { code: updatedCode, replacedCount } = replaceImagesInCode(
+                      currentCode,
+                      allImages,
+                    )
 
                     if (updatedCode !== currentCode) {
                       console.log(
                         '[Generate] 主动嵌入图片到海报，已替换',
-                        sortedImages.length,
-                        '/',
-                        uniqueUrls.length,
+                        replacedCount,
                         '张',
                       )
                       setGeneratedCode(updatedCode)
@@ -248,22 +438,14 @@ export function useGenerate() {
                   '[Generate] 兜底替换：complete 和当前代码均含占位图，图片数:',
                   images.length,
                 )
-                const allMatches = [
-                  ...code.matchAll(/https:\/\/picsum\.photos\/seed\/[^/]+\/\d+\/\d+/g),
-                ]
-                const uniqueUrls = [...new Set(allMatches.map((m) => m[0]))]
-                const sortedImages = [...images].sort((a, b) => a.index - b.index)
-
-                for (let i = 0; i < uniqueUrls.length && i < sortedImages.length; i++) {
-                  const cdnUrl = sortedImages[i].url
-                  if (cdnUrl) {
-                    const proxyUrl = `/api/proxy/image?url=${encodeURIComponent(cdnUrl)}`
-                    finalCode = finalCode.replaceAll(uniqueUrls[i], proxyUrl)
-                  }
-                }
+                const { code: replaced, replacedCount } = replaceImagesInCode(
+                  finalCode,
+                  images,
+                )
+                finalCode = replaced
                 console.log(
                   '[Generate] 兜底替换完成，处理了',
-                  Math.min(uniqueUrls.length, sortedImages.length),
+                  replacedCount,
                   '张图片',
                 )
               }
@@ -271,6 +453,15 @@ export function useGenerate() {
 
             addSseMessage({ type: 'complete', content: finalCode })
             setGeneratedCode(finalCode)
+
+            // code_gen 阶段如果未结束（无图片生成路径），在此一并 mark 完成
+            const codeGenStage = useEditorStore.getState().workflowStages.find((s) => s.id === 'code_gen')
+            if (codeGenStage && codeGenStage.status !== 'complete') {
+              updateWorkflowStage('code_gen', {
+                status: 'complete',
+                summary: `代码生成完成 (${finalCode.length} 字符)`,
+              })
+            }
 
             // 图片生成阶段完成（如果曾激活）
             updateWorkflowStage('image_gen', { status: 'complete' })

@@ -2,10 +2,12 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import {
   Send, Bot, User, Loader2, CheckCircle2, AlertCircle,
   ChevronDown, ImageIcon, Layers, Type, Square, ExternalLink,
+  FileCode, Database, Copy, Check,
 } from 'lucide-react'
 import { useEditorStore } from '../stores/useEditorStore'
 import type {
   ChatMessage, WorkflowStage, WorkflowStageStatus, LayoutElement, GeneratedImage,
+  RagSample,
 } from '../stores/useEditorStore'
 import { useCanvasCommands } from '../hooks/useCanvasCommands'
 import type { Command } from '../hooks/useCanvasCommands'
@@ -106,6 +108,93 @@ function ImageThumbnail({ image }: { image: GeneratedImage }) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+ *  RAG 样本卡片（可点击展开查看完整骨架代码）
+ * ══════════════════════════════════════════════════════════════════ */
+
+function RagSampleCard({ sample, index }: { sample: RagSample; index: number }) {
+  const [open, setOpen] = useState(false)
+  const reductionPct = sample.originalChars > 0
+    ? Math.round(100 - (sample.skeletonChars / sample.originalChars) * 100)
+    : 0
+  return (
+    <div className="border border-gray-100 rounded-md overflow-hidden bg-white">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-2 px-2 py-1.5 text-left hover:bg-gray-50 transition-colors"
+      >
+        <span className="text-[9px] font-mono text-gray-300 w-4">#{index + 1}</span>
+        <FileCode size={11} className="text-purple-400 flex-shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="text-[11px] font-medium text-gray-700 truncate">{sample.name}</div>
+          <div className="text-[9px] text-gray-400 flex items-center gap-1.5 mt-0.5">
+            {sample.category && <span className="px-1 py-0.5 rounded bg-purple-50 text-purple-500">{sample.category}</span>}
+            {sample.emotion && <span className="px-1 py-0.5 rounded bg-pink-50 text-pink-500">{sample.emotion}</span>}
+            <span>{sample.width}×{sample.height}</span>
+            <span className="text-gray-300">·</span>
+            <span title={`原始 ${sample.originalChars} → 骨架 ${sample.skeletonChars}`}>
+              骨架 {sample.skeletonChars}/{sample.originalChars} 字符（-{reductionPct}%）
+            </span>
+          </div>
+        </div>
+        <ChevronDown size={11} className={`text-gray-300 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <pre className="text-[9px] leading-snug font-mono text-gray-600 max-h-60 overflow-auto px-2 py-1.5 bg-gray-50 border-t border-gray-100 whitespace-pre-wrap break-all">
+          {sample.skeleton}
+        </pre>
+      )}
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════
+ *  Enriched prompt 完整查看（含复制按钮）
+ * ══════════════════════════════════════════════════════════════════ */
+
+function PromptViewer({ prompt }: { prompt: string }) {
+  const [copied, setCopied] = useState(false)
+  const [open, setOpen] = useState(false)
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(prompt)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch (err) {
+      console.warn('复制失败:', err)
+    }
+  }, [prompt])
+  return (
+    <div className="border border-gray-100 rounded-md overflow-hidden bg-white mt-2">
+      <div className="flex items-center gap-2 px-2 py-1.5 border-b border-gray-100">
+        <Database size={11} className="text-blue-400" />
+        <span className="text-[10px] font-medium text-gray-600">完整 enriched prompt</span>
+        <span className="text-[9px] text-gray-400">{prompt.length} 字符</span>
+        <div className="flex-1" />
+        <button
+          onClick={handleCopy}
+          className="text-[9px] text-gray-400 hover:text-blue-500 flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-blue-50"
+          title="复制到剪贴板"
+        >
+          {copied ? <Check size={9} /> : <Copy size={9} />}
+          {copied ? '已复制' : '复制'}
+        </button>
+        <button
+          onClick={() => setOpen(!open)}
+          className="text-[9px] text-gray-400 hover:text-blue-500 px-1.5 py-0.5 rounded hover:bg-blue-50"
+        >
+          {open ? '折叠' : '展开'}
+        </button>
+      </div>
+      {open && (
+        <pre className="text-[9px] leading-snug font-mono text-gray-600 max-h-72 overflow-auto px-2 py-1.5 bg-gray-50 whitespace-pre-wrap break-all">
+          {prompt}
+        </pre>
+      )}
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════
  *  阶段卡片的边框颜色
  * ══════════════════════════════════════════════════════════════════ */
 
@@ -135,6 +224,8 @@ function StageCard({ stage, analysisContent, isGenerating }: {
     (stage.id === 'search' && !!stage.details && stage.details.length > 0) ||
     (stage.id === 'analysis' && !!analysisContent) ||
     (stage.id === 'layout' && !!stage.elements && stage.elements.length > 0) ||
+    (stage.id === 'rag' && (!!stage.ragCriteria || (!!stage.ragSamples && stage.ragSamples.length > 0))) ||
+    (stage.id === 'code_gen' && !!stage.promptInfo) ||
     (stage.id === 'image_gen' && (
       (!!stage.details && stage.details.length > 0) ||
       (!!stage.images && stage.images.length > 0)
@@ -202,6 +293,97 @@ function StageCard({ stage, analysisContent, isGenerating }: {
                   <span>{elementTypeLabel(el)}</span>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* RAG 模板检索：检索条件 + 命中样本卡片（可展开骨架） */}
+          {stage.id === 'rag' && (
+            <div className="space-y-2 mt-2">
+              {stage.ragCriteria && (
+                <div className="text-[10px] text-gray-500 bg-gray-50 rounded px-2 py-1.5 leading-relaxed">
+                  <div className="text-gray-400 mb-0.5">检索条件</div>
+                  {stage.ragCriteria.fallback ? (
+                    <div>
+                      <span className="text-amber-500">兜底模糊检索</span>
+                      <span className="text-gray-400 mx-1">·</span>
+                      scene = {stage.ragCriteria.fallbackScene || '-'}
+                      <span className="text-gray-400 mx-1">·</span>
+                      emotion = {stage.ragCriteria.fallbackEmotion || '-'}
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-1">
+                      {stage.ragCriteria.category && (
+                        <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-600">
+                          category: {stage.ragCriteria.category}
+                        </span>
+                      )}
+                      {stage.ragCriteria.emotion && (
+                        <span className="px-1.5 py-0.5 rounded bg-pink-50 text-pink-600">
+                          emotion: {stage.ragCriteria.emotion}
+                        </span>
+                      )}
+                      {stage.ragCriteria.format && (
+                        <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">
+                          format: {stage.ragCriteria.format}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+              {stage.ragSamples && stage.ragSamples.length > 0 && (
+                <div className="space-y-1.5">
+                  <div className="text-[10px] text-gray-400">命中样本（点击展开骨架代码）</div>
+                  {stage.ragSamples.map((sample, i) => (
+                    <RagSampleCard key={sample.id} sample={sample} index={i} />
+                  ))}
+                </div>
+              )}
+              {stage.ragSamples && stage.ragSamples.length === 0 && (
+                <div className="text-[10px] text-gray-400 italic">
+                  本次未命中样本，将退化为规则驱动生成
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 代码生成：prompt 统计 + 完整 enriched prompt 查看 */}
+          {stage.id === 'code_gen' && stage.promptInfo && (
+            <div className="space-y-2 mt-2">
+              <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+                <div className="bg-gray-50 rounded px-2 py-1.5">
+                  <div className="text-gray-400">Prompt 总长度</div>
+                  <div className="text-gray-700 font-medium">{stage.promptInfo.totalChars} 字符</div>
+                </div>
+                <div className="bg-gray-50 rounded px-2 py-1.5">
+                  <div className="text-gray-400">样本骨架</div>
+                  <div className="text-gray-700 font-medium">{stage.promptInfo.sampleTotalChars} 字符</div>
+                </div>
+                <div className="bg-gray-50 rounded px-2 py-1.5">
+                  <div className="text-gray-400">区块数</div>
+                  <div className="text-gray-700 font-medium">{stage.promptInfo.sectionsCount}</div>
+                </div>
+                <div className="bg-gray-50 rounded px-2 py-1.5">
+                  <div className="text-gray-400">图片需求</div>
+                  <div className="text-gray-700 font-medium">{stage.promptInfo.imagesCount}</div>
+                </div>
+              </div>
+              {stage.promptInfo.geneStyleKeys.length > 0 && (
+                <div className="text-[10px] text-gray-500">
+                  <div className="text-gray-400 mb-0.5">已注入设计 Token</div>
+                  <div className="flex flex-wrap gap-1">
+                    {stage.promptInfo.geneStyleKeys.map((k) => (
+                      <span key={k} className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 font-mono">{k}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {stage.codeCharCount !== undefined && stage.codeCharCount > 0 && (
+                <div className="text-[10px] text-gray-500">
+                  LLM 已输出 <span className="text-gray-700 font-medium">{stage.codeCharCount}</span> 字符 JSX
+                </div>
+              )}
+              <PromptViewer prompt={stage.promptInfo.fullPrompt} />
             </div>
           )}
 

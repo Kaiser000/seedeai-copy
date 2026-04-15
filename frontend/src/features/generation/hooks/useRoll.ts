@@ -1,7 +1,7 @@
 import { useRef, useCallback, useState } from 'react'
 import type { Canvas as FabricCanvas } from 'fabric'
 import { connectSse } from '../services/sseClient'
-import { serializeCanvas } from '../services/canvasSerializer'
+import { serializeCanvas, serializeElement } from '../services/canvasSerializer'
 import { compileJsx, renderToHiddenDom } from '../services/jsxCompiler'
 import { convertDomToCanvas } from '@/engine/index'
 import { useEditorStore } from '@/features/editor/stores/useEditorStore'
@@ -9,6 +9,44 @@ import { useCanvasCommands } from '@/features/editor/hooks/useCanvasCommands'
 import type { Command } from '@/features/editor/hooks/useCanvasCommands'
 import React from 'react'
 import * as ReactDOMClient from 'react-dom/client'
+
+function wrapRollSnippetAsPoster(snippet: string, width: number, height: number): string {
+  return `function Poster() {
+  return (
+    <div style={{ width: '${width}px', height: '${height}px' }} className="relative overflow-visible">
+      <>
+${snippet}
+      </>
+    </div>
+  )
+}`
+}
+
+function toRollElementType(fabricType: string | undefined): 'text' | 'shape' | 'image' | null {
+  if (!fabricType) return null
+  if (fabricType === 'textbox' || fabricType === 'i-text' || fabricType === 'text') return 'text'
+  if (fabricType === 'rect') return 'shape'
+  if (fabricType === 'image') return 'image'
+  return null
+}
+
+function buildElementDescription(
+  selectedElement: { type?: string; content?: string; style?: Record<string, unknown> },
+  activeIndex: number,
+): string {
+  if (!selectedElement?.type) {
+    return `选中元素（索引 ${activeIndex}）`
+  }
+  if (selectedElement.type === 'text') {
+    const text = selectedElement.content ? String(selectedElement.content).slice(0, 50) : ''
+    return `选中文本元素（索引 ${activeIndex}）：${text || '无文本内容'}`
+  }
+  if (selectedElement.type === 'image') {
+    return `选中图片元素（索引 ${activeIndex}）`
+  }
+  const fill = selectedElement.style?.fill ? String(selectedElement.style.fill) : ''
+  return `选中形状元素（索引 ${activeIndex}）${fill ? `，填充色 ${fill}` : ''}`
+}
 
 export function useRoll(getCanvas: () => FabricCanvas | null) {
   const abortRef = useRef<AbortController | null>(null)
@@ -40,11 +78,17 @@ export function useRoll(getCanvas: () => FabricCanvas | null) {
     try {
       const canvasState = serializeCanvas(canvas)
       const activeIndex = canvas.getObjects().indexOf(activeObj)
-      const elementDescription = `Element at index ${activeIndex}`
+      const selectedElementId = `idx-${activeIndex}`
+      const selectedElementPayload = JSON.parse(serializeElement(canvas, activeIndex))
+      const selectedElement = selectedElementPayload?.selectedElement ?? {}
+      const selectedElementContext = JSON.stringify(selectedElement)
+      const elementDescription = buildElementDescription(selectedElement, activeIndex)
 
       const fullCode = await connectSse(
         '/api/posters/roll',
         {
+          selectedElementId,
+          selectedElementContext,
           elementDescription,
           canvasContext: canvasState,
           width: posterSize.width,
@@ -58,8 +102,12 @@ export function useRoll(getCanvas: () => FabricCanvas | null) {
 
       if (!fullCode) return
 
-      // Compile and render the new element
-      const compiledJs = await compileJsx(fullCode)
+      // Roll 现在优先返回元素片段；若返回完整 Poster 也兼容
+      const isFullPoster = /function\s+Poster\s*\(/.test(fullCode)
+      const rollCode = isFullPoster
+        ? fullCode
+        : wrapRollSnippetAsPoster(fullCode, posterSize.width, posterSize.height)
+      const compiledJs = await compileJsx(rollCode)
       const hiddenDiv = document.createElement('div')
       hiddenDiv.style.cssText = `position:absolute;visibility:hidden;left:-9999px;width:${posterSize.width}px;height:${posterSize.height}px;`
       document.body.appendChild(hiddenDiv)
@@ -79,7 +127,11 @@ export function useRoll(getCanvas: () => FabricCanvas | null) {
       }
 
       if (result.elements.length > 0) {
-        const newObj = result.elements[0].fabricObject
+        const expectedType = toRollElementType(activeObj.type)
+        const matched = expectedType
+          ? result.elements.find((el) => el.type === expectedType)
+          : undefined
+        const newObj = (matched || result.elements[0]).fabricObject
         const oldObj = activeObj
 
         // Position new object at old position

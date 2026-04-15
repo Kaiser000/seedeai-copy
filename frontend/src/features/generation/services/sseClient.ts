@@ -12,6 +12,12 @@ export interface SseCallbacks {
   onAnalysisComplete?: (content: string) => void
   /** 页面布局完成，content 为 JSON 格式的元素列表 */
   onLayoutComplete?: (elementsJson: string) => void
+  /** RAG 模板检索开始，content 为检索条件 JSON {category, emotion, format, fallback} */
+  onRagRetrieving?: (criteriaJson: string) => void
+  /** RAG 模板检索完成，content 为样本列表 JSON {samples:[{id,name,...,skeleton}]} */
+  onRagComplete?: (samplesJson: string) => void
+  /** Enriched prompt 拼装完成，content 为统计信息 JSON {totalChars, fullPrompt, ...} */
+  onPromptBuilt?: (infoJson: string) => void
   onCodeChunk?: (chunk: string) => void
   onCodeComplete?: (fullCode: string) => void
   onComplete?: (fullCode: string) => void
@@ -83,6 +89,15 @@ export async function connectSse(
         break
       case 'layout_complete':
         callbacks.onLayoutComplete?.(message.content)
+        break
+      case 'rag_retrieving':
+        callbacks.onRagRetrieving?.(message.content)
+        break
+      case 'rag_complete':
+        callbacks.onRagComplete?.(message.content)
+        break
+      case 'prompt_built':
+        callbacks.onPromptBuilt?.(message.content)
         break
       case 'code_chunk':
         codeBuffer.push(message.content)

@@ -163,6 +163,37 @@ public class SseMessage {
     }
 
     /**
+     * 创建 rag_retrieving 事件，通知前端开始 RAG 模板检索。
+     * <p>在 PosterGenerateService.buildEnrichedPrompt 调用 templateService.recommendByHint 之前推送，
+     * 让用户看到检索条件。</p>
+     *
+     * @param content JSON 格式的检索条件，如 {@code {"category":"品牌故事","emotion":"高端奢华","format":"长图","fallback":false}}
+     */
+    public static SseMessage ragRetrieving(String content) {
+        return new SseMessage("rag_retrieving", content);
+    }
+
+    /**
+     * 创建 rag_complete 事件，携带 RAG 检索到的样本元数据与骨架代码。
+     * <p>检索完成后立即推送，让用户看到选中的样本是哪几个、为什么选这些。</p>
+     *
+     * @param content JSON 格式的样本列表，每条含 {id, name, category, emotion, width, height, originalChars, skeletonChars, skeleton}
+     */
+    public static SseMessage ragComplete(String content) {
+        return new SseMessage("rag_complete", content);
+    }
+
+    /**
+     * 创建 prompt_built 事件，携带 enriched prompt 拼装完成后的统计信息和完整内容。
+     * <p>让用户看到最终注入给代码生成 LLM 的全部内容（设计基因 + 区块约束 + 样本骨架 + 完整方案）。</p>
+     *
+     * @param content JSON 格式的统计与完整 prompt，含 {totalChars, sampleTotalChars, sectionsCount, imagesCount, geneStyleKeys, fullPrompt}
+     */
+    public static SseMessage promptBuilt(String content) {
+        return new SseMessage("prompt_built", content);
+    }
+
+    /**
      * 创建 error 事件，通知前端发生错误。
      *
      * @param content   用户可读的错误描述

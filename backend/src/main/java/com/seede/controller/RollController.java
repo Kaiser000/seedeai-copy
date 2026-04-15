@@ -48,7 +48,9 @@ public class RollController {
         log.info("收到元素重新生成请求 - 尺寸: {}x{}, 元素描述: {}",
                 request.getWidth(), request.getHeight(),
                 request.getElementDescription());
-        log.debug("元素重新生成请求详情 - canvasContext长度: {} 字符",
+        log.debug("元素重新生成请求详情 - selectedElementId: {}, selectedElementContext长度: {} 字符, canvasContext长度: {} 字符",
+                request.getSelectedElementId(),
+                request.getSelectedElementContext() != null ? request.getSelectedElementContext().length() : 0,
                 request.getCanvasContext() != null ? request.getCanvasContext().length() : 0);
 
         return rollService.roll(request);

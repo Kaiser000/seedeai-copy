@@ -204,12 +204,14 @@ Content-Type: application/json
 {
   "templateHint": {              // ★ 用于 RAG 检索的结构化路由（必填）
     "category": "品牌故事",       // 15 个固定分类之一
-    "emotion": "高端奢华",        // 6 个固定情绪之一
+    "emotion": "高端奢华",        // 12 个固定情绪之一
     "format": "长图"              // 长图 / 常规 / 方形
   },
   "gene": {                      // 设计基因参数
     "scene": "社交媒体长图",      // 自由文本（兜底，备用模糊检索）
     "emotion": "高端/奢华",
+    "layoutStyle": "free-composition",  // 构图风格（6 种之一，驱动布局技术选择）
+    "colorStrategy": "complementary",   // 配色策略（4 种之一，驱动色彩推导方法）
     "style": {
       "primaryColor": "#1A1A1A",
       "accentColor": "#D4AF37",
@@ -259,7 +261,7 @@ Content-Type: application/json
 | 字段 | 取值 |
 |---|---|
 | `category` | 电商产品 / 品牌故事 / 报告报表 / 健康医疗 / 美食餐饮 / 旅游行程 / 活动邀请 / 教育培训 / 招聘招生 / 读书笔记 / 节日节气 / 科技AI / 政策解读 / 设计创意 / 综合海报 |
-| `emotion` | 专业权威 / 高端奢华 / 温暖治愈 / 活泼年轻 / 紧急促销 / 极简现代 |
+| `emotion` | 专业权威 / 高端奢华 / 温暖治愈 / 活泼年轻 / 紧急促销 / 极简现代 / 复古怀旧 / 赛博未来 / 童趣可爱 / 自然有机 / 严肃纪实 / 节庆狂欢 |
 | `format` | 长图（h/w ≥ 2.5）/ 常规（1.3 < h/w < 2.5）/ 方形（h/w ≤ 1.3） |
 
 LLM 必须从词表中精确选择，不能自创值。完整词表说明见 [poster-analyze.md](../backend/src/main/resources/prompts/poster-analyze.md) 的"templateHint 固定词表"段落。
@@ -295,18 +297,24 @@ fullDataIndex: Map<String, JsonNode>       // id → 完整模板节点（含 so
 | 仅 category **或** 仅 emotion 匹配 | 100 |
 | 仅 format 匹配 | 50 |
 | **+ 质量分** | + `quality`（1-10） |
+| **+ 随机扰动** | + `random(-20, +20)`，打破得分相近时的固定排序 |
 
 打分后：
 1. 按分数降序排序
-2. 取 top pool（至少 `count*4` 条，最多得分 ≥100 的前 12 条）
-3. **shuffle pool** → 随机抽出 `count` 条
+2. 取 **扩大的** top pool（至少 `count*8` 条，最多得分 ≥100 的前 20 条）
+3. **shuffle pool** → 通过 `selectWithCategoryDiversity()` 选出 `count` 条，优先保证返回样本分类（category）不同
 4. 通过 `getDetail(id)` 拿到完整 `TemplateDetail`（含 sourceCode）
 
-**为什么要 shuffle**：保证用户输入相似时不会总返回同一批样本，让生成结果有多样性。
+**多样性三重保障**：
+- **随机扰动**：每次评分加 ±20 分噪声，让得分接近的模板排名每次不同
+- **扩大池子**：pool 从 `count*4=8` 增大到 `count*8=16`，覆盖更多候选
+- **分类去重**：优先选不同 category 的样本（第一轮去重，第二轮补足）
+
+对于新增情绪（复古怀旧、赛博未来等，模板库中暂无对应标签），评分自动退化为 category+format 匹配，配色/风格差异由 prompt 中的 gene 参数驱动。
 
 #### 兜底：`recommendSimilar(scene, emotion, width, height, count)`
 
-当分析阶段没输出 `templateHint`（旧版本 prompt 或解析失败）时使用，按 `gene.scene/emotion` 模糊匹配 + 宽高比分类。打分规则较松：format 100 + emotion 50 + category 关键词 30。
+当分析阶段没输出 `templateHint`（旧版本 prompt 或解析失败）时使用，按 `gene.scene/emotion` 模糊匹配 + 宽高比分类。打分规则较松：format 100 + emotion 50 + category 关键词 30 + 随机扰动 ±20。同样使用扩大池子 + 分类去重。
 
 ### 4.5 阶段 3：代码生成
 
@@ -321,6 +329,8 @@ fullDataIndex: Map<String, JsonNode>       // id → 完整模板节点（含 so
 【设计基因参数（必须严格遵循）】
 - 场景类型：...
 - 目标情绪：...
+- 构图风格：free-composition（必须使用对应的构图技术）
+- 配色策略：complementary（必须基于此策略推导色彩）
 - 主色(HEX)：#1A1A1A
 - 强调色(HEX)：#D4AF37
 - ...
@@ -379,24 +389,34 @@ function Poster() {
 
 方法：[`extractSampleSkeleton(sourceCode, maxChars)`](../backend/src/main/java/com/seede/service/PosterGenerateService.java)
 
-策略：
-1. 取前 `maxChars`（默认 3500）字符
-2. 回溯到最后一个换行符，避免切断 JSX 属性
-3. 末尾追加省略标记：`{/* ... 以下为样本代码的后续区块... */}`
+策略（两阶段骨架提取，结构优先）：
 
-为什么这样有效：
-- 模板代码结构总是 `function Poster() { const colors = {...}; const typography = {...}; return (<div>...</div>); }`
-- 前 3500 字符必然包含 Token 定义 + return 开头 + 1-2 个 JSX 区块
-- LLM 学到 Token 模式 + 结构骨架后能自由发挥剩余部分
+**核心理念：保留 100% 的布局结构，压缩文案内容，裁剪装饰性板式。**
 
-#### Token 成本对比
+**Phase 1 — 文案压缩**（保留结构，剥离内容）：
+1. 去除 import / ReactDOM 渲染样板
+2. 压缩 JSX 标签间的长中文文本：`>五一国际劳动节快乐<` → `>五一国际...<`
+3. 压缩 img prompt 属性（长英文描述 → 前 10 字符）
+4. 压缩含中文的短引号字符串（数据数组中的标题/描述）
+5. 深层缩进减半（保留嵌套层级关系）
+6. 折叠连续空行
 
-| 方案 | 单样本字符 | 2 样本总量 | 占 GLM-4.7 上下文比 |
-|---|---|---|---|
-| 注入完整 sourceCode | ~12000 | ~24000 | ~19% |
-| 注入骨架（当前） | ~3500 | ~7000 | ~5% |
+**Phase 2 — 板式裁剪**（仅在 Phase 1 后仍超预算时执行）：
+1. 移除装饰性 className（shadow-/rounded-/border-/opacity-/transition/hover:）
+2. 移除 textShadow 样式
+3. 缩写超长 className 链（保留前 60 字符的布局类，截断尾部装饰类）
 
-降幅约 **70%**，首 token 延迟显著降低。
+**兜底**：若两阶段后仍超预算，对已高度压缩的代码做头部截取（每字符的结构密度是原始代码的 2-3 倍）。
+
+#### 实测效果
+
+| 指标 | 值 |
+|---|---|
+| 预算 | 12000 字符 / 样本 |
+| 模板完整保留率 | **74.4%**（241/324） |
+| 中位数模板（12661 字符） | Phase 1 → ~10400，Phase 2 → ~9900，**完整保留** |
+| P90 模板（18983 字符） | 需截断，但截断的是已压缩代码，结构信息密度 2-3x |
+| 2 样本总预算 | ~24K chars ≈ 8K tokens，占 128K 上下文 6% |
 
 #### 字号预算系统
 
@@ -468,6 +488,31 @@ function Poster() {
 **落地位置**：
 - Java：[PosterGenerateService.computeTypographyBudget](../backend/src/main/java/com/seede/service/PosterGenerateService.java) 扩展三个字段；`buildEnrichedPrompt` 注入四块约束。
 - Prompt：[poster-generate.md](../backend/src/main/resources/prompts/poster-generate.md) 新增 `### Content-fit 硬校验` 和 `### Absolute 装饰与 flow 内容的分离规则` 两个小节作为静态版本。
+
+#### 自适应长图模式
+
+**背景**：模板库中长图（1080×3688 等比例 ≥ 2.5）有 97 个模板，是第二大格式。长图内容量不固定，固定高度预设体验不佳，用户反馈"自适应效果更好"。
+
+**方案**：前端 `SizeSelector` 新增"1080×自适应 长图"预设，`height=0` 作为哨兵值标识自适应模式。
+
+**数据流**：
+
+| 阶段 | 固定高度模式 | 自适应模式（height=0） |
+|---|---|---|
+| 前端 → 后端 | `{ width: 1080, height: 1920 }` | `{ width: 1080, height: 0 }` |
+| 后端 prompt {{height}} | `"1920"` | `"自适应（由内容决定）"` |
+| 格式分类 | `classifyCanvasFormat(w, h)` | 直接返回 `"长图"` |
+| 字号预算 | 基于实际 h/w 比例选系数 | 使用参考高度 3688 → 长图系数 |
+| Section 高度预算 | 注入固定 px 下限 + 总高度分配 | 仅注入最小高度建议，不注入总高度约束 |
+| 区块分配 | `heightPercent × totalHeight / 100 = px` | 仅保留比例参考，不计算 px |
+| LLM 生成 JSX 外层容器 | `style={{ width: '1080px', height: '1920px' }}` | `style={{ width: '1080px' }}`（不设 height） |
+| 前端 hidden div | `height: 1920px` | 不设 height（auto） |
+| 渲染后 | 直接使用 | 测量 `hiddenDiv.scrollHeight` 作为实际高度 |
+| 画布尺寸 | `1080 × 1920` | `1080 × 实测值`（setPosterSize 回写 store） |
+
+**模板 RAG**：`TemplateService.classifyFormat(w, 0)` 返回"长图"，匹配 97 个长图模板。
+
+**尺寸预设来源**：基于模板库实际分布（竖版 163、长图 97、横版 2、方形通用），不再硬编码。
 
 #### RAG 样本硬对齐策略（非"学习手法"）
 
@@ -702,6 +747,9 @@ new Function('React', code) → window.React 注入 → ReactDOM.createRoot → 
     │
     ▼ 等待图片加载（Promise.all img.onload，无图片则 200ms 固定延迟）
     │
+    ▼ runGeometricAudit()  ← 几何审计（见 8.5）
+AuditReport 写入 store：溢出 / 超框 / 字号过小 / 对比度不足
+    │
     ▼ convertDomToCanvas()
 getBoundingClientRect 坐标转换 → 递归 handler → fabric.js 对象
     │
@@ -715,11 +763,21 @@ canvasRegistry.getGlobalCanvas().add(...)
 |---|---|
 | [`engine/index.ts`](../frontend/src/engine/index.ts) | 入口 `convertDomToCanvas(dom, canvas)` |
 | [`engine/handlers/groupHandler.ts`](../frontend/src/engine/handlers/groupHandler.ts) | 顶层调度，递归遍历 DOM 树 |
-| [`engine/handlers/textHandler.ts`](../frontend/src/engine/handlers/textHandler.ts) | 文本节点 → fabric.Text |
+| [`engine/handlers/textHandler.ts`](../frontend/src/engine/handlers/textHandler.ts) | 文本节点 → fabric.Textbox；`createStyledTextObject` 处理混合字号/颜色段 |
 | [`engine/handlers/imageHandler.ts`](../frontend/src/engine/handlers/imageHandler.ts) | `<img>` → fabric.Image |
 | [`engine/handlers/shapeHandler.ts`](../frontend/src/engine/handlers/shapeHandler.ts) | div/背景色 → fabric.Rect |
 | [`engine/parsers/styleParser.ts`](../frontend/src/engine/parsers/styleParser.ts) | computed style → fabric 属性 |
 | [`engine/parsers/layoutParser.ts`](../frontend/src/engine/parsers/layoutParser.ts) | 坐标系转换 |
+| [`engine/parsers/inlineTextParser.ts`](../frontend/src/engine/parsers/inlineTextParser.ts) | 识别并收集"内联文本容器"（TEXT_NODE + inline `<span>` 混排）|
+
+**内联文本容器合并** — `groupHandler.ts` 在叶节点之后、常规容器之前插入了专门分支：
+若元素的所有子节点都是 TEXT_NODE 或纯文本 inline 元素（`span`/`b`/`i`/`em`/`strong` 等），
+且有 ≥2 个非空段，就通过 `collectInlineSegments` + `createStyledTextObject` 合并成单个
+带 fabric per-character `styles` 的 Textbox。此前这类结构会丢失父节点直接文本
+（`<p>全场<span>5折</span>起</p>` 只剩 "5折"），或让不同字号 `<span>` 独立定位
+导致 `flex items-baseline` 基线对齐丢失（`<div><span>¥</span><span>50</span></div>`
+的 ¥ 飘在数字上方像一个点）。合并后所有段在同一行上由 fabric 按最大字号驱动行高，
+自动基线对齐。
 
 ### 8.3 关键约束（不可违反）
 
@@ -727,8 +785,57 @@ canvasRegistry.getGlobalCanvas().add(...)
 - **绝不能用 `eval()`** 编译后的 JSX，必须 `new Function('React', code)`
 - **`canvasRegistry.ts` 是全局单例**，假设同时只有一个 canvas，不通过 props 传递
 - 部分 `useEffect` 故意空依赖加 `eslint-disable`，**不要修改**
+- **渲染失败必须清画布 + 报真实错误**：[CanvasPanel.tsx](../frontend/src/features/editor/components/CanvasPanel.tsx) 的 `runRender` catch 块必须先 `canvas.clear()`，再把真实 error message 透给 `setError`（格式：`渲染失败：<err.message>`）。LLM 偶发变量名 typo（如声明 `typography` 却写 `typographic`）会导致 `flushSync` 阶段抛 `ReferenceError`，若不清画布则上一次成功的 fabric 对象残留，用户会误判为"图片丢了"。错误条 UI 用 `title` tooltip 暴露完整信息。对应的预防在 `poster-generate.md` 守则 6「变量名严格一致性」硬约束。
 
-### 8.4 不支持的 CSS
+### 8.5 几何审计（Geometric Audit）
+
+JSX 路线主动放弃了**解码阶段的 schema 校验**（grammar-constrained decoding），
+所以必须用"渲染后检测 + LLM 回注修复"的闭环兜底。几何审计是这个闭环的第一层。
+
+位置：[`frontend/src/engine/audit/`](../frontend/src/engine/audit/)
+
+| 文件 | 职责 |
+| --- | --- |
+| [`auditTypes.ts`](../frontend/src/engine/audit/auditTypes.ts) | `AuditIssue` / `AuditReport` / `AuditOptions` 类型定义 |
+| [`auditHelpers.ts`](../frontend/src/engine/audit/auditHelpers.ts) | 纯函数工具：CSS 颜色解析、WCAG 对比度、bbox 溢出计算、alpha compositing |
+| [`geometricAudit.ts`](../frontend/src/engine/audit/geometricAudit.ts) | 主审计函数 `runGeometricAudit(root, bounds, options?)` |
+| [`auditFormatter.ts`](../frontend/src/engine/audit/auditFormatter.ts) | `formatIssuesForRepair()`（→ LLM prompt） / `formatIssuesForUi()`（→ Banner） |
+
+**四条规则（按触发成本从低到高）：**
+
+| 规则 | 触发条件 | 严重等级 | 修复提示 |
+| --- | --- | --- | --- |
+| `OUT_OF_BOUNDS` | 元素 bbox 超出画布边界 > 2px，且无 `overflow:hidden` 祖先裁切，且元素视觉显著（有背景/边框/阴影） | error | 调整位置或尺寸 |
+| `TEXT_OVERFLOW` | 文本叶节点 `scrollWidth > clientWidth + 2` 或 `scrollHeight > clientHeight + 2` | error | 缩短文本 / 增大容器 / 降低字号 / `break-words` |
+| `MIN_FONT_SIZE` | 文本叶节点 computed `font-size < 14px`（可配置） | warning | 提升字号 |
+| `LOW_CONTRAST` | 文本与有效背景色 WCAG 对比度 < 4.5（AA 级） | warning | 调整配色 |
+| `SIBLING_OVERLAP` | 同一容器内 in-flow 子元素 bbox 在垂直方向重叠 > 10px（跳过 `absolute`/`fixed` 装饰 + 尺寸 < 10px 的小元素） | error | 增大 section 高度 / 缩小内容 / 改用 `h-fit` |
+
+**执行位置**：[`CanvasPanel.tsx`](../frontend/src/features/editor/components/CanvasPanel.tsx) 的
+`runRender` 中，在 `renderToHiddenDom` + 图片 `onload` 等待完成后、`convertDomToCanvas`
+之前调用。审计失败不抛异常（有 try/catch 保险丝），只写 `useEditorStore.auditReport`。
+
+**UI 反馈**：[`AuditBanner.tsx`](../frontend/src/features/editor/components/AuditBanner.tsx)
+是 CanvasPanel 右上角的浮层；当 `errorCount > 0` 时自动显示，可展开查看全部 issue，
+提供"自动修复"按钮触发 [`useAuditRepair`](../frontend/src/features/generation/hooks/useAuditRepair.ts)。
+
+**修复闭环**：`useAuditRepair.repair()` 把 `formatIssuesForRepair(auditReport)` 作为
+`userMessage` 发给 `/api/posters/chat`，复用现有对话修改接口。LLM 返回的新 JSX
+写回 `setGeneratedCode()` → CanvasPanel 自动重渲染 → 自动重审计。这形成了一个无需后端改动的
+纯前端回路。
+
+**设计取舍**：
+
+- **只做高置信度规则** —— 没有检测元素重叠（布局意图不明容易误报），没有做 vision-model 判分（延迟 + 成本）
+- **规则对 LLM 友好** —— issue.message 是可直接塞进 prompt 的中文修复指令，不是英文规则 ID
+- **阈值全部可配** —— `AuditOptions` 允许针对不同画布尺寸调参
+- **审计崩溃不阻塞渲染** —— 外层 try/catch 保障主流程不受影响
+
+测试覆盖：[`__tests__/engine/auditHelpers.test.ts`](../frontend/src/__tests__/engine/auditHelpers.test.ts)
+（纯函数 42 条断言）+ [`__tests__/engine/geometricAudit.test.ts`](../frontend/src/__tests__/engine/geometricAudit.test.ts)
+（集成 11 条场景，用 `mockLayout` 打补丁模拟 jsdom 无布局引擎的环境）。
+
+### 8.6 不支持的 CSS
 
 DOM→Canvas 引擎从 computed style 提取属性，以下效果**会丢失**变成纯色块：
 
@@ -827,9 +934,31 @@ canvas.add(fabricObject);
 | v2 | 守则 1+2 改"单焦点 + 自由构图" | 太武断 |
 | v3 | 删 12 组件 + 加 8 个海报版式语汇 | 仍是规则驱动 |
 | v4 | 加 RAG 样本注入 | 真实样本 > 规则 |
-| v5（当前） | 删 8 版式 + 删自由构图示例 + 软化守则 | 让样本自己教，规则只兜底 |
+| v5 | 删 8 版式 + 删自由构图示例 + 软化守则 | 让样本自己教，规则只兜底 |
+| v6（当前） | 守则 7 背景高级感 + 守则 8 圆角容器 + 场景适配组件库 + 场景→内容架构映射 | 与竞品差距分析驱动 |
 
 每一版的删减都基于"这个规则能由样本传达吗"的判断。
+
+### 10.5 v6 增强：设计质量对标竞品
+
+**背景分析**：与竞品对比发现 5 个核心差距——内容丰富度不足、样式变化少、背景缺乏高级感、缺少圆角形状设计、不会根据场景选择合适布局。
+
+**改动清单**：
+
+| 文件 | 新增内容 | 解决的问题 |
+|---|---|---|
+| `poster-analyze.md` | 场景适配内容架构映射表（7 种场景 × 必选组件）| 内容空洞、场景不适配 |
+| `poster-analyze.md` | 背景高级感规范（5 种手法 + 硬规则）| 纯色平铺背景 |
+| `poster-analyze.md` | 圆角容器规范 | 直角容器缺乏现代感 |
+| `poster-analyze.md` | 最低区块数提升（4/6/8）| 内容不够丰富 |
+| `poster-generate.md` | 守则 7：背景高级感（代码级 4 种手法 + 反例）| 背景一眼廉价 |
+| `poster-generate.md` | 守则 8：圆角容器系统（强制表 + 代码示例）| 直角容器 |
+| `poster-generate.md` | 场景适配组件库（时间轴/路线卡/商品网格/数据展示/引用框）| 千篇一律的区块结构 |
+| `poster-generate.md` | 负面提示 11-14 | 新增失败模式检测 |
+| `design-reference.md` | 模式 6-9（背景/时间轴/路线卡/圆角系统）| 参考模式不足 |
+| `technique-snippets.json` | 6 种新手法（径向辉光/深浅交替/时间轴/路线卡/暖白背景）| 手法库覆盖不全 |
+| `TemplateService.java` | 双池策略（essential + highFreq）| 新手法 frequency=0 被过滤 |
+| `PosterGenerateService.java` | 手法注入数从 6 提升到 8 | 增加关键手法覆盖率 |
 
 ---
 

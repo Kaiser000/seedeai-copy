@@ -33,6 +33,9 @@ public class TemplateService {
     private static final Logger log = LoggerFactory.getLogger(TemplateService.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /** 随机数生成器 — 用于 RAG 评分扰动和池内抽样，保证每次请求结果多样 */
+    private final Random random = new Random();
+
     /** 元数据列表（按 quality 降序），用于列表/搜索 */
     private List<TemplateInfo> metadataList = Collections.emptyList();
 
@@ -42,16 +45,31 @@ public class TemplateService {
     /** 分类列表缓存 */
     private List<String> categories = Collections.emptyList();
 
+    /** 板式库（layout-patterns.json） */
+    private List<JsonNode> layoutPatterns = Collections.emptyList();
+
+    /** 情绪库（emotion-exemplars.json） */
+    private List<JsonNode> emotionExemplars = Collections.emptyList();
+
+    /** 配色库（color-palettes.json） */
+    private List<JsonNode> colorPalettes = Collections.emptyList();
+
+    /** 手法库（technique-snippets.json） */
+    private List<JsonNode> techniqueSnippets = Collections.emptyList();
+
     /**
-     * 启动时加载模板数据到内存。
+     * 启动时加载模板数据和四大库到内存。
      * 如果文件缺失不影响主流程启动，仅日志警告。
      */
     @PostConstruct
     public void init() {
         loadMetadata();
         loadFullData();
-        log.info("模板服务初始化完成: 元数据 {} 条, 完整数据 {} 条, 分类 {} 个",
-                metadataList.size(), fullDataIndex.size(), categories.size());
+        loadLibraries();
+        log.info("模板服务初始化完成: 元数据 {} 条, 完整数据 {} 条, 分类 {} 个, 板式 {} 条, 情绪 {} 条, 配色 {} 条, 手法 {} 条",
+                metadataList.size(), fullDataIndex.size(), categories.size(),
+                layoutPatterns.size(), emotionExemplars.size(), colorPalettes.size(),
+                techniqueSnippets.size());
     }
 
     /**
@@ -107,6 +125,208 @@ public class TemplateService {
         } catch (IOException e) {
             log.error("加载 all_items.json 失败: {}", e.getMessage());
         }
+    }
+
+    /**
+     * 加载三大库文件（板式库、情绪库、配色库）。
+     * 这些由离线脚本 scripts/analyze-templates.js 从全量模板中预提取生成。
+     * 缺失时不影响主流程，但会降低生成的风格多样性。
+     */
+    private void loadLibraries() {
+        layoutPatterns = loadJsonArray("layout-patterns.json");
+        emotionExemplars = loadJsonArray("emotion-exemplars.json");
+        colorPalettes = loadJsonArray("color-palettes.json");
+        techniqueSnippets = loadJsonArray("technique-snippets.json");
+    }
+
+    /** 加载 classpath 下的 JSON 数组文件，缺失时返回空列表 */
+    private List<JsonNode> loadJsonArray(String filename) {
+        try {
+            ClassPathResource resource = new ClassPathResource(filename);
+            if (!resource.exists()) {
+                log.warn("{} 不存在，对应的库功能不可用", filename);
+                return Collections.emptyList();
+            }
+            try (InputStream is = resource.getInputStream()) {
+                JsonNode array = objectMapper.readTree(is);
+                if (array.isArray()) {
+                    List<JsonNode> list = new ArrayList<>();
+                    for (JsonNode node : array) list.add(node);
+                    log.info("加载 {}: {} 条", filename, list.size());
+                    return list;
+                }
+            }
+        } catch (IOException e) {
+            log.error("加载 {} 失败: {}", filename, e.getMessage());
+        }
+        return Collections.emptyList();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 库查询接口（供 PosterGenerateService 注入到 enriched prompt）
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * 按 format + topLayout + 特征匹配最相关的板式模式。
+     * 返回 JSON 字符串，直接可注入到 prompt 中。
+     *
+     * @param format    长图/常规/方形
+     * @param category  分类（用于二级匹配）
+     * @param count     返回数量
+     * @return 匹配的板式 JSON 列表
+     */
+    public List<JsonNode> getLayoutPatterns(String format, String category, int count) {
+        if (layoutPatterns.isEmpty()) return Collections.emptyList();
+
+        // 打分：format 精确匹配 100 分，category 包含匹配 30 分，frequency 加权
+        List<Map.Entry<JsonNode, Integer>> scored = new ArrayList<>();
+        for (JsonNode p : layoutPatterns) {
+            int score = 0;
+            if (format != null && format.equals(p.path("format").asText(""))) score += 100;
+            if (category != null && p.path("compatibleCategories").toString().contains(category)) score += 30;
+            score += p.path("frequency").asInt(0); // 高频板式优先
+            score += random.nextInt(21); // 随机扰动保证多样性
+            scored.add(Map.entry(p, score));
+        }
+
+        scored.sort((a, b) -> b.getValue() - a.getValue());
+
+        // 从 top pool 中随机选
+        int poolSize = Math.min(count * 4, scored.size());
+        List<Map.Entry<JsonNode, Integer>> pool = new ArrayList<>(scored.subList(0, poolSize));
+        Collections.shuffle(pool);
+        return pool.stream().limit(count).map(Map.Entry::getKey).collect(Collectors.toList());
+    }
+
+    /**
+     * 按情绪名查找情绪库条目。
+     *
+     * @param emotion 情绪名（如 "高端奢华"）
+     * @return 匹配的情绪条目，未找到时返回 null
+     */
+    public JsonNode getEmotionExemplar(String emotion) {
+        if (emotion == null || emotionExemplars.isEmpty()) return null;
+        String cleaned = emotion.replaceAll("[/·、，,\\s]", "");
+        for (JsonNode e : emotionExemplars) {
+            String emo = e.path("emotion").asText("");
+            if (cleaned.contains(emo) || emo.contains(cleaned)) return e;
+        }
+        return null;
+    }
+
+    /** 标记为"必选"的手法标签 — 带有这些 tag 的手法优先注入，确保高级背景、圆角容器、
+     *  时间轴等关键手法不被高频池淹没（新增手法 frequency=0 会被阈值过滤，通过 tag 保底）。 */
+    private static final Set<String> ESSENTIAL_TAGS = Set.of("background", "premium", "layout", "timeline");
+
+    /**
+     * 获取设计手法片段，采用双池策略保证关键手法覆盖：
+     * <ul>
+     *   <li>Pool 1 — 必选池：带有 {@link #ESSENTIAL_TAGS} 标签的手法，至少注入 2 条</li>
+     *   <li>Pool 2 — 高频池：频率 ≥ 15% 的模板级手法，填满剩余槽位</li>
+     * </ul>
+     *
+     * @param count 返回数量（建议 6-10）
+     * @return 混合的手法列表
+     */
+    public List<JsonNode> getTechniqueSnippets(int count) {
+        if (techniqueSnippets.isEmpty()) return Collections.emptyList();
+
+        // 分离两个池
+        List<JsonNode> essentialPool = new ArrayList<>();
+        List<JsonNode> highFreqPool = new ArrayList<>();
+        int threshold = templates_15pct_threshold();
+
+        for (JsonNode t : techniqueSnippets) {
+            boolean isEssential = false;
+            JsonNode tags = t.path("tags");
+            if (tags.isArray()) {
+                for (JsonNode tag : tags) {
+                    if (ESSENTIAL_TAGS.contains(tag.asText(""))) {
+                        isEssential = true;
+                        break;
+                    }
+                }
+            }
+            if (isEssential) {
+                essentialPool.add(t);
+            } else if (t.path("frequency").asInt(0) >= threshold) {
+                highFreqPool.add(t);
+            }
+        }
+
+        // 从必选池随机取 2 条（不足则全取）
+        Collections.shuffle(essentialPool);
+        int essentialCount = Math.min(2, Math.min(essentialPool.size(), count));
+        List<JsonNode> result = new ArrayList<>(essentialPool.subList(0, essentialCount));
+
+        // 从高频池随机填满剩余槽位
+        int remaining = count - result.size();
+        if (remaining > 0 && !highFreqPool.isEmpty()) {
+            Collections.shuffle(highFreqPool);
+            result.addAll(highFreqPool.subList(0, Math.min(remaining, highFreqPool.size())));
+        }
+
+        // 兜底：如果两个池合计不够 count，从全量列表补充
+        if (result.size() < count) {
+            Set<String> usedIds = new HashSet<>();
+            for (JsonNode r : result) usedIds.add(r.path("id").asText(""));
+            for (JsonNode t : techniqueSnippets) {
+                if (result.size() >= count) break;
+                if (!usedIds.contains(t.path("id").asText(""))) {
+                    result.add(t);
+                    usedIds.add(t.path("id").asText(""));
+                }
+            }
+        }
+
+        log.debug("手法注入: essential={}, highFreq={}, total={}",
+                essentialCount, result.size() - essentialCount, result.size());
+        return result;
+    }
+
+    /** 15% 的模板数量阈值 */
+    private int templates_15pct_threshold() {
+        return Math.max(1, (int) (metadataList.size() * 0.15));
+    }
+
+    /**
+     * 按配色策略 + 色温匹配配色方案。
+     *
+     * @param strategy    配色策略（monochromatic/complementary/split-complementary/analogous），可为空
+     * @param isDarkTheme 是否深色主题
+     * @param count       返回数量
+     * @return 匹配的配色方案列表
+     */
+    public List<JsonNode> getColorPalettes(String strategy, boolean isDarkTheme, int count) {
+        if (colorPalettes.isEmpty()) return Collections.emptyList();
+
+        String theme = isDarkTheme ? "dark" : "light";
+        List<JsonNode> matched = new ArrayList<>();
+        List<JsonNode> fallback = new ArrayList<>();
+
+        for (JsonNode p : colorPalettes) {
+            boolean themeMatch = theme.equals(p.path("theme").asText(""));
+            boolean strategyMatch = strategy != null && strategy.equals(p.path("strategy").asText(""));
+
+            if (strategyMatch && themeMatch) matched.add(p);
+            else if (themeMatch) fallback.add(p);
+        }
+
+        // 优先返回策略+主题精确匹配，不够用 fallback 补
+        List<JsonNode> result = new ArrayList<>(matched);
+        if (result.size() < count) {
+            Collections.shuffle(fallback);
+            for (JsonNode f : fallback) {
+                if (result.size() >= count) break;
+                result.add(f);
+            }
+        }
+        if (result.size() > count) {
+            Collections.shuffle(result);
+            result = result.subList(0, count);
+        }
+
+        return result;
     }
 
     /**
@@ -226,22 +446,24 @@ public class TemplateService {
     /**
      * 按用户意图和画布尺寸检索相似的高质量模板，用作 few-shot 参考。
      *
-     * <p>评分策略（加权打分 + 随机抽样保证多样性）：</p>
+     * <p>评分策略（加权打分 + 随机扰动 + 分类去重保证多样性）：</p>
      * <ul>
      *   <li>画布格式匹配（长图/常规/方形）：最高权重 100 分</li>
      *   <li>情绪模糊匹配（"高端/奢华" ↔ "高端奢华"）：50 分</li>
      *   <li>场景/分类关键词匹配：30 分</li>
      *   <li>质量分加权：直接加 quality 值（通常 9-10）</li>
+     *   <li>随机扰动：±20 分，打破得分相近时的固定排序</li>
      * </ul>
      *
-     * <p>最终从 top pool 中随机抽取 count 条，避免输入相似时总返回同样的样本，保证样式多样性。</p>
+     * <p>从扩大的 top pool（count×8）中抽样，并对返回结果做分类去重：
+     * 2 条样本尽量来自不同 category，避免风格同质化。</p>
      *
      * @param scene   分析阶段输出的 gene.scene（如 "社交媒体长图" / "促销/电商"），可为空
      * @param emotion 分析阶段输出的 gene.emotion（如 "高端/奢华"），可为空
      * @param width   目标画布宽度
      * @param height  目标画布高度
      * @param count   需要返回的样本数量（建议 1-3）
-     * @return 匹配的模板详情列表（含完整 sourceCode），按评分降序但经过 shuffle 保证多样性
+     * @return 匹配的模板详情列表（含完整 sourceCode），经过 shuffle + 分类去重保证多样性
      */
     public List<TemplateDetail> recommendSimilar(String scene, String emotion, int width, int height, int count) {
         if (metadataList.isEmpty() || count <= 0) {
@@ -256,7 +478,7 @@ public class TemplateService {
         log.info("相似模板检索: targetFormat={}, normalizedEmotion={}, scene={}",
                 targetFormat, normalizedEmotion, scene);
 
-        // 对所有模板打分
+        // 对所有模板打分（含随机扰动，打破得分相近时的固定排序）
         List<ScoredTemplate> scored = new ArrayList<>();
         for (TemplateInfo t : metadataList) {
             int score = 0;
@@ -286,23 +508,22 @@ public class TemplateService {
             // 4. 质量加权（1-10）
             score += t.getQuality();
 
+            // 5. 随机扰动（±20），让得分接近的模板每次排序不同
+            score += random.nextInt(41) - 20;
+
             scored.add(new ScoredTemplate(t, score));
         }
 
         // 按得分降序
         scored.sort((a, b) -> Integer.compare(b.score, a.score));
 
-        // 从 top pool 中随机抽样，保证多样性（输入相近时不会总返回同样的 2 条）
-        int poolSize = Math.min(Math.max(count * 4, 8), scored.size());
+        // 从扩大的 top pool（count×8）中抽样，比之前的 count×4 覆盖更多候选
+        int poolSize = Math.min(Math.max(count * 8, 16), scored.size());
         List<ScoredTemplate> topPool = new ArrayList<>(scored.subList(0, poolSize));
         Collections.shuffle(topPool);
 
-        List<TemplateDetail> result = new ArrayList<>();
-        for (ScoredTemplate s : topPool) {
-            if (result.size() >= count) break;
-            Optional<TemplateDetail> detail = getDetail(s.info.getId());
-            detail.ifPresent(result::add);
-        }
+        // 分类去重选择：尽量让返回的样本来自不同 category，避免风格同质化
+        List<TemplateDetail> result = selectWithCategoryDiversity(topPool, count);
 
         log.info("相似模板检索完成: 返回 {} 条样本, 样本 id={}",
                 result.size(),
@@ -321,9 +542,13 @@ public class TemplateService {
      *   <li>仅类别匹配或仅情绪匹配：100 分</li>
      *   <li>仅格式匹配：50 分</li>
      *   <li>质量分加权：直接加 quality 值</li>
+     *   <li>随机扰动：±20 分，打破得分相近时的固定排序</li>
      * </ul>
      *
-     * <p>从 top pool 中随机抽样保证多样性。若没有任何模板匹配格式，自动退化为按类别+情绪匹配的 top 样本。</p>
+     * <p>对于新增情绪（如 复古怀旧、赛博未来 等，模板库中暂无对应标签），
+     * 评分自动退化为 category+format 匹配，配色和风格差异由 prompt 中的 gene 参数驱动。</p>
+     *
+     * <p>从扩大的 top pool（count×8）中抽样，并做分类去重保证多样性。</p>
      *
      * @param category 固定词表中的分类，如 "电商产品"；空字符串视为不约束
      * @param emotion  固定词表中的情绪，如 "高端奢华"；空字符串视为不约束
@@ -360,14 +585,18 @@ public class TemplateService {
             }
 
             score += t.getQuality();
+
+            // 随机扰动（±20），让得分接近的模板每次排序不同
+            score += random.nextInt(41) - 20;
+
             scored.add(new ScoredTemplate(t, score));
         }
 
         scored.sort((a, b) -> Integer.compare(b.score, a.score));
 
-        // top pool 至少取 count*4 但不超过得分 ≥100 的数量，保证质量门槛
+        // 扩大 top pool（count×8），比之前的 count×4 覆盖更多候选
         int qualifiedCount = (int) scored.stream().filter(s -> s.score >= 100).count();
-        int poolSize = Math.max(count * 4, Math.min(qualifiedCount, 12));
+        int poolSize = Math.max(count * 8, Math.min(qualifiedCount, 20));
         poolSize = Math.min(poolSize, scored.size());
         if (poolSize <= 0) {
             return Collections.emptyList();
@@ -376,12 +605,8 @@ public class TemplateService {
         List<ScoredTemplate> topPool = new ArrayList<>(scored.subList(0, poolSize));
         Collections.shuffle(topPool);
 
-        List<TemplateDetail> result = new ArrayList<>();
-        for (ScoredTemplate s : topPool) {
-            if (result.size() >= count) break;
-            Optional<TemplateDetail> detail = getDetail(s.info.getId());
-            detail.ifPresent(result::add);
-        }
+        // 分类去重选择：尽量让返回的样本来自不同 category，避免风格同质化
+        List<TemplateDetail> result = selectWithCategoryDiversity(topPool, count);
 
         log.info("结构化模板检索完成: 返回 {} 条样本, ids={}",
                 result.size(),
@@ -390,11 +615,62 @@ public class TemplateService {
     }
 
     /**
+     * 从候选池中选择模板，保证分类多样性。
+     *
+     * <p>策略：优先选择与已选模板 category 不同的候选。当所有候选 category 都已出现过时，
+     * 退化为按顺序选择（此时 pool 已经 shuffle 过，等效随机）。</p>
+     *
+     * <p>例如：pool 中有 [综合海报A, 综合海报B, 电商产品C, 品牌故事D]，count=2，
+     * 选中 A（综合海报）后，会跳过 B（同分类），优先选 C 或 D。</p>
+     *
+     * @param pool  已 shuffle 的候选池
+     * @param count 需要返回的数量
+     * @return 分类尽量不重复的模板详情列表
+     */
+    private List<TemplateDetail> selectWithCategoryDiversity(List<ScoredTemplate> pool, int count) {
+        List<TemplateDetail> result = new ArrayList<>();
+        Set<String> usedCategories = new HashSet<>();
+
+        // 第一轮：优先选不同 category 的模板
+        for (ScoredTemplate s : pool) {
+            if (result.size() >= count) break;
+            String cat = s.info.getCategory() != null ? s.info.getCategory() : "";
+            if (usedCategories.contains(cat)) continue;
+            Optional<TemplateDetail> detail = getDetail(s.info.getId());
+            if (detail.isPresent()) {
+                result.add(detail.get());
+                usedCategories.add(cat);
+            }
+        }
+
+        // 第二轮：如果不同 category 的模板不够 count 个，允许重复 category
+        if (result.size() < count) {
+            Set<String> usedIds = result.stream()
+                    .map(TemplateDetail::getId)
+                    .collect(Collectors.toSet());
+            for (ScoredTemplate s : pool) {
+                if (result.size() >= count) break;
+                if (usedIds.contains(s.info.getId())) continue;
+                Optional<TemplateDetail> detail = getDetail(s.info.getId());
+                if (detail.isPresent()) {
+                    result.add(detail.get());
+                    usedIds.add(s.info.getId());
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /**
      * 按画布宽高比分类格式。长图是小红书/公众号常见的 1080x3688 长页，
      * 方形适合 Instagram 类社交图，常规是标准竖版海报 1080x1920。
+     * height=0 表示自适应长图模式，直接归入"长图"。
      */
     private String classifyFormat(int width, int height) {
         if (width <= 0) return "常规";
+        // height=0 → 自适应长图模式
+        if (height <= 0) return "长图";
         double ratio = (double) height / width;
         if (ratio >= 2.5) return "长图";
         if (ratio <= 1.3) return "方形";

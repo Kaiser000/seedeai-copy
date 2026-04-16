@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 海报生成服务 — 多阶段工作流 Pipeline
@@ -48,10 +50,50 @@ public class PosterGenerateService {
     /** 检索相似模板时返回的样本数量（注入到代码生成阶段作为 few-shot 参考） */
     private static final int REFERENCE_SAMPLE_COUNT = 2;
 
-    /** 每个参考样本注入到 prompt 时的最大字符数，超出部分截断并加省略标记。
-     *  取值依据：模板平均长度约 12000 字符，截到 3500 字符可以覆盖 Token 定义 + 前 1-2 个 JSX 区块，
-     *  足以让 LLM 学习手法；2 条样本合计约 7KB，比注入完整代码节约约 70% 的 prompt tokens。*/
-    private static final int SAMPLE_SKELETON_MAX_CHARS = 3500;
+    /** 每个参考样本骨架的最大字符数。
+     *  骨架提取策略：先压缩文案内容 → 再裁剪装饰性板式 → 最后截取。
+     *  结构完整性优先。模板中位数 12661 字符，P75=15576，P90=18983。
+     *  Phase 1+2 压缩率约 20-30%，12000 预算可让中位数及以下模板完整保留。
+     *  2 条样本 × 12000 = 24K chars ≈ 8K tokens，对 128K 上下文零压力。*/
+    private static final int SAMPLE_SKELETON_MAX_CHARS = 12000;
+
+    // ═══════════════════════════════════════════════════════════════
+    // 骨架提取用的预编译正则（避免每次调用重复编译）
+    // ═══════════════════════════════════════════════════════════════
+
+    /** 匹配 JSX 标签间的长文本：> 与 < 之间超过 6 字符的内容（不含 { 和 <，排除 JSX 表达式和嵌套标签）。
+     *  例如 {@code >五一国际劳动节快乐<} → {@code >五一国际...<} */
+    private static final Pattern PAT_TAG_TEXT = Pattern.compile(">([^<{]{7,})<");
+
+    /** 匹配 img 标签的 prompt 属性（16+ 字符的英文图片描述，对结构无意义）。 */
+    private static final Pattern PAT_PROMPT_ATTR = Pattern.compile("prompt=\"([^\"]{16,})\"");
+
+    /** 匹配含中文的短单引号字符串（数据数组中的标题/描述，1-50 字符）。
+     *  使用前瞻 (?=...) 确保字符串中至少含一个中文字符，避免误伤纯英文字体名。 */
+    private static final Pattern PAT_CN_QUOTE = Pattern.compile("'((?=[^']*[\\u4e00-\\u9fff])[^']{6,50})'");
+
+    /** 匹配深层缩进（行首 7+ 个空格），用于压缩嵌套层级占用的空间。 */
+    private static final Pattern PAT_DEEP_INDENT = Pattern.compile("(?m)^( {7,})");
+
+    /** 匹配 import 声明行。 */
+    private static final Pattern PAT_IMPORT = Pattern.compile("(?m)^import .*\\n?");
+
+    /** 匹配末尾 ReactDOM 渲染样板代码（从 // Rendering 或 const root 到文件结尾）。 */
+    private static final Pattern PAT_RENDER_BOILERPLATE = Pattern.compile(
+            "(?s)(//\\s*Rendering|const root\\s*=\\s*ReactDOM|ReactDOM\\.createRoot).*$");
+
+    /** 匹配长 className 字符串（超过 80 字符的 className 值）。
+     *  板式裁剪阶段用：保留前面的布局类（flex/grid/absolute 通常靠前），截断尾部装饰类。 */
+    private static final Pattern PAT_LONG_CLASSNAME = Pattern.compile("className=\"([^\"]{81,})\"");
+
+    /** 匹配装饰性 className（对布局不影响，纯视觉效果）。
+     *  移除这些类不会改变元素的位置和大小，只影响外观。 */
+    private static final Pattern PAT_COSMETIC_CLASSES = Pattern.compile(
+            "\\b(shadow-\\S+|rounded-\\S+|border-\\S+|opacity-\\S+|transition\\S*|hover:\\S+)\\b\\s?");
+
+    /** 匹配整行的 textShadow 样式（纯装饰，对布局无意义）。 */
+    private static final Pattern PAT_TEXT_SHADOW = Pattern.compile(
+            ",?\\s*textShadow:\\s*'[^']*'");
 
     private final LlmClient llmClient;
     private final LlmResponseParser responseParser;
@@ -82,28 +124,28 @@ public class PosterGenerateService {
      * @return SSE 事件流，按阶段顺序推送
      */
     public Flux<ServerSentEvent<SseMessage>> generate(GenerateRequest request) {
-        log.info("收到生成请求: prompt={}, modelName={}", request.getPrompt(), request.getModelName());
+        // height=0 表示自适应长图模式：宽度固定，高度由 LLM 根据内容量决定
+        boolean adaptive = request.getHeight() == 0;
+        log.info("收到生成请求: prompt={}, modelName={}, adaptive={}", request.getPrompt(), request.getModelName(), adaptive);
 
         // ── 步骤 0：加载提示词模板 ──────────────────────────────────
         String analyzePrompt;
         String generatePrompt;
         try {
+            // 自适应模式下 {{height}} 替换为 "自适应（由内容决定）" 而非 "0"
             Map<String, String> sizeVars = Map.of(
                     "width", String.valueOf(request.getWidth()),
-                    "height", String.valueOf(request.getHeight())
+                    "height", adaptive ? "自适应（由内容决定）" : String.valueOf(request.getHeight())
             );
             analyzePrompt = promptManager.loadPrompt("poster-analyze.md", sizeVars);
-            // 将设计参考库追加到生成 prompt 末尾，为 LLM 提供真实模板数据支撑
+            // 将设计参考库追加到生成 prompt 末尾，为 LLM 提供真实模板数据支撑。
+            // 快速失败：设计参考库是生成质量的基石，缺失时不能静默降级，必须让请求直接失败以暴露配置问题。
             String baseGeneratePrompt = promptManager.loadPrompt("poster-generate.md", sizeVars);
-            String designReference = "";
-            try {
-                designReference = promptManager.loadPrompt("design-reference.md", Collections.emptyMap());
-            } catch (Exception refErr) {
-                log.warn("加载设计参考库失败，跳过: {}", refErr.getMessage());
+            String designReference = promptManager.loadPrompt("design-reference.md", Collections.emptyMap());
+            if (designReference.isBlank()) {
+                throw new IllegalStateException("design-reference.md 加载后为空，检查资源文件是否完整");
             }
-            generatePrompt = designReference.isEmpty()
-                    ? baseGeneratePrompt
-                    : baseGeneratePrompt + "\n\n" + designReference;
+            generatePrompt = baseGeneratePrompt + "\n\n" + designReference;
         } catch (Exception e) {
             log.error("加载 prompt 失败", e);
             return Flux.just(ServerSentEvent.<SseMessage>builder()
@@ -197,8 +239,14 @@ public class PosterGenerateService {
                         return Flux.just(msg);
                     })
                     .onErrorResume(e -> {
-                        log.error("需求分析阶段失败", e);
-                        return Flux.just(SseMessage.error("需求分析失败，请稍后重试", true));
+                        // 快速失败：先向客户端推送错误 SSE，再通过 Flux.error 让 Flux.concat 链
+                        // 立即终止，避免后续阶段拿着空 analysisResult 继续跑出低质量输出。
+                        log.error("需求分析阶段失败，中止后续阶段", e);
+                        return Flux.<SseMessage>just(
+                                SseMessage.error("需求分析失败，请稍后重试", true)
+                        ).concatWith(Flux.error(
+                                new IllegalStateException("需求分析阶段失败，中止后续阶段", e)
+                        ));
                     });
         });
 
@@ -207,8 +255,15 @@ public class PosterGenerateService {
         // 通过 Flux.concat 先 emit 这些可观测事件，再 emit LLM 流式输出。
         Flux<SseMessage> codeStream = Flux.defer(() -> {
             String analysisResult = analysisRef.get();
-            if (analysisResult.isEmpty()) {
-                log.warn("需求分析结果为空，直接使用原始 prompt 生成代码");
+            // 防御断言：正常路径上 analysisStream 失败会触发 Flux.error 终止整条链，
+            // 这里理论上不会执行到空值分支。但为了抵御未来重构误引入静默降级，保留断言。
+            if (analysisResult.isBlank()) {
+                log.error("需求分析结果为空且未被上游拦截，终止代码生成");
+                return Flux.<SseMessage>just(
+                        SseMessage.error("内部状态异常：需求分析结果为空", true)
+                ).concatWith(Flux.error(
+                        new IllegalStateException("codeStream 被调用时 analysisResult 为空，上游错误传播有遗漏")
+                ));
             }
 
             EnrichedPromptResult prepResult = buildEnrichedPrompt(
@@ -236,8 +291,14 @@ public class PosterGenerateService {
                         return msg;
                     })
                     .onErrorResume(e -> {
-                        log.error("代码生成阶段失败", e);
-                        return Flux.just(SseMessage.error("代码生成失败，请稍后重试", true));
+                        // 快速失败：先推送错误 SSE，再通过 Flux.error 终止整条流，
+                        // 防止图片生成阶段拿着不完整的代码继续跑。
+                        log.error("代码生成阶段失败，中止后续阶段", e);
+                        return Flux.<SseMessage>just(
+                                SseMessage.error("代码生成失败，请稍后重试", true)
+                        ).concatWith(Flux.error(
+                                new IllegalStateException("代码生成阶段失败，中止后续阶段", e)
+                        ));
                     });
 
             return Flux.concat(prepEvents, llmStream);
@@ -286,9 +347,15 @@ public class PosterGenerateService {
      *   <li>prompt_built — enriched prompt 拼装统计 + 完整内容</li>
      * </ul>
      */
-    private EnrichedPromptResult buildEnrichedPrompt(String originalPrompt, String analysisResult, int width, int totalHeight) {
+    private EnrichedPromptResult buildEnrichedPrompt(String originalPrompt, String analysisResult, int width, int requestedHeight) {
+        // height=0 表示自适应长图 — 不注入固定高度约束，typography 按"长图"模式计算
+        boolean adaptive = requestedHeight == 0;
+        // 对于 typography budget 和 section 高度计算，自适应模式使用参考高度（模板库中长图常见值 3688px）
+        int totalHeight = adaptive ? 0 : requestedHeight;
+        // 快速失败：空 analysisResult 不应该到达这里——若到达说明上游错误传播有漏洞，
+        // 与其静默退回原始 prompt，不如抛出让开发者定位问题。
         if (analysisResult == null || analysisResult.isBlank()) {
-            return new EnrichedPromptResult(originalPrompt, Collections.emptyList());
+            throw new IllegalStateException("buildEnrichedPrompt 被空的 analysisResult 调用，上游未正确传播错误");
         }
 
         // 收集要推送给前端的事件
@@ -333,12 +400,24 @@ public class PosterGenerateService {
                 if (!gene.isMissingNode()) {
                     scene = gene.path("scene").asText("");
                     emotion = gene.path("emotion").asText("");
+                    String layoutStyle = gene.path("layoutStyle").asText("");
+                    String colorStrategy = gene.path("colorStrategy").asText("");
                     sb.append("【设计基因参数（必须严格遵循）】\n");
                     if (!scene.isEmpty()) {
                         sb.append("- 场景类型：").append(scene).append("\n");
                     }
                     if (!emotion.isEmpty()) {
                         sb.append("- 目标情绪：").append(emotion).append("\n");
+                    }
+                    if (!layoutStyle.isEmpty()) {
+                        sb.append("- 构图风格：").append(layoutStyle)
+                          .append("（必须使用对应的构图技术，参见 gene.layoutStyle 说明）\n");
+                        log.info("构图风格: layoutStyle={}", layoutStyle);
+                    }
+                    if (!colorStrategy.isEmpty()) {
+                        sb.append("- 配色策略：").append(colorStrategy)
+                          .append("（必须基于此策略推导色彩，参见配色算法说明）\n");
+                        log.info("配色策略: colorStrategy={}", colorStrategy);
                     }
                     JsonNode style = gene.path("style");
                     if (!style.isMissingNode()) {
@@ -378,25 +457,48 @@ public class PosterGenerateService {
                 JsonNode sections = root.path("sections");
                 if (sections.isArray() && !sections.isEmpty()) {
                     sectionsCount = sections.size();
-                    sb.append("【区块高度分配（必须严格遵循）】\n");
-                    for (JsonNode section : sections) {
-                        String name = section.path("name").asText("未命名");
-                        int percent = section.path("heightPercent").asInt(0);
-                        String bg = section.path("background").asText("");
-                        int height = (int) Math.round(totalHeight * percent / 100.0);
-                        String density = section.path("density").asText("");
-                        String focalPoint = section.path("focalPoint").asText("");
-                        StringBuilder line = new StringBuilder();
-                        line.append(String.format("- %s：高度 %dpx（%d%%），背景 %s", name, height, percent, bg));
-                        if (!density.isEmpty()) {
-                            line.append("，密度=").append(density);
+                    if (adaptive) {
+                        // 自适应长图模式：不注入固定 px 高度，只保留比例和密度指引
+                        sb.append("【区块比例分配（自适应长图 — 高度由内容自然撑开）】\n");
+                        for (JsonNode section : sections) {
+                            String name = section.path("name").asText("未命名");
+                            int percent = section.path("heightPercent").asInt(0);
+                            String bg = section.path("background").asText("");
+                            String density = section.path("density").asText("");
+                            String focalPoint = section.path("focalPoint").asText("");
+                            StringBuilder line = new StringBuilder();
+                            line.append(String.format("- %s：内容比例 %d%%，背景 %s", name, percent, bg));
+                            if (!density.isEmpty()) {
+                                line.append("，密度=").append(density);
+                            }
+                            if (!focalPoint.isEmpty()) {
+                                line.append("，焦点=").append(focalPoint);
+                            }
+                            sb.append(line).append("\n");
                         }
-                        if (!focalPoint.isEmpty()) {
-                            line.append("，焦点=").append(focalPoint);
+                        sb.append("- 注意：自适应长图无固定总高度，每个 section 不设 height，由内容自然撑开\n");
+                        sb.append("\n");
+                    } else {
+                        sb.append("【区块高度分配（必须严格遵循）】\n");
+                        for (JsonNode section : sections) {
+                            String name = section.path("name").asText("未命名");
+                            int percent = section.path("heightPercent").asInt(0);
+                            String bg = section.path("background").asText("");
+                            int height = (int) Math.round(totalHeight * percent / 100.0);
+                            String density = section.path("density").asText("");
+                            String focalPoint = section.path("focalPoint").asText("");
+                            StringBuilder line = new StringBuilder();
+                            line.append(String.format("- %s：高度 %dpx（%d%%），背景 %s", name, height, percent, bg));
+                            if (!density.isEmpty()) {
+                                line.append("，密度=").append(density);
+                            }
+                            if (!focalPoint.isEmpty()) {
+                                line.append("，焦点=").append(focalPoint);
+                            }
+                            sb.append(line).append("\n");
                         }
-                        sb.append(line).append("\n");
+                        sb.append("\n");
                     }
-                    sb.append("\n");
                 }
 
                 // 提取图片 seed 关键词
@@ -421,7 +523,11 @@ public class PosterGenerateService {
                     sb.append("\n");
                 }
             } catch (Exception e) {
-                log.warn("[PosterGenerate] 解析结构化 JSON 失败，回退为原文注入: {}", e.getMessage());
+                // 快速失败：gene/sections/images 是设计方案的核心约束，解析失败意味着
+                // LLM 输出了格式不符合契约的 JSON，继续跑只会产出低质量海报。
+                log.error("[PosterGenerate] 解析结构化 JSON 失败，中止代码生成阶段: {}", e.getMessage(), e);
+                throw new IllegalStateException(
+                        "分析结果结构化 JSON 解析失败，LLM 输出不符合契约: " + e.getMessage(), e);
             }
         }
 
@@ -430,11 +536,15 @@ public class PosterGenerateService {
         //   (1) prompt 中 fontSize 指引是相对值（text-7xl~9xl），LLM 取下限 72px；
         //   (2) flex justify-center 让少量内容浮在 section 中间造成大片空白。
         // 这里直接注入基于画布宽度计算的 px 级硬范围，让 LLM 无法回落到默认值。
-        TypographyBudget budget = computeTypographyBudget(width, totalHeight);
-        String canvasFormat = classifyCanvasFormat(width, totalHeight);
+        // 自适应模式下使用参考高度 3688（模板库中长图常见值）来计算 typography budget，
+        // 仅影响纵横比分类（→"长图"系数），字号本身由宽度决定。
+        int budgetHeight = adaptive ? 3688 : totalHeight;
+        TypographyBudget budget = computeTypographyBudget(width, budgetHeight);
+        String canvasFormat = adaptive ? "长图（自适应）" : classifyCanvasFormat(width, totalHeight);
         double heroBodyRatio = Math.max(5.0, (double) budget.heroMin / Math.max(1, budget.bodyMax));
-        sb.append("【字号预算（必须严格遵循 — 基于画布 ").append(width).append("×").append(totalHeight)
-                .append(" ").append(canvasFormat).append(" 计算）】\n");
+        sb.append("【字号预算（必须严格遵循 — 基于画布宽度 ").append(width).append("px")
+                .append(adaptive ? " 自适应长图" : " × " + totalHeight + "px " + canvasFormat)
+                .append(" 计算）】\n");
         sb.append(String.format("- 主焦点 hero（巨型主标题 / 核心数字 / slogan）：fontSize 必须在 **%dpx ~ %dpx** 区间内%n",
                 budget.heroMin, budget.heroMax));
         sb.append(String.format("- 副标题 subtitle：fontSize 必须在 **%dpx ~ %dpx** 区间内%n",
@@ -457,24 +567,35 @@ public class PosterGenerateService {
         sb.append("- 如果发现某 section 的内容不足以填充 75% 高度，必须：(a) 放大 hero 字号到预算上限；(b) 增加真实的辅助图片或装饰元素；(c) 合并到相邻 section\n");
         sb.append("- 整张海报非背景元素的内容填充率必须 ≥ 画布面积的 60%\n\n");
 
-        // ── Section 高度预算（字号预算被放大后暴露的新失效模式：内容溢出、板式相互覆盖） ──
-        // 根因：LLM 按旧习惯写 section 高度（如头部 730px），但字号预算把 hero 推到 200+px，
-        //      加上堆叠的 2026 + 主标题 + 副标题 + 装饰元素，内容总高度超过 section 高度，
-        //      导致后续 section 被覆盖、absolute 装饰被 flow 内容压住等位置错乱问题。
-        // 解决方案：给 LLM 一组基于字号预算反推的 section 最小高度硬下限 + 强制 content-fit 自检。
-        int heroPlusCtaMin = budget.heroSectionMinHeight + budget.ctaSectionMinHeight;
-        int remainingForMiddle = Math.max(200, totalHeight - heroPlusCtaMin);
-        sb.append("【Section 高度预算（基于字号预算反推 — 防止内容溢出和板式覆盖）】\n");
-        sb.append(String.format("- 含 hero 主标题的主视觉 section（通常是第一个 section）：**最小高度 ≥ %dpx**（= heroMax × 2.5，覆盖双行 hero + 副标题 + 上下装饰）%n",
-                budget.heroSectionMinHeight));
-        sb.append(String.format("- CTA section（含二维码 / 按钮 / 联系方式）：**最小高度 ≥ %dpx**（二维码方块 200 + 标题 + 2 行辅助文字 + padding）%n",
-                budget.ctaSectionMinHeight));
-        sb.append(String.format("- 信息型 section 的每行信息（时间 / 地点 / 规则 / 嘉宾等）：**每行高度 ≥ %dpx**，N 行信息 section 最小高度 = N × %d + 160 (section title + padding)%n",
-                budget.infoRowMinHeight, budget.infoRowMinHeight));
-        sb.append(String.format("- 卡片型 section（精彩预告 / 特性卡片 / 节目单）：卡片图片高度 ≥ 180px，加卡片文字区 120px 和 section 标题 120px，**最小高度 ≥ 420px**%n"));
-        sb.append(String.format("- 画布总高度 %dpx 中，扣除 hero section %dpx 和 CTA section %dpx 后剩余 **%dpx** 用于中间 section（信息 + 卡片等）%n",
-                totalHeight, budget.heroSectionMinHeight, budget.ctaSectionMinHeight, remainingForMiddle));
-        sb.append("- 如果 section 高度之和超过画布高度，必须缩减中间 section 的行数 / 卡片数 / 装饰元素，而不是挤压 hero section\n\n");
+        if (adaptive) {
+            // ── 自适应长图：不注入固定总高度约束，仅保留最小高度下限 ──
+            // 长图模式下 section 高度由内容自然撑开，LLM 不需要做总高度分配
+            sb.append("【Section 高度指引（自适应长图 — 无固定总高度，每个 section 由内容撑开）】\n");
+            sb.append(String.format("- 含 hero 主标题的主视觉 section：建议最小高度 ≥ %dpx%n", budget.heroSectionMinHeight));
+            sb.append(String.format("- CTA section：建议最小高度 ≥ %dpx%n", budget.ctaSectionMinHeight));
+            sb.append(String.format("- 信息型 section 每行最小高度 ≥ %dpx%n", budget.infoRowMinHeight));
+            sb.append("- 每个 section **不要**设置固定 height / style={{ height: ... }}，让内容自然撑开\n");
+            sb.append("- section 之间通过 padding 和装饰线保持节奏感\n\n");
+        } else {
+            // ── Section 高度预算（字号预算被放大后暴露的新失效模式：内容溢出、板式相互覆盖） ──
+            // 根因：LLM 按旧习惯写 section 高度（如头部 730px），但字号预算把 hero 推到 200+px，
+            //      加上堆叠的 2026 + 主标题 + 副标题 + 装饰元素，内容总高度超过 section 高度，
+            //      导致后续 section 被覆盖、absolute 装饰被 flow 内容压住等位置错乱问题。
+            // 解决方案：给 LLM 一组基于字号预算反推的 section 最小高度硬下限 + 强制 content-fit 自检。
+            int heroPlusCtaMin = budget.heroSectionMinHeight + budget.ctaSectionMinHeight;
+            int remainingForMiddle = Math.max(200, totalHeight - heroPlusCtaMin);
+            sb.append("【Section 高度预算（基于字号预算反推 — 防止内容溢出和板式覆盖）】\n");
+            sb.append(String.format("- 含 hero 主标题的主视觉 section（通常是第一个 section）：**最小高度 ≥ %dpx**（= heroMax × 2.5，覆盖双行 hero + 副标题 + 上下装饰）%n",
+                    budget.heroSectionMinHeight));
+            sb.append(String.format("- CTA section（含二维码 / 按钮 / 联系方式）：**最小高度 ≥ %dpx**（二维码方块 200 + 标题 + 2 行辅助文字 + padding）%n",
+                    budget.ctaSectionMinHeight));
+            sb.append(String.format("- 信息型 section 的每行信息（时间 / 地点 / 规则 / 嘉宾等）：**每行高度 ≥ %dpx**，N 行信息 section 最小高度 = N × %d + 160 (section title + padding)%n",
+                    budget.infoRowMinHeight, budget.infoRowMinHeight));
+            sb.append(String.format("- 卡片型 section（精彩预告 / 特性卡片 / 节目单）：卡片图片高度 ≥ 180px，加卡片文字区 120px 和 section 标题 120px，**最小高度 ≥ 420px**%n"));
+            sb.append(String.format("- 画布总高度 %dpx 中，扣除 hero section %dpx 和 CTA section %dpx 后剩余 **%dpx** 用于中间 section（信息 + 卡片等）%n",
+                    totalHeight, budget.heroSectionMinHeight, budget.ctaSectionMinHeight, remainingForMiddle));
+            sb.append("- 如果 section 高度之和超过画布高度，必须缩减中间 section 的行数 / 卡片数 / 装饰元素，而不是挤压 hero section\n\n");
+        }
 
         sb.append("【Hero 堆叠与行距规则（禁止压缩 trick — 会直接造成文字覆盖）】\n");
         sb.append("- 堆叠的 hero 行（如 `2026` + `年度盛典`）`lineHeight` 必须 ≥ **0.95**，严禁 0.85 / 0.8 / 0.9\n");
@@ -501,6 +622,12 @@ public class PosterGenerateService {
         sb.append("- 反例：`<div className=\"flex flex-col pt-12\">... flow 内容 ...<div className=\"absolute bottom-10\">装饰</div></div>` — flow 内容会撞上底部装饰\n");
         sb.append("- 正例：`<section><div className=\"absolute bottom-10 z-20\">装饰</div><div className=\"relative z-10 flex flex-col pt-12 pb-28\">... flow 内容 ...</div></section>`\n\n");
 
+        // ── 库注入：从板式库/情绪库/配色库中提取匹配条目注入到 prompt ──
+        // 这些库由离线脚本从全量模板中预提取，提供结构化的设计参考，
+        // 比直接注入模板代码骨架信息密度高 5-10 倍。
+        injectLibraryData(sb, hintFormat.isEmpty() ? classifyCanvasFormat(width, totalHeight) : hintFormat,
+                hintCategory, emotion);
+
         // ── RAG：按 templateHint 结构化检索，失败时退化为 gene.scene/emotion 模糊检索 ──
         // 同时推送 rag_retrieving / rag_complete 事件给前端，让 AI 工作流面板可见整个 RAG 过程
         if (templateService.isAvailable()) {
@@ -517,7 +644,10 @@ public class PosterGenerateService {
                 retrievingPayload.put("fallbackEmotion", useFallback ? emotion : "");
                 events.add(SseMessage.ragRetrieving(objectMapper.writeValueAsString(retrievingPayload)));
             } catch (Exception e) {
-                log.warn("构造 rag_retrieving 事件失败: {}", e.getMessage());
+                // Jackson 基础节点序列化理论上不应失败；真的失败属于可观测性问题，升为 error
+                log.error("构造 rag_retrieving 事件失败: {}", e.getMessage(), e);
+                events.add(SseMessage.error(
+                        "RAG 检索条件事件构造失败（不阻塞主流程）: " + e.getMessage(), true));
             }
 
             try {
@@ -588,18 +718,29 @@ public class PosterGenerateService {
                     ragPayload.put("totalSampleChars", sampleTotalChars);
                     events.add(SseMessage.ragComplete(objectMapper.writeValueAsString(ragPayload)));
                 } catch (Exception e) {
-                    log.warn("构造 rag_complete 事件失败: {}", e.getMessage());
+                    log.error("构造 rag_complete 事件失败: {}", e.getMessage(), e);
+                    events.add(SseMessage.error(
+                            "RAG 完成事件构造失败（不阻塞主流程）: " + e.getMessage(), true));
                 }
             } catch (Exception e) {
-                log.warn("注入参考样本失败，跳过: {}", e.getMessage());
-                // 失败时仍推送一个空的 rag_complete，让前端 stage 不卡在 active
+                // 主流程选择不中断：RAG 样本缺失会让海报质量下降但不至于完全不可用，
+                // 列为可观测性问题。通过 SseMessage.error(retryable=true) 让前端弹出
+                // 明显的警告 banner，同时仍推送 rag_complete(empty) 让 RAG stage 摆脱 active 态。
+                log.error("注入参考样本失败，RAG 降级为无样本（enriched prompt 缺少硬对齐基准）: {}",
+                        e.getMessage(), e);
+                events.add(SseMessage.error(
+                        "RAG 样本注入失败（enriched prompt 将不含参考样本，生成质量会下降）: "
+                                + e.getMessage(), true));
                 try {
                     ObjectNode ragPayload = objectMapper.createObjectNode();
                     ragPayload.set("samples", objectMapper.createArrayNode());
                     ragPayload.put("totalSampleChars", 0);
                     ragPayload.put("error", e.getMessage());
                     events.add(SseMessage.ragComplete(objectMapper.writeValueAsString(ragPayload)));
-                } catch (Exception ignore) { /* fallthrough */ }
+                } catch (Exception jsonErr) {
+                    // 连空 ragComplete 都构造不出来：双重失败，至少把日志拉高
+                    log.error("注入失败后构造空 rag_complete 仍失败: {}", jsonErr.getMessage(), jsonErr);
+                }
             }
         }
 
@@ -622,26 +763,35 @@ public class PosterGenerateService {
             builtPayload.put("fullPrompt", finalPrompt);
             events.add(SseMessage.promptBuilt(objectMapper.writeValueAsString(builtPayload)));
         } catch (Exception e) {
-            log.warn("构造 prompt_built 事件失败: {}", e.getMessage());
+            log.error("构造 prompt_built 事件失败: {}", e.getMessage(), e);
+            events.add(SseMessage.error(
+                    "prompt_built 事件构造失败（不阻塞主流程，代码生成仍会启动）: " + e.getMessage(), true));
         }
 
         return new EnrichedPromptResult(finalPrompt, events);
     }
 
     /**
-     * 从模板 sourceCode 中提取"骨架"片段，用作 few-shot 参考。
+     * 从模板 sourceCode 中提取结构骨架，用作 few-shot 参考。
      *
-     * <p>策略：取前 {@code maxChars} 个字符后，回溯到最后一个换行符处截断，
-     * 再追加省略标记。这样可以保证：</p>
+     * <p><b>核心理念：结构全盘保留，文案压缩，板式可挑选。</b></p>
+     *
+     * <p>两阶段压缩：</p>
      * <ul>
-     *   <li>函数开头和 const colors/typography Token 定义完整保留（位于代码最前端）</li>
-     *   <li>return 语句及前 1-2 个顶层 JSX 区块可见，足以传达结构手法</li>
-     *   <li>截断发生在行边界，避免切断字符串/属性导致 LLM 误学</li>
+     *   <li><b>Phase 1 — 文案压缩</b>：去样板、压缩标签间文字、prompt 属性、中文引号字符串、
+     *       深层缩进、空行。目标：<b>消灭所有对结构学习无意义的文案字符</b>。</li>
+     *   <li><b>Phase 2 — 板式裁剪</b>（仅在 Phase 1 后仍超预算时执行）：
+     *       缩写长 className 链（保留布局类，截断装饰类），
+     *       布局类通常排在 className 前面（flex/grid/absolute/relative/w-/h-/p-），
+     *       装饰类通常在后面（bg-/shadow-/rounded-/text-color）。</li>
      * </ul>
      *
+     * <p>若两阶段后仍超预算，对已高度压缩的代码做头部截取——
+     * 此时每字符的结构密度是原始代码的 2-3 倍。</p>
+     *
      * @param sourceCode 原始模板代码
-     * @param maxChars   保留的最大字符数（建议 3000~4000）
-     * @return 截断后的骨架代码，末尾带省略提示
+     * @param maxChars   骨架的最大字符数
+     * @return 结构完整、内容压缩的骨架代码
      */
     private String extractSampleSkeleton(String sourceCode, int maxChars) {
         if (sourceCode == null || sourceCode.isEmpty()) {
@@ -651,14 +801,246 @@ public class PosterGenerateService {
             return sourceCode;
         }
 
-        String head = sourceCode.substring(0, maxChars);
-        // 回溯到最后一个换行符，避免切断行内结构
+        String skeleton = sourceCode;
+
+        // ╔══════════════════════════════════════════════════════════╗
+        // ║  Phase 1: 文案压缩 — 剥去血肉，留下骨架               ║
+        // ╚══════════════════════════════════════════════════════════╝
+
+        // 1-1: 去除 import 声明和 ReactDOM 渲染样板
+        skeleton = PAT_IMPORT.matcher(skeleton).replaceAll("");
+        skeleton = PAT_RENDER_BOILERPLATE.matcher(skeleton).replaceAll("");
+
+        // 1-2: 压缩 JSX 标签间的长文本
+        //      >五一国际劳动节快乐< → >五一国际...<
+        skeleton = PAT_TAG_TEXT.matcher(skeleton).replaceAll(mr -> {
+            String text = mr.group(1).trim();
+            if (text.isEmpty()) return mr.group();
+            String abbr = text.substring(0, Math.min(4, text.length())) + "...";
+            return ">" + Matcher.quoteReplacement(abbr) + "<";
+        });
+
+        // 1-3: 压缩 img prompt 属性
+        skeleton = PAT_PROMPT_ATTR.matcher(skeleton).replaceAll(mr -> {
+            String text = mr.group(1);
+            String abbr = text.substring(0, Math.min(10, text.length())) + "...";
+            return "prompt=\"" + Matcher.quoteReplacement(abbr) + "\"";
+        });
+
+        // 1-4: 压缩含中文的短引号字符串（数据数组中的标题/描述）
+        skeleton = PAT_CN_QUOTE.matcher(skeleton).replaceAll(mr -> {
+            String text = mr.group(1);
+            String abbr = text.substring(0, Math.min(4, text.length())) + "...";
+            return "'" + Matcher.quoteReplacement(abbr) + "'";
+        });
+
+        // 1-5: 压缩深层缩进（7+ 空格减半，保留层级关系但省空间）
+        skeleton = PAT_DEEP_INDENT.matcher(skeleton).replaceAll(mr -> {
+            int depth = mr.group(1).length();
+            return " ".repeat(depth / 2);
+        });
+
+        // 1-6: 折叠连续空行
+        skeleton = skeleton.replaceAll("\n{3,}", "\n\n").trim();
+
+        log.debug("骨架提取 Phase 1: {}→{} 字符（压缩率 {}%）",
+                sourceCode.length(), skeleton.length(),
+                100 - skeleton.length() * 100 / sourceCode.length());
+
+        // Phase 1 后已在预算内 → 直接返回（结构 100% 完整）
+        if (skeleton.length() <= maxChars) {
+            return skeleton;
+        }
+
+        // ╔══════════════════════════════════════════════════════════╗
+        // ║  Phase 2: 板式裁剪 — 结构全保留，装饰性板式逐步剥离    ║
+        // ╚══════════════════════════════════════════════════════════╝
+        // 原则：布局（flex/grid/absolute/w-/h-/p-/gap-）= 结构 → 全保留
+        //       外观（shadow/rounded/border/opacity/textShadow）= 装饰 → 可裁剪
+
+        // 2-1: 移除装饰性 className（shadow-*/rounded-*/border-*/opacity-*/transition*/hover:*）
+        //      这些类不影响元素的位置和大小，只影响视觉效果
+        skeleton = PAT_COSMETIC_CLASSES.matcher(skeleton).replaceAll("");
+
+        // 2-2: 移除 textShadow 样式（纯装饰，常见且冗长）
+        skeleton = PAT_TEXT_SHADOW.matcher(skeleton).replaceAll("");
+
+        // 2-3: 如果还超预算，缩写长 className 链（>80 字符）
+        //      布局类通常在 className 前面，截断装饰类尾巴
+        if (skeleton.length() > maxChars) {
+            skeleton = PAT_LONG_CLASSNAME.matcher(skeleton).replaceAll(mr -> {
+                String classes = mr.group(1);
+                int cutAt = classes.indexOf(' ', 60);
+                if (cutAt < 0 || cutAt >= classes.length() - 5) {
+                    return mr.group();
+                }
+                return "className=\"" + Matcher.quoteReplacement(classes.substring(0, cutAt)) + " ...\"";
+            });
+        }
+
+        // 清理：移除空的 className=""（装饰类全被移除后可能产生）
+        skeleton = skeleton.replace("className=\"\"", "").replace("className=\" \"", "");
+
+        log.debug("骨架提取 Phase 2: → {} 字符", skeleton.length());
+
+        // Phase 2 后已在预算内 → 返回
+        if (skeleton.length() <= maxChars) {
+            return skeleton;
+        }
+
+        // ╔══════════════════════════════════════════════════════════╗
+        // ║  兜底: 对已高度压缩的代码做头部截取                     ║
+        // ╚══════════════════════════════════════════════════════════╝
+        // 此时每字符的结构密度远高于截取原始代码
+        String head = skeleton.substring(0, maxChars);
         int lastNewline = head.lastIndexOf('\n');
         if (lastNewline > maxChars / 2) {
             head = head.substring(0, lastNewline);
         }
-        return head + "\n      {/* ... 以下为样本代码的后续区块，为控制 prompt 长度已省略。"
-                + "请从上面的 Token 定义和首个区块结构中理解手法 ... */}";
+        return head + "\n{/* ... 后续结构省略 ... */}";
+    }
+
+    /**
+     * 从板式库、情绪库、配色库中检索匹配条目并注入到 enriched prompt。
+     *
+     * <p>注入的数据是结构化的设计参考（板式模式、Token 示例、配色方案），
+     * 比注入完整模板代码骨架信息密度高 5-10 倍。</p>
+     *
+     * @param sb       正在拼装的 prompt StringBuilder
+     * @param format   画布格式（长图/常规/方形）
+     * @param category 分类（如 "电商产品"）
+     * @param emotion  情绪（如 "高端/奢华"）
+     */
+    private void injectLibraryData(StringBuilder sb, String format, String category, String emotion) {
+        // ── 板式库注入 ──
+        List<JsonNode> patterns = templateService.getLayoutPatterns(format, category, 2);
+        if (!patterns.isEmpty()) {
+            sb.append("【板式参考（从 290+ 模板中按格式/分类匹配的布局模式）】\n");
+            for (int i = 0; i < patterns.size(); i++) {
+                JsonNode p = patterns.get(i);
+                sb.append("── 板式 ").append(i + 1).append(" ──\n");
+                sb.append("- 签名：").append(p.path("signature").asText("")).append("\n");
+                sb.append("- 频率：").append(p.path("frequency").asInt(0)).append(" 个模板使用此板式\n");
+                sb.append("- 平均 Section 数：").append(p.path("avgSectionCount").asInt(0)).append("\n");
+                sb.append("- 平均图片数：").append(p.path("avgImageCount").asInt(0)).append("\n");
+                String roleSeq = p.path("typicalRoleSequence").asText("");
+                if (!roleSeq.isEmpty()) {
+                    sb.append("- 典型 Section 角色序列：").append(roleSeq).append("\n");
+                }
+                JsonNode roles = p.path("commonSectionRoles");
+                if (roles.isArray() && !roles.isEmpty()) {
+                    sb.append("- 常见 Section 角色：");
+                    for (JsonNode r : roles) {
+                        sb.append(r.path("role").asText("")).append("(")
+                          .append(r.path("pctOfTemplates").asText("")).append(") ");
+                    }
+                    sb.append("\n");
+                }
+                JsonNode deco = p.path("commonDecorations");
+                if (deco.isArray() && !deco.isEmpty()) {
+                    sb.append("- 常见装饰：");
+                    for (JsonNode d : deco) sb.append(d.asText("")).append(" ");
+                    sb.append("\n");
+                }
+            }
+            sb.append("\n");
+            log.info("注入板式参考: {} 条", patterns.size());
+        }
+
+        // ── 情绪库注入 ──
+        JsonNode emotionExemplar = templateService.getEmotionExemplar(emotion);
+        if (emotionExemplar != null) {
+            sb.append("【情绪参考（基于 ").append(emotionExemplar.path("templateCount").asInt(0))
+              .append(" 个同情绪模板的统计）】\n");
+            // 注入 Token 示例（最多 2 个，供 LLM 理解该情绪的色彩感觉）
+            JsonNode tokens = emotionExemplar.path("tokenExemplars");
+            if (tokens.isArray()) {
+                int tokenLimit = Math.min(2, tokens.size());
+                for (int i = 0; i < tokenLimit; i++) {
+                    JsonNode t = tokens.get(i);
+                    sb.append("- Token 示例 ").append(i + 1).append("（")
+                      .append(t.path("source").asText("")).append("）：");
+                    JsonNode colors = t.path("colors");
+                    if (colors.isObject()) {
+                        var fields = colors.fields();
+                        while (fields.hasNext()) {
+                            var f = fields.next();
+                            sb.append(f.getKey()).append("=").append(f.getValue().asText("")).append(" ");
+                        }
+                    }
+                    sb.append("\n");
+                }
+            }
+            // 注入装饰手法
+            JsonNode deco = emotionExemplar.path("typicalDecorations");
+            if (deco.isArray() && !deco.isEmpty()) {
+                sb.append("- 典型装饰手法：");
+                for (JsonNode d : deco) {
+                    sb.append(d.path("pattern").asText("")).append("(")
+                      .append(d.path("frequency").asText("")).append(") ");
+                }
+                sb.append("\n");
+            }
+            sb.append("\n");
+            log.info("注入情绪参考: emotion={}", emotionExemplar.path("emotion").asText(""));
+        }
+
+        // ── 配色库注入 ──
+        // 从分析阶段的 colorStrategy 和背景色判断 dark/light
+        List<JsonNode> palettes = templateService.getColorPalettes(null, false, 1);
+        if (!palettes.isEmpty()) {
+            sb.append("【配色参考（同类配色方案的真实模板示例）】\n");
+            for (JsonNode p : palettes) {
+                sb.append("- 策略：").append(p.path("strategy").asText("")).append(" | 色温：")
+                  .append(p.path("temperature").asText("")).append(" | 使用频率：")
+                  .append(p.path("count").asInt(0)).append(" 个模板\n");
+                JsonNode exemplars = p.path("exemplars");
+                if (exemplars.isArray()) {
+                    for (JsonNode ex : exemplars) {
+                        sb.append("  · ").append(ex.path("source").asText("")).append("：");
+                        JsonNode colors = ex.path("colors");
+                        if (colors.isObject()) {
+                            var fields = colors.fields();
+                            int fieldCount = 0;
+                            while (fields.hasNext() && fieldCount < 4) {
+                                var f = fields.next();
+                                sb.append(f.getKey()).append("=").append(f.getValue().asText("")).append(" ");
+                                fieldCount++;
+                            }
+                        }
+                        sb.append("\n");
+                    }
+                }
+            }
+            sb.append("\n");
+            log.info("注入配色参考: {} 条", palettes.size());
+        }
+
+        // ── 手法库注入 ──
+        // 这是最关键的注入：教 LLM 具体的代码级设计技巧，而非抽象规则
+        // 从 6 提升到 8：2 条必选池（高级背景、时间轴等关键手法）+ 6 条高频池
+        List<JsonNode> techniques = templateService.getTechniqueSnippets(8);
+        if (!techniques.isEmpty()) {
+            sb.append("【设计手法参考（高质量模板中的常见技巧 — 适合时自然融入）】\n");
+            sb.append("以下手法来自真实模板，可以根据海报主题和内容自然地融入，提升视觉丰富度。不要为了用而用，协调性优先：\n\n");
+            for (JsonNode t : techniques) {
+                sb.append("── ").append(t.path("name").asText("")).append("（")
+                  .append(t.path("pctOfTemplates").asText("")).append(" 的模板使用）──\n");
+                sb.append(t.path("description").asText("")).append("\n");
+                // 注入最多 1 个代码片段示例
+                JsonNode examples = t.path("examples");
+                if (examples.isArray() && !examples.isEmpty()) {
+                    JsonNode ex = examples.get(0);
+                    String snippet = ex.path("snippet").asText("");
+                    if (!snippet.isEmpty()) {
+                        sb.append("示例（来自「").append(ex.path("source").asText("")).append("」）：\n");
+                        sb.append("```jsx\n").append(snippet).append("\n```\n");
+                    }
+                }
+                sb.append("\n");
+            }
+            log.info("注入手法参考: {} 种", techniques.size());
+        }
     }
 
     /**
@@ -715,7 +1097,10 @@ public class PosterGenerateService {
                 }
             }
         } catch (Exception e) {
-            log.warn("提取分析阶段 images 数组失败: {}", e.getMessage());
+            // 快速失败：JSON 解析异常说明分析输出损坏，不能静默当成"海报没有图片"继续跑。
+            // 合法的"无图片"路径走的是 jsonBlock == null / images 不是数组 的分支，走到最后返回 "[]"。
+            log.error("提取分析阶段 images 数组失败: {}", e.getMessage(), e);
+            throw new IllegalStateException("提取分析阶段 images 数组失败: " + e.getMessage(), e);
         }
         return "[]";
     }
@@ -763,11 +1148,18 @@ public class PosterGenerateService {
                 }
             }
 
-            log.warn("无法从分析结果中解析元素列表，返回空数组");
-            return "{\"elements\":[]}";
+            // 快速失败：元素列表是布局事件的核心载荷，解析不到等于分析阶段没真正完成，
+            // 不能让代码生成阶段带着空 elements 继续跑。
+            log.error("无法从分析结果中解析元素列表，原始分析文本前 500 字: {}",
+                    analysisText.substring(0, Math.min(500, analysisText.length())));
+            throw new IllegalStateException(
+                    "分析结果中未找到 elements 列表（既无 ```json 代码块也无裸 JSON），LLM 输出不符合契约");
+        } catch (IllegalStateException e) {
+            // 上面主动抛的错直接透传，不被下面的 catch 吞掉
+            throw e;
         } catch (Exception e) {
-            log.error("解析分析结果中的元素列表失败: {}", e.getMessage());
-            return "{\"elements\":[]}";
+            log.error("解析分析结果中的元素列表失败: {}", e.getMessage(), e);
+            throw new IllegalStateException("解析分析结果中的元素列表失败: " + e.getMessage(), e);
         }
     }
 
@@ -828,12 +1220,13 @@ public class PosterGenerateService {
         int heroMin = (int) Math.round(w * heroLo);
         int heroMax = (int) Math.round(w * heroHi);
         int bodyMax = (int) Math.round(w * 0.028);
-        // Hero section 最小高度 = heroMax × 2.5（覆盖两行 hero × lineHeight 1.0 + 上下装饰区 + 副标题）
-        //   例如 1080×1920 方向上 heroMax≈238 → 最小高度 ≈ 595px，足以容纳双行 hero + 徽章 + ANNUAL GALA + 诚邀副标题
-        // CTA section 最小高度 = 二维码方块 200 + 大标题 ~48 + 两行辅助说明 ~80 + padding ~100 = ~430px
+        // Hero section 最小高度 = heroMax × 3（覆盖双行 hero + 副标题 + 装饰元素 + 呼吸空间）
+        //   例如 1080 宽度下 heroMax≈238 → 最小高度 ≈ 714px
+        //   2.5 倍太保守(595px)导致 hero 缺冲击力，4 倍太激进(952px)挤压其他内容。3 倍是平衡点。
+        // CTA section 最小高度 = 二维码 200 + 标题 + 辅助文字 + padding ≈ 430px
         // 信息行最小高度 = bodyMax × 1.7（行高）× 2行 + 图标区 16 + 行内 gap 8 ≈ body-based row
-        int heroSectionMinHeight = (int) Math.round(heroMax * 2.5);
-        int ctaSectionMinHeight = Math.max(400, (int) Math.round(w * 0.40));
+        int heroSectionMinHeight = (int) Math.round(heroMax * 3);
+        int ctaSectionMinHeight = Math.max(430, (int) Math.round(w * 0.40));
         int infoRowMinHeight = Math.max(80, (int) Math.round(bodyMax * 1.7 * 2 + 24));
         return new TypographyBudget(
                 heroMin,
@@ -858,7 +1251,9 @@ public class PosterGenerateService {
      */
     private String classifyCanvasFormat(int width, int height) {
         int w = Math.max(1, width);
-        double ratio = height > 0 ? (double) height / w : 1.0;
+        // height=0 表示自适应长图模式
+        if (height <= 0) return "长图";
+        double ratio = (double) height / w;
         if (ratio >= 2.5) return "长图";
         if (ratio <= 1.3) return "方形";
         return "常规";

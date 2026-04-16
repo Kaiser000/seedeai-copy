@@ -1,0 +1,873 @@
+[
+  {
+    "strategy": "monochromatic",
+    "temperature": "warm",
+    "theme": "light",
+    "count": 51,
+    "exemplars": [
+      {
+        "colors": {
+          "paper": "#FDFCF8",
+          "ink": "#1A1A1A",
+          "highlight": "#FFEB3B",
+          "accentRed": "#E53935",
+          "tape": "rgba(173, 216, 230, 0.5)",
+          "grid": "rgba(0, 0, 0, 0.03)",
+          "markerBlue": "#42A5F5"
+        },
+        "source": "皮肤科主任的防晒笔记",
+        "category": "健康医疗",
+        "emotion": "专业权威",
+        "primaryHue": 48
+      },
+      {
+        "colors": {
+          "bg": "#F9F7F2",
+          "primary": "#8C4B2F",
+          "accent": "#3E5A44",
+          "text": "#2D2926",
+          "subText": "#6D675F",
+          "line": "rgba(140, 75, 47, 0.15)"
+        },
+        "source": "周末去哪儿·上海梧桐区 Citywalk 指南",
+        "category": "旅游行程",
+        "emotion": "专业权威",
+        "primaryHue": 18
+      },
+      {
+        "colors": {
+          "bg": "#FDF7F2",
+          "primary": "#B32F2F",
+          "gold": "#D4AF37",
+          "text": "#4A3E3E",
+          "scrollBg": "#F5EFE6",
+          "border": "#D2B48C"
+        },
+        "source": "有声书专辑详情",
+        "category": "设计创意",
+        "emotion": "专业权威",
+        "primaryHue": 0
+      }
+    ]
+  },
+  {
+    "strategy": "complementary",
+    "temperature": "blue",
+    "theme": "light",
+    "count": 26,
+    "exemplars": [
+      {
+        "colors": {
+          "primary": "#0F172A",
+          "secondary": "#1E293B",
+          "accent": "#B5945F",
+          "textMain": "#F8FAFC",
+          "textBody": "#94A3B8",
+          "bgLight": "#F1F5F9",
+          "white": "#FFFFFF"
+        },
+        "source": "香港重疾险核心优势深度解析",
+        "category": "电商产品",
+        "emotion": "专业权威",
+        "primaryHue": 222
+      },
+      {
+        "colors": {
+          "primary": "#0B1C38",
+          "primaryDark": "#071224",
+          "accent": "#D4AF37",
+          "accentLight": "#E8C564",
+          "bgLight": "#F5F7FA",
+          "textMain": "#1A1A1A",
+          "textMuted": "#666666"
+        },
+        "source": "客悦酒店管理专业代运营海报",
+        "category": "综合海报",
+        "emotion": "专业权威",
+        "primaryHue": 217
+      },
+      {
+        "colors": {
+          "primary": "#1e3a5f",
+          "secondary": "#c9a962",
+          "accent": "#d4622a",
+          "dark": "#1a1a2e",
+          "light": "#f8f9fa",
+          "muted": "#64748b",
+          "border": "#e2e8f0"
+        },
+        "source": "律所合规与发展深度解析",
+        "category": "综合海报",
+        "emotion": "专业权威",
+        "primaryHue": 214
+      }
+    ]
+  },
+  {
+    "strategy": "monochromatic",
+    "temperature": "blue",
+    "theme": "light",
+    "count": 25,
+    "exemplars": [
+      {
+        "colors": {
+          "primary": "#6A8CAF",
+          "accent": "#A8D5BA",
+          "warm": "#F9F3E5",
+          "text": "#4A4A4A",
+          "highlight": "#FF8A8A"
+        },
+        "source": "婴儿推车凉席详情页",
+        "category": "电商产品",
+        "emotion": "专业权威",
+        "primaryHue": 210
+      },
+      {
+        "colors": {
+          "primary": "#1E3A5F",
+          "secondary": "#2C5282",
+          "accent": "#3182CE",
+          "bg": "#F7FAFC",
+          "text": "#1A202C",
+          "textLight": "#718096",
+          "aia": "#E53E3E",
+          "axa": "#3182CE",
+          "sunlife": "#38A169",
+          "white": "#FFFFFF"
+        },
+        "source": "香港储蓄分红险港风海报",
+        "category": "电商产品",
+        "emotion": "高端奢华",
+        "primaryHue": 214
+      },
+      {
+        "colors": {
+          "primary": "#2E7D8A",
+          "secondary": "#5BA8B5",
+          "accent": "#E8F4F6",
+          "dark": "#1A3A40",
+          "light": "#F5FAFB",
+          "warning": "#D97706",
+          "danger": "#B91C1C",
+          "success": "#059669",
+          "white": "#FFFFFF"
+        },
+        "source": "抗骨质疏松静脉用药安全指南",
+        "category": "设计创意",
+        "emotion": "专业权威",
+        "primaryHue": 188
+      }
+    ]
+  },
+  {
+    "strategy": "analogous",
+    "temperature": "warm",
+    "theme": "light",
+    "count": 24,
+    "exemplars": [
+      {
+        "colors": {
+          "paper": "#FDFBF5",
+          "ink": "#1A1A1A",
+          "accent": "#8B0000",
+          "divider": "#333333"
+        },
+        "source": "111知行半月读复古报纸长图",
+        "category": "综合海报",
+        "emotion": "专业权威",
+        "primaryHue": 45
+      },
+      {
+        "colors": {
+          "primary": "#F97316",
+          "secondary": "#EA580C",
+          "accent": "#DC2626",
+          "bg": "#FFFBEB",
+          "card": "#FFFFFF",
+          "textMain": "#1F2937",
+          "textSub": "#4B5563",
+          "light": "#FEF3C7"
+        },
+        "source": "垦利区属地管理五+模式深度解读",
+        "category": "政策解读",
+        "emotion": "专业权威",
+        "primaryHue": 25
+      },
+      {
+        "colors": {
+          "primary": "#E8B4BC",
+          "secondary": "#A8C4D9",
+          "accent": "#F5E6D3",
+          "text": "#2D2D2D",
+          "textLight": "#5C5C5C",
+          "bg": "#FDF8F5",
+          "bgMist": "#F0F4F8"
+        },
+        "source": "雨落樱城温柔以待——致每一位奔赴春天的你",
+        "category": "综合海报",
+        "emotion": "专业权威",
+        "primaryHue": 351
+      }
+    ]
+  },
+  {
+    "strategy": "monochromatic",
+    "temperature": "green",
+    "theme": "light",
+    "count": 21,
+    "exemplars": [
+      {
+        "colors": {
+          "bg": "#FDFBF7",
+          "primary": "#334139",
+          "secondary": "#C89B7B",
+          "accent": "#8DA399",
+          "textLight": "#6B7280",
+          "line": "rgba(51, 65, 57, 0.1)"
+        },
+        "source": "心理学自我滋养视觉长页",
+        "category": "综合海报",
+        "emotion": "温暖治愈",
+        "primaryHue": 146
+      },
+      {
+        "colors": {
+          "primary": "#1B4332",
+          "secondary": "#2D6A4F",
+          "accent": "#40916C",
+          "bgLight": "#F8FAF9",
+          "textMain": "#1A1A1A",
+          "textSub": "#4A4A4A",
+          "highlight": "#D9411E"
+        },
+        "source": "九江市生态环境损害赔偿工作规定政策解读",
+        "category": "政策解读",
+        "emotion": "专业权威",
+        "primaryHue": 155
+      },
+      {
+        "colors": {
+          "primary": "#4A7C59",
+          "secondary": "#8FC0A9",
+          "accent": "#FAF3DD",
+          "text": "#2D3A3A",
+          "white": "#FFFFFF"
+        },
+        "source": "清明节气口腔健康海报",
+        "category": "健康医疗",
+        "emotion": "专业权威",
+        "primaryHue": 138
+      }
+    ]
+  },
+  {
+    "strategy": "split-complementary",
+    "temperature": "blue",
+    "theme": "light",
+    "count": 12,
+    "exemplars": [
+      {
+        "colors": {
+          "primary": "#1E40AF",
+          "accent": "#EF4444",
+          "success": "#10B981",
+          "bg": "#F8FAFC",
+          "card": "#FFFFFF",
+          "textMain": "#1E293B",
+          "textSub": "#64748B"
+        },
+        "source": "2026年个人所得税退税全攻略",
+        "category": "综合海报",
+        "emotion": "专业权威",
+        "primaryHue": 226
+      },
+      {
+        "colors": {
+          "primary": "#1E40AF",
+          "secondary": "#3B82F6",
+          "accent": "#EF4444",
+          "bg": "#F8FAFC",
+          "dark": "#0F172A",
+          "gray": "#64748B",
+          "white": "#FFFFFF"
+        },
+        "source": "滑雪资深爱好者教学图文",
+        "category": "综合海报",
+        "emotion": "专业权威",
+        "primaryHue": 226
+      },
+      {
+        "colors": {
+          "bg": "#FDFCF8",
+          "primary": "#6A8CAF",
+          "secondary": "#D8C6C6",
+          "text": "#2D3339",
+          "textLight": "#5C6B7F",
+          "accentSpring": "#E8F1F2",
+          "accentSummer": "#E3F2FD",
+          "accentAutumn": "#F5E6D3",
+          "accentWinter": "#F2E8E8",
+          "white": "#FFFFFF"
+        },
+        "source": "四季睡衣选购指南长图",
+        "category": "健康医疗",
+        "emotion": "温暖治愈",
+        "primaryHue": 210
+      }
+    ]
+  },
+  {
+    "strategy": "split-complementary",
+    "temperature": "green",
+    "theme": "light",
+    "count": 11,
+    "exemplars": [
+      {
+        "colors": {
+          "primary": "#4A6B5D",
+          "primaryLight": "#E8EFEA",
+          "secondary": "#C88C51",
+          "secondaryLight": "#FDF7F1",
+          "bg": "#F8F6F1",
+          "textDark": "#2A3B32",
+          "textMuted": "#5C7065",
+          "white": "#FFFFFF"
+        },
+        "source": "雨水节气薄荷陈皮茶养生指南",
+        "category": "健康医疗",
+        "emotion": "温暖治愈",
+        "primaryHue": 155
+      },
+      {
+        "colors": {
+          "primary": "#5A7868",
+          "secondary": "#E8EFEA",
+          "accent": "#D8C6C6",
+          "dark": "#1F2937",
+          "light": "#F9F9F9",
+          "textMain": "#2D3748",
+          "textLight": "#718096"
+        },
+        "source": "四季香薰助好眠长图",
+        "category": "健康医疗",
+        "emotion": "专业权威",
+        "primaryHue": 148
+      },
+      {
+        "colors": {
+          "primary": "#059669",
+          "dark": "#064E3B",
+          "light": "#ECFDF5",
+          "white": "#FFFFFF",
+          "accent": "#F59E0B",
+          "cream": "#FEF3C7",
+          "gray": "#374151"
+        },
+        "source": "Haab手足膏详情页",
+        "category": "电商产品",
+        "emotion": "专业权威",
+        "primaryHue": 161
+      }
+    ]
+  },
+  {
+    "strategy": "monochromatic",
+    "temperature": "warm",
+    "theme": "dark",
+    "count": 8,
+    "exemplars": [
+      {
+        "colors": {
+          "bg": "#2A0A0A",
+          "primary": "#C41E3A",
+          "gold": "#D4AF37",
+          "goldLight": "#FCEECB",
+          "textBody": "#FFF0E0",
+          "textDim": "#E6Ccb3",
+          "overlay": "rgba(20, 5, 5, 0.75)"
+        },
+        "source": "纯禧贵妃小说宣传长图",
+        "category": "品牌故事",
+        "emotion": "专业权威",
+        "primaryHue": 350
+      },
+      {
+        "colors": {
+          "bg": "#111111",
+          "paper": "#FFFFFF",
+          "text": "#000000",
+          "neonGreen": "#CCFF00",
+          "neonPink": "#FF00CC",
+          "neonCyan": "#00FFFF"
+        },
+        "source": "Gen Z Café Pop-Punk Long Poster",
+        "category": "综合海报",
+        "emotion": "专业权威",
+        "primaryHue": 0
+      },
+      {
+        "colors": {
+          "bg": "#050505",
+          "gold": "#D4AF37",
+          "paleGold": "#F3E5AB",
+          "dimText": "#888888",
+          "darkAccent": "#111111"
+        },
+        "source": "中国地方志-上海-奢华极简长图",
+        "category": "综合海报",
+        "emotion": "高端奢华",
+        "primaryHue": 0
+      }
+    ]
+  },
+  {
+    "strategy": "analogous",
+    "temperature": "blue",
+    "theme": "light",
+    "count": 7,
+    "exemplars": [
+      {
+        "colors": {
+          "primary": "#0046FF",
+          "secondary": "#00D4FF",
+          "dark": "#0A1128",
+          "gray": "#F8FAFC",
+          "text": "#1E293B",
+          "highlight": "#FF4D00"
+        },
+        "source": "优必选2025年度财报核心解读",
+        "category": "报告报表",
+        "emotion": "专业权威",
+        "primaryHue": 224
+      },
+      {
+        "colors": {
+          "primary": "#0A1628",
+          "accent": "#00D4FF",
+          "glow": "rgba(0, 212, 255, 0.6)",
+          "light": "#FFFFFF",
+          "dark": "#050A10",
+          "glass": "rgba(30, 58, 95, 0.4)"
+        },
+        "source": "未来科技：深蓝电动SUV产品海报",
+        "category": "电商产品",
+        "emotion": "极简现代",
+        "primaryHue": 216
+      },
+      {
+        "colors": {
+          "primary": "#164e87",
+          "secondary": "#0ea5e9",
+          "party": "#b91c1c",
+          "gold": "#d97706",
+          "bg": "#f8fafc",
+          "text": "#1e293b"
+        },
+        "source": "恒丰银行2025数据成果长图",
+        "category": "科技AI",
+        "emotion": "极简现代",
+        "primaryHue": 210
+      }
+    ]
+  },
+  {
+    "strategy": "split-complementary",
+    "temperature": "warm",
+    "theme": "light",
+    "count": 7,
+    "exemplars": [
+      {
+        "colors": {
+          "bg": "#FFFAEB",
+          "primary": "#D90429",
+          "secondary": "#FFB703",
+          "text": "#2B2D42",
+          "accent": "#8D99AE"
+        },
+        "source": "2026元旦跨年长图",
+        "category": "节日节气",
+        "emotion": "专业权威",
+        "primaryHue": 350
+      },
+      {
+        "colors": {
+          "bg": "#F7F5F0",
+          "primary": "#8B1E1E",
+          "secondary": "#1F2937",
+          "gold": "#BFA15F",
+          "text": "#374151",
+          "lightText": "#F9FAFB"
+        },
+        "source": "封关创作成果汇报长图",
+        "category": "报告报表",
+        "emotion": "专业权威",
+        "primaryHue": 0
+      },
+      {
+        "colors": {
+          "bg": "#ffffff",
+          "text": "#111111",
+          "accent": "#2E5CFF",
+          "gray": "#F2F2F2",
+          "darkGray": "#333333"
+        },
+        "source": "平面设计公司服务详情长图",
+        "category": "品牌故事",
+        "emotion": "高端奢华",
+        "primaryHue": 0
+      }
+    ]
+  },
+  {
+    "strategy": "monochromatic",
+    "temperature": "blue",
+    "theme": "dark",
+    "count": 5,
+    "exemplars": [
+      {
+        "colors": {
+          "primary": "#0066FF",
+          "bg": "#0A0A0B",
+          "card": "#161618",
+          "text": "#FFFFFF",
+          "textMuted": "#999999"
+        },
+        "source": "SonicFlow Pro 产品详情长图",
+        "category": "电商产品",
+        "emotion": "专业权威",
+        "primaryHue": 216
+      },
+      {
+        "colors": {
+          "bg": "#0F1115",
+          "text": "#FFFFFF",
+          "gold": "#D4AF37",
+          "red": "#FF4D4D",
+          "gray": "#888888",
+          "card": "#1C1E24"
+        },
+        "source": "商业思维-投资与话语权",
+        "category": "综合海报",
+        "emotion": "专业权威",
+        "primaryHue": 220
+      },
+      {
+        "colors": {
+          "bg": "#0a0b1e",
+          "cardBg": "rgba(16, 20, 40, 0.85)",
+          "gold": "#FFD700",
+          "valorant": "#FF4655",
+          "delta": "#7CB342",
+          "lol": "#0AC8B9",
+          "tft": "#F0B232",
+          "naraka": "#D63D3D",
+          "pubg": "#F2A900",
+          "cf": "#FF9900",
+          "textMain": "#FFFFFF",
+          "textDim": "#A0A0B0",
+          "border": "rgba(255, 255, 255, 0.1)"
+        },
+        "source": "网吧游戏活动长图",
+        "category": "活动邀请",
+        "emotion": "专业权威",
+        "primaryHue": 237
+      }
+    ]
+  },
+  {
+    "strategy": "complementary",
+    "temperature": "blue",
+    "theme": "dark",
+    "count": 4,
+    "exemplars": [
+      {
+        "colors": {
+          "bg": "#0B0F19",
+          "primary": "#3B82F6",
+          "accent": "#F59E0B",
+          "textMain": "#FFFFFF",
+          "textMuted": "#94A3B8",
+          "cardBg": "rgba(30, 41, 59, 0.6)",
+          "border": "rgba(255, 255, 255, 0.1)"
+        },
+        "source": "认知权杖AI课程长图",
+        "category": "电商产品",
+        "emotion": "极简现代",
+        "primaryHue": 217
+      },
+      {
+        "colors": {
+          "bg": "#0a0a0c",
+          "primary": "#00f2ea",
+          "secondary": "#ff003c",
+          "textMain": "#ffffff",
+          "textSub": "#8b9bb4",
+          "panel": "rgba(255, 255, 255, 0.05)"
+        },
+        "source": "赛博手办电商详情页",
+        "category": "电商产品",
+        "emotion": "高端奢华",
+        "primaryHue": 178
+      },
+      {
+        "colors": {
+          "bg": "#1a162e",
+          "primary": "#3D5AFE",
+          "accent": "#FF6D00",
+          "textLight": "#FFFFFF",
+          "textDark": "#1F2937",
+          "cardBg": "#FFFFFF"
+        },
+        "source": "Zootopia 2 Movie Poster Long",
+        "category": "综合海报",
+        "emotion": "专业权威",
+        "primaryHue": 231
+      }
+    ]
+  },
+  {
+    "strategy": "analogous",
+    "temperature": "warm",
+    "theme": "dark",
+    "count": 3,
+    "exemplars": [
+      {
+        "colors": {
+          "bg": "#0a0a0a",
+          "accent": "#FACC15",
+          "text": "#ffffff",
+          "grey": "#333333"
+        },
+        "source": "Lamborghini Mobile Experience",
+        "category": "综合海报",
+        "emotion": "专业权威",
+        "primaryHue": 0
+      },
+      {
+        "colors": {
+          "bg": "#080808",
+          "textPrimary": "#E8E6E1",
+          "textSecondary": "#8C8C8C",
+          "accent": "#A68B6A"
+        },
+        "source": "甲骨文演变学术长图",
+        "category": "健康医疗",
+        "emotion": "极简现代",
+        "primaryHue": 0
+      },
+      {
+        "colors": {
+          "bg": "#080808",
+          "textMain": "#E5E5E5",
+          "textMuted": "#888888",
+          "accent": "#D4AF37"
+        },
+        "source": "佛窟形成艺术长图",
+        "category": "综合海报",
+        "emotion": "极简现代",
+        "primaryHue": 0
+      }
+    ]
+  },
+  {
+    "strategy": "monochromatic",
+    "temperature": "purple",
+    "theme": "light",
+    "count": 2,
+    "exemplars": [
+      {
+        "colors": {
+          "primary": "#9333EA",
+          "secondary": "#FAF5FF",
+          "accent": "#A855F7",
+          "dark": "#1F2937",
+          "gray": "#6B7280",
+          "bg": "#FFFFFF",
+          "warning": "#F59E0B",
+          "warningBg": "#FFFBEB"
+        },
+        "source": "OPC一人公司深圳注册全记录",
+        "category": "科技AI",
+        "emotion": "极简现代",
+        "primaryHue": 271
+      },
+      {
+        "colors": {
+          "background": "#1A0F2AFF",
+          "text": "#F5F0FF",
+          "primary": "#A259FF",
+          "accentLight": "#C599FF"
+        },
+        "source": "X1系列手机发布会海报",
+        "category": "品牌故事",
+        "emotion": "极简现代",
+        "primaryHue": 266
+      }
+    ]
+  },
+  {
+    "strategy": "complementary",
+    "temperature": "warm",
+    "theme": "light",
+    "count": 2,
+    "exemplars": [
+      {
+        "colors": {
+          "primary": "#FF6B9D",
+          "secondary": "#FFE66D",
+          "accent": "#4ECDC4",
+          "dark": "#2D3436",
+          "light": "#FEF9F6",
+          "warm": "#FF8B60",
+          "purple": "#A29BFE"
+        },
+        "source": "小胖子12岁生日派对海报",
+        "category": "活动邀请",
+        "emotion": "活泼年轻",
+        "primaryHue": 340
+      },
+      {
+        "colors": {
+          "primary": "#FF5E00",
+          "dark": "#111111",
+          "darker": "#0A0A0A",
+          "light": "#F5F5F7",
+          "accent": "#00C2FF",
+          "wood": "#C17F48"
+        },
+        "source": "FIBA篮球之家探店长图",
+        "category": "综合海报",
+        "emotion": "专业权威",
+        "primaryHue": 22
+      }
+    ]
+  },
+  {
+    "strategy": "complementary",
+    "temperature": "green",
+    "theme": "light",
+    "count": 2,
+    "exemplars": [
+      {
+        "colors": {
+          "bg": "#FDFBF7",
+          "primary": "#7FB5A7",
+          "primaryLight": "#E6F2EF",
+          "accent": "#EDA593",
+          "textMain": "#3E4C59",
+          "textLight": "#6B7C8C",
+          "white": "#FFFFFF"
+        },
+        "source": "化疗后饮食指南",
+        "category": "健康医疗",
+        "emotion": "专业权威",
+        "primaryHue": 164
+      },
+      {
+        "colors": {
+          "bg": "#F9F7F2",
+          "primary": "#2C5F56",
+          "primaryLight": "#E8F1EF",
+          "accent": "#A63737",
+          "text": "#1F1F1F",
+          "textLight": "#555555",
+          "border": "#DCD6C8"
+        },
+        "source": "中醫生命編程長圖",
+        "category": "综合海报",
+        "emotion": "专业权威",
+        "primaryHue": 169
+      }
+    ]
+  },
+  {
+    "strategy": "complementary",
+    "temperature": "warm",
+    "theme": "dark",
+    "count": 1,
+    "exemplars": [
+      {
+        "colors": {
+          "bg": "#0F1020",
+          "primary": "#FFD700",
+          "secondary": "#4F46E5",
+          "text": "#FFFFFF",
+          "textMuted": "#9CA3AF"
+        },
+        "source": "2026企业年会盛典长图",
+        "category": "活动邀请",
+        "emotion": "高端奢华",
+        "primaryHue": 51
+      }
+    ]
+  },
+  {
+    "strategy": "split-complementary",
+    "temperature": "blue",
+    "theme": "dark",
+    "count": 1,
+    "exemplars": [
+      {
+        "colors": {
+          "bg": "#0B1120",
+          "cardBg": "#1E293B",
+          "primary": "#3B82F6",
+          "accent": "#A3E635",
+          "textLight": "#F8FAFC",
+          "textDim": "#94A3B8"
+        },
+        "source": "晖越田径招生简章长图",
+        "category": "招聘招生",
+        "emotion": "专业权威",
+        "primaryHue": 217
+      }
+    ]
+  },
+  {
+    "strategy": "analogous",
+    "temperature": "green",
+    "theme": "dark",
+    "count": 1,
+    "exemplars": [
+      {
+        "colors": {
+          "bg": "#05080a",
+          "primary": "#00ff9d",
+          "secondary": "#00b4ff",
+          "gold": "#ffd700",
+          "textWhite": "#ffffff",
+          "textGray": "#cbd5e1",
+          "cardBg": "rgba(255, 255, 255, 0.03)",
+          "cardBorder": "rgba(0, 255, 157, 0.3)"
+        },
+        "source": "AI赋能企业课程长图",
+        "category": "教育培训",
+        "emotion": "高端奢华",
+        "primaryHue": 157
+      }
+    ]
+  },
+  {
+    "strategy": "analogous",
+    "temperature": "blue",
+    "theme": "dark",
+    "count": 1,
+    "exemplars": [
+      {
+        "colors": {
+          "bg": "#0F1115",
+          "cardBg": "#181B21",
+          "gold": "#D4AF37",
+          "goldLight": "#F3E5AB",
+          "textMain": "#FFFFFF",
+          "textMuted": "#9CA3AF",
+          "accent": "#7C3AED"
+        },
+        "source": "Niki生日派对活动长图",
+        "category": "活动邀请",
+        "emotion": "活泼年轻",
+        "primaryHue": 220
+      }
+    ]
+  }
+]

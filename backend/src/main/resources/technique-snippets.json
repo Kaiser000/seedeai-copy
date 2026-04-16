@@ -1,0 +1,592 @@
+[
+  {
+    "id": "split-color-title",
+    "name": "分色标题（同一 h1 内多色）",
+    "description": "标题内不同文字使用不同颜色，如第一行用主色、第二行用黑色",
+    "frequency": 232,
+    "pctOfTemplates": "72%",
+    "tags": [
+      "text",
+      "title",
+      "emphasis"
+    ],
+    "examples": [
+      {
+        "source": "皮肤科主任的防晒笔记",
+        "snippet": "<h1 \n            style={{ fontFamily: fonts.title }} \n            className=\"text-[100px] leading-tight mb-4 relative z-10\"\n            data-lines={1}\n          >\n            防晒核心宝典\n          </h1>\n  "
+      },
+      {
+        "source": "优必选2025年度财报核心解读",
+        "snippet": "<h2 style={{ ...fonts.subtitle, color: light ? '#FFFFFF' : colors.dark }} className=\"text-[64px] leading-tight\" data-lines={1}>{title}</h2>\n      <p style={{ ...fonts.body, color: light ? 'rgba(255,25"
+      },
+      {
+        "source": "97979",
+        "snippet": "<h1 class=\"text-[110px] leading-[1.1] font-bold text-[#1a1a1a]\" style=\"font-family: 'Noto Serif SC';\">匠心斜纹<br/>纯银隔珠</h1>\n        <div class=\"w-[120px] h-[4px] bg-[#1a1a1a] mt-8\"></div>\n      </div>\n  "
+      }
+    ]
+  },
+  {
+    "id": "bilingual-title",
+    "name": "中英双语标题",
+    "description": "中文主标题配英文副标签，增加国际感和视觉层次",
+    "frequency": 222,
+    "pctOfTemplates": "69%",
+    "tags": [
+      "text",
+      "bilingual",
+      "style"
+    ],
+    "examples": []
+  },
+  {
+    "id": "pill-tag",
+    "name": "药丸标签（rounded-full + border + tracking）",
+    "description": "圆角药丸形的标签/徽章，常用于英文标签、状态标记、分类标签",
+    "frequency": 202,
+    "pctOfTemplates": "63%",
+    "tags": [
+      "label",
+      "decoration"
+    ],
+    "examples": [
+      {
+        "source": "97979",
+        "snippet": "<div class=\"px-[120px] py-[48px] bg-[#1a1a1a] text-white text-[42px] rounded-full font-bold tracking-widest shadow-2xl active:scale-95 transition-transform\">\n           立即开启灵感\n         </div>"
+      },
+      {
+        "source": "大美新疆·同行旅游指南",
+        "snippet": "<div className=\"px-6 py-2 bg-white/20 backdrop-blur-md w-fit rounded-full mb-6 border border-white/30 text-white text-[32px]\">\n            同行专属 · 疆爱同行指南\n          </div>"
+      },
+      {
+        "source": "周末去哪儿·上海梧桐区 Citywalk 指南",
+        "snippet": "<span className=\"px-6 py-2 rounded-full border border-current text-3xl tracking-widest\" style={fonts.sans}>SHANGHAI GUIDE</span>"
+      }
+    ]
+  },
+  {
+    "id": "numbered-circle",
+    "name": "编号圆圈（01-04 彩色序号）",
+    "description": "圆形或方形的编号标记，用于列表项的视觉锚点",
+    "frequency": 161,
+    "pctOfTemplates": "50%",
+    "tags": [
+      "list",
+      "number",
+      "decoration"
+    ],
+    "examples": [
+      {
+        "source": "皮肤科主任的防晒笔记",
+        "snippet": "<div className=\"flex-1 bg-orange-100/50 border-2 border-orange-200 rounded-xl flex items-center justify-center relative\">\n            <span style={{ fontFamily: fonts.body }} className=\"text-[32px] te"
+      },
+      {
+        "source": "97979",
+        "snippet": "<div class=\"w-[120px] h-[120px] bg-white rounded-full flex items-center justify-center text-[48px] shadow-sm\">\n            🛡️\n          </div>\n          <div class=\"flex-1\">\n            <h4 class=\"te"
+      },
+      {
+        "source": "心理学自我滋养视觉长页",
+        "snippet": "<div className=\"w-16 h-16 bg-white rounded-full flex items-center justify-center mb-8 shadow-sm\">\n              <i className=\"fas fa-seedling text-[32px]\" style={{ color: colors.accent }}></i>\n       "
+      }
+    ]
+  },
+  {
+    "id": "section-dark-shift",
+    "name": "区块深色切换（整个 section 背景变暗/变黑）",
+    "description": "某个 section 整体使用深色背景 + 白色文字，和其他浅色 section 形成强烈对比",
+    "frequency": 151,
+    "pctOfTemplates": "47%",
+    "tags": [
+      "section",
+      "contrast",
+      "mood-shift"
+    ],
+    "examples": [
+      {
+        "source": "周末去哪儿·上海梧桐区 Citywalk 指南",
+        "snippet": "<section className=\"mt-20 py-32 bg-[#2D2926] text-white flex flex-col gap-16 px-20\">\n  {/* 深色 section：文字用 text-white，和前后浅色 section 形成反差 */}\n</section>"
+      },
+      {
+        "source": "2026年个人所得税退税全攻略",
+        "snippet": "<section className=\"bg-slate-900 rounded-[60px] p-16 space-y-12\">\n  {/* 深色 section：文字用 text-white，和前后浅色 section 形成反差 */}\n</section>"
+      },
+      {
+        "source": "心脏的沉默警报-健康科普长图",
+        "snippet": "<section className=\"relative px-[80px] py-[100px] border-y border-white/5 bg-[#0A0F1C]\">\n  {/* 深色 section：文字用 text-white，和前后浅色 section 形成反差 */}\n</section>"
+      }
+    ]
+  },
+  {
+    "id": "large-border-radius",
+    "name": "超大圆角（>= 40px）",
+    "description": "使用 rounded-[40px] 以上的圆角，比标准 rounded-3xl(24px) 更柔和",
+    "frequency": 143,
+    "pctOfTemplates": "44%",
+    "tags": [
+      "style",
+      "softness"
+    ],
+    "examples": [
+      {
+        "source": "皮肤科主任的防晒笔记",
+        "snippet": "rounded-[40px]"
+      },
+      {
+        "source": "优必选2025年度财报核心解读",
+        "snippet": "rounded-[40px]"
+      },
+      {
+        "source": "97979",
+        "snippet": "rounded-[40px]"
+      }
+    ]
+  },
+  {
+    "id": "svg-decoration",
+    "name": "SVG 装饰图形（叶子、波浪、几何）",
+    "description": "用 SVG path 画装饰性图形，作为背景层的点缀",
+    "frequency": 138,
+    "pctOfTemplates": "43%",
+    "tags": [
+      "decoration",
+      "background"
+    ],
+    "examples": [
+      {
+        "source": "优必选2025年度财报核心解读",
+        "snippet": "<div className=\"absolute top-0 left-0 w-full h-full opacity-30\">\n          <svg width=\"1080\" height=\"1000\" viewBox=\"0 0 1080 1000\" fill=\"none\">\n            <defs>\n              <radialGradient id=\"grad1\" cx=\"50%\" cy=\"50%\" r=\"50%\" fx=\"50%\" fy=\"50%\">\n                <stop offset=\"0%\" stopColor={colors"
+      },
+      {
+        "source": "心理学自我滋养视觉长页",
+        "snippet": "<div className=\"absolute top-0 right-0 w-[400px] h-[400px] opacity-10\">\n          <svg viewBox=\"0 0 200 200\" xmlns=\"http://www.w3.org/2000/svg\">\n            <path fill={colors.primary} d=\"M45.7,-77.2C58.3,-69.1,67,-55.5,73.4,-41.6C79.8,-27.7,83.9,-13.8,82.4,-0.8C81,12.1,74,24.3,66.6,36.5C59.2,48.7,5"
+      },
+      {
+        "source": "周末去哪儿·上海梧桐区 Citywalk 指南",
+        "snippet": "<div className=\"absolute top-[1200px] right-[-50px] opacity-10 pointer-events-none\">\n        <svg width=\"400\" height=\"400\" viewBox=\"0 0 100 100\" fill={colors.primary}>\n          <path d=\"M50 10 C60 30 90 40 50 90 C10 40 40 30 50 10\" />\n        </svg>\n      </div>"
+      }
+    ]
+  },
+  {
+    "id": "quote-callout-box",
+    "name": "引用/提示框（border-l + 浅色底）",
+    "description": "左侧粗竖线 + 浅色背景的引用框，用于 Tip、引用、注意事项",
+    "frequency": 104,
+    "pctOfTemplates": "32%",
+    "tags": [
+      "text",
+      "callout",
+      "decoration"
+    ],
+    "examples": [
+      {
+        "source": "皮肤科主任的防晒笔记",
+        "snippet": "     "
+      },
+      {
+        "source": "大美新疆·同行旅游指南",
+        "snippet": "    <"
+      },
+      {
+        "source": "周末去哪儿·上海梧桐区 Citywalk 指南",
+        "snippet": "                <div className=\"absolute left-10 mt-44 w-1 h-20 border-l-4 border-dashed\" style={{ borderColor: colors.line }} />\n              )}\n            </div>\n          ))}\n        </div>"
+      }
+    ]
+  },
+  {
+    "id": "gradient-overlay-fade",
+    "name": "渐变消隐蒙版（from-color via-transparent）",
+    "description": "用渐变让图片底部平滑过渡到背景色，比纯色蒙版更自然",
+    "frequency": 68,
+    "pctOfTemplates": "21%",
+    "tags": [
+      "image",
+      "overlay",
+      "transition"
+    ],
+    "examples": [
+      {
+        "source": "周末去哪儿·上海梧桐区 Citywalk 指南",
+        "snippet": "<div className=\"absolute inset-0 bg-gradient-to-t from-[#F9F7F2] via-transparent to-transparent opacity-90\" />"
+      },
+      {
+        "source": "未来感电动汽车预告海报",
+        "snippet": "<div className=\"absolute inset-0 bg-gradient-to-t from-black via-transparent to-black opacity-80\" />"
+      },
+      {
+        "source": "绿岛阳光康养度假村长图",
+        "snippet": "<div className=\"absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-transparent to-[#FDFBF7]\" />"
+      }
+    ]
+  },
+  {
+    "id": "vertical-accent-bar",
+    "name": "竖线强调条（section 标题前的粗色条）",
+    "description": "在标题前放一个窄高的色条作为视觉锚点，比装饰线更有力",
+    "frequency": 68,
+    "pctOfTemplates": "21%",
+    "tags": [
+      "decoration",
+      "title",
+      "accent"
+    ],
+    "examples": [
+      {
+        "source": "皮肤科主任的防晒笔记",
+        "snippet": "<div className=\"w-4 h-12 bg-blue-500 rounded-full\">"
+      },
+      {
+        "source": "优必选2025年度财报核心解读",
+        "snippet": "<div className=\"w-4 h-12 bg-secondary\" style={{ backgroundColor: colors.secondary }}>"
+      },
+      {
+        "source": "97979",
+        "snippet": "<div class=\"w-[2px] h-[120px] bg-[#b59473] mb-6\">"
+      }
+    ]
+  },
+  {
+    "id": "dashed-divider",
+    "name": "虚线分隔（border-dashed）",
+    "description": "虚线边框用于优惠券切割线、分隔线等，增加纸质感",
+    "frequency": 53,
+    "pctOfTemplates": "16%",
+    "tags": [
+      "decoration",
+      "divider",
+      "coupon"
+    ],
+    "examples": [
+      {
+        "source": "周末去哪儿·上海梧桐区 Citywalk 指南",
+        "snippet": "<div className=\"absolute left-10 mt-44 w-1 h-20 border-l-4 border-dashed\" style={{ borderColor: colors.line }} />"
+      },
+      {
+        "source": "九江市生态环境损害赔偿工作规定政策解读",
+        "snippet": "<div className=\"bg-[#F8FAF9] rounded-[48px] p-12 border-2 border-dashed border-[#2D6A4F]/30 inline-block w-full\">"
+      },
+      {
+        "source": "111知行半月读复古报纸长图",
+        "snippet": "<div className=\"space-y-4 py-6 px-8 bg-yellow-50 border-dashed border-2 border-yellow-200\">"
+      }
+    ]
+  },
+  {
+    "id": "inline-text-highlight",
+    "name": "段内文字高亮（border-b 下划线强调）",
+    "description": "在段落内用 <span> + border-b 高亮关键词，打破纯文本的单调",
+    "frequency": 24,
+    "pctOfTemplates": "7%",
+    "tags": [
+      "text",
+      "emphasis"
+    ],
+    "examples": [
+      {
+        "source": "周末去哪儿·上海梧桐区 Citywalk 指南",
+        "snippet": "<span className=\"font-bold border-b-4\" style={{ borderColor: colors.primary }}>8点前去</span>"
+      },
+      {
+        "source": "外贸跨境全平台课程长图",
+        "snippet": "<span key={i} className=\"px-6 py-3 bg-white border-2 border-blue-200 text-blue-800 rounded-xl text-3xl font-bold shadow-sm\">\n            #{t}\n          </span>"
+      },
+      {
+        "source": "律所合规与发展深度解析",
+        "snippet": "<span className=\"font-bold border-b-4 border-amber-300\">专业与信用</span>"
+      }
+    ]
+  },
+  {
+    "id": "image-overlay-badge",
+    "name": "图片浮层角标（absolute + bg-black/70）",
+    "description": "浮在图片上方的半透明信息标签，如地名、推荐理由、价格",
+    "frequency": 18,
+    "pctOfTemplates": "6%",
+    "tags": [
+      "image",
+      "label",
+      "layering"
+    ],
+    "examples": [
+      {
+        "source": "夏季空调房暖颈操长图",
+        "snippet": "<div className=\"absolute top-4 left-4 bg-white/90 backdrop-blur rounded-xl px-4 py-2 text-[32px]\" style={{...typography.accent, color: colors.primary}}>01</div>"
+      },
+      {
+        "source": "乐派精雕剪纸风订婚宴定制长图 2",
+        "snippet": "<div class=\"absolute bottom-0 left-0 w-full p-6 bg-black/40 backdrop-blur-sm text-white text-[32px] font-bold text-center\">案例分享 02</div>"
+      },
+      {
+        "source": "航天城1日精华自驾游",
+        "snippet": "<div className=\"absolute bottom-0 left-0 right-0 bg-black/50 p-3 text-white text-center backdrop-blur-sm\" style={FONTS.subtitle}>\n                📸 标志性大门打卡，定格“踏入航天圣地”\n              </div>"
+      }
+    ]
+  },
+  {
+    "id": "image-filter",
+    "name": "图片 CSS filter（sepia/contrast/brightness）",
+    "description": "给图片加滤镜调色，统一氛围感",
+    "frequency": 10,
+    "pctOfTemplates": "3%",
+    "tags": [
+      "image",
+      "mood",
+      "filter"
+    ],
+    "examples": [
+      {
+        "source": "周末去哪儿·上海梧桐区 Citywalk 指南",
+        "snippet": "style={{ filter: 'sepia(20%) contrast(105%) brightness(90%)' }}"
+      },
+      {
+        "source": "SonicFlow Pro 产品详情长图",
+        "snippet": "style={{ filter: 'grayscale(0.5) contrast(1.1)' }}"
+      },
+      {
+        "source": "未来科技：深蓝电动SUV产品海报",
+        "snippet": "style={{ filter: 'contrast(1.1) brightness(0.9)' }}"
+      }
+    ]
+  },
+  {
+    "id": "offset-border-frame",
+    "name": "偏移边框（图片立体感）",
+    "description": "在图片后面用 absolute 定位一个偏移的 border 框，制造叠层立体效果",
+    "frequency": 7,
+    "pctOfTemplates": "2%",
+    "tags": [
+      "image",
+      "decoration",
+      "layering"
+    ],
+    "examples": [
+      {
+        "source": "宁德商会新春活动简报",
+        "snippet": "<div className=\"absolute bottom-0 left-0 w-[300px] h-[300px] border-[1px] border-[#FFFFFF] opacity-5 rounded-full translate-x-[-50%] translate-y-[50%]\"></div>"
+      },
+      {
+        "source": "波普风咖啡厅长图",
+        "snippet": "<div className=\"absolute inset-0 bg-white border-4 border-black transform translate-x-4 translate-y-4 z-0\"></div>"
+      },
+      {
+        "source": "日式拉面课程长图",
+        "snippet": "<div className=\"absolute inset-0 border-2 border-[#1A2A3A] translate-x-4 translate-y-4\"></div>"
+      }
+    ]
+  },
+  {
+    "id": "skew-banner",
+    "name": "斜切色块横幅（skew 倾斜背景）",
+    "description": "用 skew-x 变换的色块作为文字背景，创造动态倾斜感。常用于副标题、促销口号。比普通矩形更有视觉冲击力。",
+    "frequency": 0,
+    "pctOfTemplates": "手动补充",
+    "tags": [
+      "decoration",
+      "emphasis",
+      "dynamic"
+    ],
+    "examples": [
+      {
+        "source": "竞品五一海报",
+        "snippet": "<div className=\"mt-16 relative\">\n  <div className=\"absolute -inset-4 bg-[#F4CE81] skew-x-[-12deg]\" />\n  <h2 className=\"relative text-[96px] text-[#A61D1D] px-16 py-4\" style={fonts.headline}>\n    全场 5 折起\n  </h2>\n</div>"
+      }
+    ]
+  },
+  {
+    "id": "section-overlap-card",
+    "name": "穿插叠层（白卡重叠上一个 section）",
+    "description": "用 -mt-N + relative z-20 让一个白色卡片从上一个 section 穿插出来，创造纵深感和视觉关联。这是高质量长图海报的标志性手法。",
+    "frequency": 0,
+    "pctOfTemplates": "手动补充",
+    "tags": [
+      "section",
+      "layering",
+      "depth"
+    ],
+    "examples": [
+      {
+        "source": "竞品五一海报",
+        "snippet": "<section className=\"w-full px-12 -mt-24 relative z-20\">\n  <div className=\"bg-white rounded-[60px] p-16 shadow-2xl border-t-8 border-[#F4CE81]\">\n    {/* 内容从上一个深色 section 穿插而出，形成纵深效果 */}\n  </div>\n</section>"
+      }
+    ]
+  },
+  {
+    "id": "floating-decoration-images",
+    "name": "浮动装饰图（absolute + rotate 的 3D 元素）",
+    "description": "在 hero 区或关键 section 添加 absolute 定位的装饰图片（礼盒、金币、植物等），配合 rotate 和负偏移出血，营造丰富的视觉层次。",
+    "frequency": 0,
+    "pctOfTemplates": "手动补充",
+    "tags": [
+      "decoration",
+      "image",
+      "hero",
+      "layering"
+    ],
+    "examples": [
+      {
+        "source": "竞品五一海报",
+        "snippet": "<img src=\"https://picsum.photos/seed/giftbox3d/400/400\"\n     prompt=\"Floating 3D gift box with red ribbon and golden stars, festive style\"\n     data-seede-image-id=\"img-deco-1\"\n     className=\"absolute left-[-50px] bottom-[200px] w-[400px] h-[400px] rotate-12\" />\n<img src=\"https://picsum.photos/seed/goldcoins3d/400/400\"\n     prompt=\"Floating 3D golden coins and red packets, festive style\"\n     data-seede-image-id=\"img-deco-2\"\n     className=\"absolute right-[-50px] bottom-[400px] w-[450px] h-[450px] -rotate-12\" />"
+      }
+    ]
+  },
+  {
+    "id": "cta-button-in-card",
+    "name": "卡片内 CTA 按钮（深色底 + 圆角 + 文字）",
+    "description": "在商品卡片、推荐卡片底部添加明确的行动按钮（如「立即抢购」「查看详情」），增强转化引导。",
+    "frequency": 0,
+    "pctOfTemplates": "手动补充",
+    "tags": [
+      "cta",
+      "card",
+      "conversion"
+    ],
+    "examples": [
+      {
+        "source": "竞品五一海报",
+        "snippet": "<div className=\"mt-8 bg-[#111111] text-white text-center py-4 rounded-xl text-3xl\" style={fonts.subtitle}>立即抢购</div>"
+      }
+    ]
+  },
+  {
+    "id": "floating-badge-overlap",
+    "name": "悬浮徽章（-top-N 穿出容器）",
+    "description": "用 absolute + 负 top 值让徽章/标签从容器顶部穿出，打破矩形边界，增加视觉趣味性。常用于 CTA 卡片。",
+    "frequency": 0,
+    "pctOfTemplates": "手动补充",
+    "tags": [
+      "decoration",
+      "badge",
+      "layering"
+    ],
+    "examples": [
+      {
+        "source": "竞品五一海报",
+        "snippet": "<div className=\"relative\">\n  <div className=\"absolute -top-10 left-1/2 -translate-x-1/2 bg-[#111111] text-white px-12 py-3 rounded-full text-3xl\" style={fonts.subtitle}>\n    扫码领取额外优惠券\n  </div>\n  <div className=\"bg-white rounded-[60px] p-16 shadow-2xl\">\n    {/* 卡片内容 */}\n  </div>\n</div>"
+      }
+    ]
+  },
+  {
+    "id": "large-product-image",
+    "name": "大尺寸商品图（h-[500px]+）",
+    "description": "商品/场景图片高度至少 500px（而非网页常见的 200px），让图片成为视觉主体而非配图。海报的核心视觉冲击力来自大图。",
+    "frequency": 0,
+    "pctOfTemplates": "手动补充",
+    "tags": [
+      "image",
+      "product",
+      "scale"
+    ],
+    "examples": [
+      {
+        "source": "竞品五一海报",
+        "snippet": "<img src=\"https://picsum.photos/seed/product-lifestyle/480/600\"\n     prompt=\"Premium lifestyle product photography, minimalist studio lighting\"\n     data-seede-image-id=\"img-product\"\n     className=\"w-full h-[600px] object-cover\" />"
+      }
+    ]
+  },
+  {
+    "id": "qrcode-dashed-frame",
+    "name": "虚线框二维码（border-dashed + 主色边框）",
+    "description": "二维码外包一圈粗虚线边框，比纯白底更有视觉存在感，引导用户注意扫码区域。",
+    "frequency": 0,
+    "pctOfTemplates": "手动补充",
+    "tags": [
+      "cta",
+      "qrcode",
+      "decoration"
+    ],
+    "examples": [
+      {
+        "source": "竞品五一海报",
+        "snippet": "<div className=\"p-6 bg-white border-4 border-dashed rounded-3xl\" style={{ borderColor: colors.primary }}>\n  <img data-seede-image-id=\"img-qrcode\"\n       src=\"https://picsum.photos/seed/qrcode/200/200\"\n       prompt=\"Square black and white QR code pattern\"\n       className=\"w-48 h-48\" alt=\"二维码\" />\n</div>"
+      }
+    ]
+  },
+  {
+    "id": "radial-glow-background",
+    "name": "径向辉光背景（radial-gradient 叠加层）",
+    "description": "在深色背景上叠加半透明径向渐变光晕，营造科技感/高端感氛围。比纯色背景高级 10 倍。",
+    "frequency": 0,
+    "pctOfTemplates": "手动补充",
+    "tags": [
+      "background",
+      "premium",
+      "atmosphere"
+    ],
+    "examples": [
+      {
+        "source": "竞品年度盛典海报",
+        "snippet": "<div style={{ backgroundColor: '#0a0a1a' }} className=\"relative overflow-hidden\">\n  <div className=\"absolute inset-0\" style={{\n    backgroundImage: 'radial-gradient(ellipse at 30% 20%, rgba(212,175,55,0.1), transparent 60%), radial-gradient(ellipse at 70% 80%, rgba(59,130,246,0.06), transparent 50%)'\n  }} />\n  <div className=\"relative z-10\">{/* 内容 */}</div>\n</div>"
+      }
+    ]
+  },
+  {
+    "id": "section-bg-alternation",
+    "name": "同色系深浅交替背景（微妙区块分隔）",
+    "description": "相邻 section 使用同色系不同明度的背景色（如 #0f0f1a → #141428 → #0f0f1a），比纯色平铺有层次感。",
+    "frequency": 0,
+    "pctOfTemplates": "手动补充",
+    "tags": [
+      "background",
+      "section",
+      "rhythm"
+    ],
+    "examples": [
+      {
+        "source": "竞品年度盛典海报",
+        "snippet": "<section style={{ backgroundColor: '#0f0f1a' }}>{/* section 1 */}</section>\n<section style={{ backgroundColor: '#141428' }}>{/* section 2: 略浅 */}</section>\n<section style={{ backgroundColor: '#0f0f1a' }}>{/* section 3: 回深 */}</section>"
+      }
+    ]
+  },
+  {
+    "id": "timeline-flow",
+    "name": "时间轴/流程布局（竖线 + 圆形节点 + 内容）",
+    "description": "用竖线连接圆形时间节点，右侧展示内容。适合活动议程、操作步骤、历史年表。竞品的活动类海报必用此手法。",
+    "frequency": 0,
+    "pctOfTemplates": "手动补充",
+    "tags": [
+      "layout",
+      "event",
+      "timeline"
+    ],
+    "examples": [
+      {
+        "source": "竞品年度盛典海报",
+        "snippet": "<div className=\"flex items-start gap-6\">\n  <div className=\"flex flex-col items-center\">\n    <div className=\"w-14 h-14 rounded-full flex items-center justify-center shadow-lg\" style={{ backgroundColor: colors.accent }}>\n      <span className=\"text-white font-bold\" style={{ fontFamily: 'Inter', fontSize: '13px' }}>19:00</span>\n    </div>\n    <div className=\"w-0.5 h-16\" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }} />\n  </div>\n  <div className=\"flex-1 pt-2 pb-6\">\n    <div style={{ ...typography.h2, fontSize: '24px' }}>开幕致辞</div>\n    <div className=\"mt-1\" style={{ ...typography.body, color: colors.textMuted }}>集团董事长新年贺词</div>\n  </div>\n</div>"
+      }
+    ]
+  },
+  {
+    "id": "numbered-route-card",
+    "name": "编号路线卡片（01/02 + 推荐标签 + 配图）",
+    "description": "圆形编号 + 药丸推荐标签 + 大图 + 文字描述的卡片。适合旅游攻略、指南、教程步骤。",
+    "frequency": 0,
+    "pctOfTemplates": "手动补充",
+    "tags": [
+      "card",
+      "guide",
+      "numbered"
+    ],
+    "examples": [
+      {
+        "source": "竞品Citywalk指南",
+        "snippet": "<div className=\"rounded-3xl overflow-hidden\" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>\n  <img src=\"https://picsum.photos/seed/spot1/800/400\" className=\"w-full h-52 object-cover\" />\n  <div className=\"p-6\">\n    <div className=\"flex items-center gap-3 mb-3\">\n      <span className=\"w-10 h-10 rounded-full flex items-center justify-center text-white font-bold\" style={{ backgroundColor: colors.accent }}>01</span>\n      <span className=\"px-3 py-1 rounded-full text-xs\" style={{ backgroundColor: colors.accent, color: '#fff' }}>RECOMMENDED</span>\n    </div>\n    <h3 style={{ ...typography.h2, fontSize: '28px' }}>武康路</h3>\n    <p className=\"mt-2\" style={{ ...typography.body, color: colors.textMuted }}>梧桐树下的百年建筑...</p>\n  </div>\n</div>"
+      }
+    ]
+  },
+  {
+    "id": "warm-white-background",
+    "name": "带色温的白色背景（非纯白）",
+    "description": "浅色主题不用纯白 #FFFFFF，而是用 #FDFCF8（暖白）、#F8F7F4（米白）、#F5F3EF（象牙白）等带色温的白色，更有质感。",
+    "frequency": 0,
+    "pctOfTemplates": "手动补充",
+    "tags": [
+      "background",
+      "light-theme",
+      "premium"
+    ],
+    "examples": [
+      {
+        "source": "竞品Citywalk指南",
+        "snippet": "const colors = {\n  primary: '#5B4A3F',\n  accent: '#7C6B5E',\n  bg: '#FDFCF8',        // 暖白，不是纯白\n  card: '#F5F3EF',      // 卡片用更深一点的白\n  text: '#2D2926',\n  textMuted: '#8C8279',\n  border: 'rgba(0,0,0,0.06)',\n};"
+      }
+    ]
+  }
+]

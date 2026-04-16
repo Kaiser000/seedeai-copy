@@ -5,7 +5,7 @@
 - 输出一段完整的JSX代码，使用React函数组件格式
 - 组件名称必须为 `Poster`
 - 使用Tailwind CSS类名 + inline style 混合进行样式设计
-- 海报尺寸为 {{width}}px × {{height}}px，最外层容器必须设置 style={{ width: '{{width}}px', height: '{{height}}px' }}
+- 海报宽度 {{width}}px，高度 {{height}}px。固定高度模式下最外层容器必须设置 `style={{ width: '{{width}}px', height: '{{height}}px' }}`；自适应长图模式（高度为"自适应"）下最外层容器只设 `style={{ width: '{{width}}px' }}`，不设固定 height，高度由内容自然撑开
 - 所有文字使用中文
 - 代码必须能被React直接渲染
 
@@ -35,6 +35,7 @@ function Poster() {
   };
 
   return (
+    {/* 固定高度模式用 height: '{{height}}px'；自适应长图模式不设 height */}
     <div style={{ width: '{{width}}px', height: '{{height}}px', backgroundColor: colors.bg }} className="relative overflow-hidden">
       {/* 构图方式由参考样本决定：可自由构图，也可多 section 堆叠 */}
     </div>
@@ -66,11 +67,13 @@ function Poster() {
 - 长图海报可以多 section 堆叠，但**每个 section 内部仍需主次分明**，不要让所有元素等权
 - **参考样本为准**：如果样本是 section 堆叠长图，就跟着做；如果样本是自由构图短海报，也跟着做。重要的是主次分明，而不是某一种构图手法
 
-### 守则 2：留白与密度由样本决定
+### 守则 2：留白与密度
 - **长图海报**：可以信息密集、内容丰富（小红书/公众号长图的本色）
 - **常规/方形海报**：需要慷慨的留白衬托焦点，不要把每寸都塞满
 - 主焦点周围必须留出充足呼吸距离，不要让辅助元素紧贴焦点
 - 如果有参考样本，密度节奏跟样本对齐
+- **每个 section 应有视觉区分**：通过背景色变化、装饰线、或不同的组件形式（卡片、列表、网格）区分，避免所有 section 结构雷同
+- 如果用户消息中包含【设计手法参考】，可以自然地融入其中的手法提升视觉丰富度，但不要为了使用手法而破坏整体协调性
 
 ### 守则 3：色彩纪律
 - **必须在代码开头定义 `colors` 对象**（见 Design Token 模式），全篇通过 `colors.xxx` 引用，不可随意引入未定义的颜色
@@ -103,20 +106,123 @@ function Poster() {
 - 输出的 JSX 必须是完整的 `function Poster() { return (...) }` 格式，可直接被 React 渲染
 - 每个 `<img>` 标签必须有 `src`、`className`、`prompt` 属性
 - 每个 `<img>` 标签必须有唯一 `data-seede-image-id` 属性（例如 `img-1`）
+- **变量名严格一致性（关键 — 违反即整张海报渲染崩溃）**：所有 `{variable}` 或 `{...object.key}` 引用的标识符，必须与函数作用域内 `const` 声明的名字**逐字符一致**。例如声明了 `const typography = {...}`，就只能写 `typography.h1` / `...typography.body`，**严禁**写成 `typographic.body`、`typograph.body`、`typo.body` 这类手误变体。常用 Token 名固定为 `colors` 和 `typography`（都是英文单数形式），map 回调、嵌套 JSX 里重复引用前务必回顾声明处名字，确保拼写一致。
+
+## 守则 7：背景高级感（禁止纯色平铺 — 这是竞品拉开差距的核心）
+
+**纯色平铺背景（`bg-red-600`、`bg-blue-900`、`bg-black`）是最低级的处理方式，一眼廉价感。** 每个区块的背景必须使用以下至少一种高级手法：
+
+### 深色主题背景处理（首选）
+
+```jsx
+{/* ✓ 手法 1：多层线性渐变 — 最基础的高级感 */}
+<div style={{ backgroundImage: 'linear-gradient(to bottom, #0a0a1a, #1a1a2e, #0f0f1a)' }}
+     className="relative overflow-hidden">
+  {/* 内容 */}
+</div>
+
+{/* ✓ 手法 2：径向辉光 — 科技感/高端感的杀手锏 */}
+<div style={{ backgroundColor: '#0a0a1a' }} className="relative overflow-hidden">
+  {/* 辉光层：absolute 定位的半透明径向渐变 */}
+  <div className="absolute inset-0" style={{
+    backgroundImage: 'radial-gradient(ellipse at 30% 20%, rgba(59,130,246,0.12), transparent 60%), radial-gradient(ellipse at 70% 80%, rgba(139,92,246,0.08), transparent 50%)'
+  }} />
+  <div className="relative z-10">{/* 内容 */}</div>
+</div>
+
+{/* ✓ 手法 3：同色系深浅交替 — 区块分隔的高级做法 */}
+{/* section 1 */} <div style={{ backgroundColor: '#0f0f1a' }}>...</div>
+{/* section 2 */} <div style={{ backgroundColor: '#141428' }}>...</div>
+{/* section 3 */} <div style={{ backgroundColor: '#0f0f1a' }}>...</div>
+
+{/* ✓ 手法 4：渐变 + 装饰色块叠加 — 最高级 */}
+<div style={{ backgroundImage: 'linear-gradient(135deg, #0c0c1d, #1a1a35)' }}
+     className="relative overflow-hidden">
+  {/* 装饰性半透明色块（不是蒙版，是点缀） */}
+  <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-10"
+       style={{ backgroundColor: colors.accent, filter: 'blur(80px)' }} />
+  <div className="relative z-10">{/* 内容 */}</div>
+</div>
+```
+
+### 浅色主题背景处理
+
+```jsx
+{/* ✓ 浅色不是纯白 — 带色温的白 */}
+<div style={{ backgroundColor: '#FDFCF8' }}> {/* 暖白 */}
+<div style={{ backgroundColor: '#F8F7F4' }}> {/* 米白 */}
+<div style={{ backgroundColor: '#F5F3EF' }}> {/* 象牙白 */}
+
+{/* ✓ 浅色渐变 */}
+<div style={{ backgroundImage: 'linear-gradient(to bottom, #FFFFFF, #F8F7F2)' }}>
+
+{/* ✓ 浅色区块交替 */}
+{/* section 1: 白色 */} <div style={{ backgroundColor: '#FDFCF8' }}>
+{/* section 2: 浅灰 */} <div style={{ backgroundColor: '#F0EFEB' }}>
+{/* section 3: 白色 */} <div style={{ backgroundColor: '#FDFCF8' }}>
+```
+
+### 背景硬规则
+
+1. **禁止**全篇只有一种背景色 — 即使是深色主题，也必须有 2-3 种深浅变化
+2. Hero 区块背景必须比其他区块更有层次（渐变 + 辉光 or 背景图）
+3. 相邻 section 背景色差值至少 5-10%（不能视觉上分不出区块边界）
+4. colors.bg 不应是纯黑 `#000000` 或纯白 `#FFFFFF` — 用带色相的近黑/近白
+
+## 守则 8：圆角容器系统（所有容器必须有圆角 — 现代设计的基础）
+
+**直角矩形 = 上世纪的设计。** 所有带背景色的容器都必须使用圆角：
+
+| 元素类型 | 最小圆角 | 推荐圆角 | 高端场景 |
+|---------|---------|---------|---------|
+| 卡片/内容容器 | `rounded-xl` | `rounded-2xl` | `rounded-3xl` 或 `rounded-[40px]` |
+| 标签/徽章 | `rounded-full` | `rounded-full` | `rounded-full` |
+| 按钮/CTA | `rounded-xl` | `rounded-full` | `rounded-full` |
+| 图片容器 | `rounded-xl` | `rounded-2xl` | `rounded-3xl` |
+| section 内嵌容器 | `rounded-2xl` | `rounded-3xl` | `rounded-[40px]` |
+
+```jsx
+{/* ✓ 正确：圆角卡片 */}
+<div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+  <img src="..." className="w-full h-48 object-cover" />
+  <div className="p-6">
+    <h3 style={{ ...typography.h2 }}>标题</h3>
+  </div>
+</div>
+
+{/* ✓ 正确：药丸标签 */}
+<span className="px-4 py-1.5 rounded-full text-sm" style={{ backgroundColor: colors.accent, color: '#FFFFFF' }}>推荐</span>
+
+{/* ✗ 禁止：直角卡片 */}
+<div className="bg-white p-6">  {/* 没有 rounded-* = 直角 = 廉价 */}
+```
+
+**检查点**：写完组件后，搜索所有带 `bg-` 或 `backgroundColor` 的 div，确保每个都有 `rounded-*` 类名。唯一例外是最外层海报容器和全宽 section 背景（这些不需要圆角）。
 
 ## 海报构图原则（最重要！！！）
 
 **主次分明是海报的灵魂。** 一张海报必须有 1 个统治性的视觉焦点（巨型主标题 / 主体大图 / 巨型核心数字 / 主体人物），字号或视觉体量至少是其他元素的 **5 倍以上**。其他文字和装饰作为明确的**配角**存在，明显退到次要层级。
 
-### 按格式分类的构图方式（从参考样本判断）
+### 构图风格（由 gene.layoutStyle 决定）
 
-- **长图海报**（`height/width ≥ 2.5`，如 1080×3688 小红书/公众号长图）：可以多 section 从上到下堆叠承载丰富内容，但每个 section 内部仍需主次分明
-- **常规海报**（宽高比 1.3 ~ 2.5，如 1080×1920 标准竖版）：推荐 `relative` + 内部 `absolute` 自由构图，整张画面单一焦点压倒一切
-- **方形海报**（宽高比 ≤ 1.3，如 1080×1080 社交图）：极简中心构图
+**设计方案中的 `gene.layoutStyle` 字段决定了你必须使用的构图方式。不要总是默认 flex 堆叠。**
 
-**如果有参考样本**：优先按样本展示的构图手法和结构来做，不要机械套用上面的分类规则。样本代表真实业界水准，比规则更权威。
+| layoutStyle | 构图方式 | 核心技术 | 适用场景 |
+|---|---|---|---|
+| `classic-stack` | 经典排版 — section 从上到下堆叠 | `flex flex-col`，每个 section 固定高度 | 信息量大的长图、报告 |
+| `free-composition` | 自由构图 — 元素自由散布画面 | 外层 `relative`，子 `absolute` + 百分比定位 | 艺术海报、品牌形象 |
+| `center-radial` | 中心放射 — 中心焦点 + 四周环绕 | `absolute` + `translate(-50%,-50%)` 居中 | 产品展示、方形海报 |
+| `magazine-split` | 杂志双栏 — 左右分栏 | 左 `absolute` 占 45% + 右 `absolute` 占 55% | 品牌故事、人物介绍 |
+| `diagonal-cut` | 对角线切割 — 倾斜色块/图片分割 | `transform: rotate()` + `overflow-hidden` 裁切 | 运动、时尚、高对比 |
+| `card-mosaic` | 卡片马赛克 — 不等高卡片网格 | `grid` + `row-span-2` 错落排列 | 菜单、作品集、多商品 |
 
-**如果没有参考样本**：按画布宽高比应用上述默认规则。
+**规则优先级**：
+1. **gene.layoutStyle 最优先** — 如果设计方案指定了 layoutStyle，必须使用对应的构图技术
+2. **参考样本次优先** — 如果有参考样本，在 layoutStyle 框架内参考样本的具体手法
+3. **格式兜底** — 如果 layoutStyle 未指定，按画布宽高比选择：
+   - 长图（h/w ≥ 2.5）：`classic-stack`
+   - 常规（1.3 ~ 2.5）：`free-composition`
+   - 方形（≤ 1.3）：`center-radial`
 
 ### 内容创作要求（层级清晰，不是字少）
 
@@ -154,6 +260,124 @@ const features = [
     <div style={{ ...typography.caption, fontSize: '12px', color: colors.textMuted }}>{f.desc}</div>
   </div>
 ))}
+```
+
+### 场景适配组件库（根据场景选择最合适的组件形式 — 竞品的核心优势）
+
+**不同场景需要不同的组件形式。不要所有海报都用"标题+文字+卡片"三件套。**
+
+#### 时间轴/流程（活动议程、节目单、历史年表）
+```jsx
+{/* 适用于：年会议程、活动流程、发展历程 */}
+const schedule = [
+  { time: '18:30', title: '签到入场', desc: '红毯迎宾·合影留念' },
+  { time: '19:00', title: '开幕致辞', desc: '集团董事长新年贺词' },
+  { time: '19:30', title: '年度表彰', desc: '优秀团队与个人颁奖' },
+  { time: '20:30', title: '晚宴启幕', desc: '精选中西式自助佳肴' },
+];
+{schedule.map((item, i) => (
+  <div key={i} className="flex items-start gap-6">
+    <div className="flex flex-col items-center">
+      <div className="w-14 h-14 rounded-full flex items-center justify-center"
+           style={{ backgroundColor: colors.accent, border: '2px solid rgba(255,255,255,0.2)' }}>
+        <span className="text-white font-bold" style={{ fontFamily: 'Inter', fontSize: '14px' }}>{item.time}</span>
+      </div>
+      {i < schedule.length - 1 && (
+        <div className="w-0.5 h-16" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }} />
+      )}
+    </div>
+    <div className="flex-1 pt-2 pb-6">
+      <div style={{ ...typography.h2, fontSize: '28px', color: colors.text }}>{item.title}</div>
+      <div className="mt-1" style={{ ...typography.body, fontSize: '20px', color: colors.textMuted }}>{item.desc}</div>
+    </div>
+  </div>
+))}
+```
+
+#### 编号路线/步骤卡片（旅游攻略、操作指南、学习路径）
+```jsx
+{/* 适用于：旅游路线、使用教程、学习计划 */}
+<div className="space-y-6">
+  {/* 步骤 1 — 大编号 + 标题 + 配图 */}
+  <div className="rounded-3xl overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
+    <img src="https://picsum.photos/seed/spot1/800/400"
+         data-seede-image-id="img-spot1"
+         prompt="Beautiful scenic viewpoint with morning light"
+         className="w-full h-52 object-cover" alt="景点1" />
+    <div className="p-6">
+      <div className="flex items-center gap-3 mb-3">
+        <span className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+              style={{ backgroundColor: colors.accent, fontFamily: 'Inter', fontSize: '16px' }}>01</span>
+        <span className="px-3 py-1 rounded-full text-xs font-medium"
+              style={{ backgroundColor: colors.accent, color: '#FFFFFF' }}>推荐</span>
+      </div>
+      <h3 style={{ ...typography.h2, fontSize: '28px', color: colors.text }}>武康路</h3>
+      <p className="mt-2" style={{ ...typography.body, fontSize: '20px', color: colors.textMuted }}>
+        梧桐树下的百年历史建筑，感受老上海的优雅与浪漫
+      </p>
+    </div>
+  </div>
+</div>
+```
+
+#### 商品/产品网格（电商、促销、菜单）
+```jsx
+{/* 适用于：促销商品、餐饮菜单、产品展示 */}
+<div className="grid grid-cols-2 gap-4 px-6">
+  <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+    <img src="https://picsum.photos/seed/product1/400/400"
+         data-seede-image-id="img-p1"
+         prompt="Premium product photography on clean background"
+         className="w-full h-48 object-cover" alt="商品1" />
+    <div className="p-4">
+      <h4 style={{ ...typography.h2, fontSize: '22px', color: colors.text }}>精选商品名称</h4>
+      <div className="flex items-baseline gap-2 mt-2">
+        <span style={{ ...typography.numeric, fontSize: '28px', color: colors.accent }}>¥199</span>
+        <span className="line-through" style={{ ...typography.caption, fontSize: '16px', color: colors.textMuted }}>¥399</span>
+      </div>
+      <div className="mt-3 py-2 text-center rounded-xl" style={{ backgroundColor: colors.accent }}>
+        <span className="text-white font-bold" style={{ fontSize: '16px' }}>立即抢购</span>
+      </div>
+    </div>
+  </div>
+  {/* ... 更多商品卡片 */}
+</div>
+```
+
+#### 核心数据展示（品牌/商务/报告）
+```jsx
+{/* 适用于：企业年报、品牌介绍、数据报告 */}
+<div className="grid grid-cols-3 gap-4 px-6">
+  {[
+    { value: '5.2', unit: '亿+', label: '年营收' },
+    { value: '320', unit: '万+', label: '服务用户' },
+    { value: '98', unit: '%', label: '满意度' },
+  ].map((d, i) => (
+    <div key={i} className="text-center rounded-2xl py-6" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
+      <div className="flex items-baseline justify-center gap-1">
+        <span style={{ ...typography.numeric, fontSize: '42px', color: colors.accent }}>{d.value}</span>
+        <span style={{ ...typography.caption, fontSize: '18px', color: colors.accent }}>{d.unit}</span>
+      </div>
+      <div className="mt-2" style={{ ...typography.caption, fontSize: '16px', color: colors.textMuted }}>{d.label}</div>
+    </div>
+  ))}
+</div>
+```
+
+#### 引用/提示框（科普、教育、知识卡片）
+```jsx
+{/* 适用于：知识科普、小贴士、重要提示 */}
+<div className="rounded-2xl px-6 py-5 flex gap-4" style={{
+  backgroundColor: 'rgba(255,255,255,0.05)',
+  borderLeft: `4px solid ${colors.accent}`
+}}>
+  <div className="flex-1">
+    <div style={{ ...typography.h2, fontSize: '22px', color: colors.accent }}>💡 小贴士</div>
+    <div className="mt-2" style={{ ...typography.body, fontSize: '18px', color: colors.textMuted, lineHeight: 1.7 }}>
+      建议早上8点前到达，避开人流高峰，还能享受清晨最好的光线拍照。
+    </div>
+  </div>
+</div>
 ```
 
 ### 设计节奏（区块间的视觉变化）
@@ -272,7 +496,7 @@ const features = [
 
 ### 布局规则（要点）
 
-1. **画布边界**：所有元素必须在 `{{width}}px × {{height}}px` 范围内，出血元素由外层 `overflow-hidden` 裁切
+1. **画布边界**：固定高度模式下所有元素必须在 `{{width}}px × {{height}}px` 范围内；自适应长图模式下宽度 {{width}}px 不变，高度不限。出血元素由外层 `overflow-hidden` 裁切
 2. **百分比定位优先**：用 `left: '8%'`、`top: '50%'` 让构图更有比例感，而不是死板的像素值
 3. **z-index 叠层**：明确设置 z-index 控制叠层顺序（背景 z-0，主焦点 z-10，装饰 z-5 或 z-20）
 4. **参考样本为准**：样本用 `flex flex-col` 就跟着用，样本用 `absolute` 自由构图就跟着用。**不要机械套用某一种结构**
@@ -287,6 +511,8 @@ const features = [
 - **留白是设计的一部分**：区块之间要有足够的间距（py-12 ~ py-16 或更大），内容不要挤在一起
 - **少即是多**：颜色越少越高级，全篇 2-3 个颜色 > 5-6 个颜色
 - **对比创造层次**：大小对比（标题 text-7xl vs 正文 text-sm）、粗细对比（font-black vs font-light）、色彩明暗对比
+- **区块间要有视觉变化**：相邻 section 的背景色应有区分（如深浅交替），组件形式也应有变化（卡片、列表、网格不要全用同一种）
+- 如果用户消息中有【设计手法参考】，可以自然融入其中适合当前主题的手法，但**不要为了用手法而牺牲整体的整洁和协调**
 
 ### 排版层级（对应守则 4 — 以【字号预算】为准）
 
@@ -310,15 +536,9 @@ const features = [
 
 ### 色彩运用（对应守则 3）
 
-**推荐配色策略（按场景选择）：**
+**配色必须基于设计方案的 gene.style 中的 HEX 值，严格使用 gene.colorStrategy 指定的配色策略。**
 
-| 场景 | 主色 | 强调色 | 文字色 | 效果 |
-|------|------|--------|--------|------|
-| 高端/商务 | gray-900 / slate-900 | yellow-400 / amber-400 | white + white/70 | 深色+金色=奢华感 |
-| 科技/互联网 | blue-900 / indigo-900 | cyan-400 / blue-400 | white + white/60 | 深蓝+亮蓝=科技感 |
-| 促销/电商 | red-600 / red-700 | yellow-400 / orange-400 | white + gray-800 | 红+金=热烈 |
-| 清新/文艺 | white / gray-50 | emerald-500 / teal-500 | gray-800 + gray-500 | 浅底+绿=自然 |
-| 节日/庆典 | red-800 / rose-900 | yellow-300 / amber-300 | white + white/80 | 暗红+金=喜庆 |
+**具体的配色参考（同策略/同色温的真实模板 Token 示例）由后端从配色库动态注入到用户消息的【配色参考】块中。**
 
 **色彩纪律（硬规则）：**
 - **3 色系上限**：主色 + 主色深/浅变体 + 1 个强调色，绝不引入第 4 种无关颜色
@@ -419,28 +639,31 @@ const highlights = [
   </div>
 ))}
 
-{/* ✓ 正确：每张卡片带一张真实的 picsum 占位图 */}
-const highlights = [
-  { seed: 'award',       title: '年度表彰', desc: '荣耀加冕' },
-  { seed: 'stage',       title: '精彩表演', desc: '视听盛宴' },
-  { seed: 'giftbox',     title: '幸运抽奖', desc: '惊喜连连' },
-  { seed: 'finedining',  title: '美馔晚宴', desc: '味蕾之旅' },
-];
-{highlights.map((h, i) => (
-  <div key={i} className="rounded-2xl overflow-hidden flex flex-col">
-    <img
-      src={`https://picsum.photos/seed/${h.seed}/400/260`}
-      data-seede-image-id={`img-highlight-${i + 1}`}
-      prompt={`${h.title} hero image, cinematic lighting`}
-      className="w-full h-40 object-cover"
-      alt={h.title}
-    />
+{/* ✓ 正确：每张卡片的 <img> 单独手写，属性全部是双引号字面量 */}
+{/* （文字内容可以用变量/map，但 <img> 标签必须静态写出） */}
+<div className="grid grid-cols-2 gap-4">
+  <div className="rounded-2xl overflow-hidden flex flex-col">
+    <img src="https://picsum.photos/seed/award/400/260"
+         data-seede-image-id="img-2"
+         prompt="Award ceremony trophy on stage with golden lighting"
+         className="w-full h-40 object-cover" alt="年度表彰" />
     <div className="p-4">
-      <h3 style={{ ...typography.h2, fontSize: '32px' }}>{h.title}</h3>
-      <p style={{ ...typography.caption, fontSize: '20px' }}>{h.desc}</p>
+      <h3 style={{ ...typography.h2, fontSize: '32px' }}>年度表彰</h3>
+      <p style={{ ...typography.caption, fontSize: '20px' }}>荣耀加冕</p>
     </div>
   </div>
-))}
+  <div className="rounded-2xl overflow-hidden flex flex-col">
+    <img src="https://picsum.photos/seed/stage/400/260"
+         data-seede-image-id="img-3"
+         prompt="Grand stage performance with dramatic lighting"
+         className="w-full h-40 object-cover" alt="精彩表演" />
+    <div className="p-4">
+      <h3 style={{ ...typography.h2, fontSize: '32px' }}>精彩表演</h3>
+      <p style={{ ...typography.caption, fontSize: '20px' }}>视听盛宴</p>
+    </div>
+  </div>
+  {/* ... 后续卡片同理，每个 <img> 独立写出 */}
+</div>
 ```
 
 **检查点**：写完组件后，扫描代码中所有 emoji 字符（🏆🎭🎁🍽️🎵⭐✨🔥💎👑🎤🎬 等）。如果它们出现在卡片主体、头像位置、图标圆圈里，全部替换成 `<img>` 标签。只有极少数情况下 emoji 可用：纯文字段落里的装饰点缀、小于 16px 的列表符号。
@@ -505,19 +728,51 @@ picsum.photos 的 `seed/qrcode` 会返回一张随机方形图片占位，在设
 必须使用 `<img>` 标签，优先于 CSS `background-image` 写法。
 **每个 `<img>` 标签添加 `prompt` + `data-seede-image-id` 属性**，`data-seede-image-id` 必须与分析阶段 images 列表中的 `imageId` 一一对应：
 
-```jsx
-{/* 全屏背景图 — 带 prompt 属性 */}
-<img src="https://placehold.co/{{width}}x600/png?text=background"
-     data-seede-image-id="img-1"
-     prompt="A festive celebration scene with warm golden lighting and confetti"
-     className="absolute inset-0 w-full h-full object-cover object-center" />
+#### ⚠️ img 属性必须是双引号静态字符串（后端图片解析硬约束）
 
-{/* 区域内容图 */}
-<img src="https://placehold.co/800x600/png?text=product"
-     data-seede-image-id="img-2"
-     prompt="Premium skincare product bottle on marble surface with soft lighting"
-     className="w-full h-full object-cover rounded-2xl shadow-lg" />
+后端用正则从原始 JSX **代码字符串**中提取 `<img>` 标签的 `src`、`data-seede-image-id`、`prompt` 三个属性。
+**只能匹配 `attr="value"` 格式的双引号字面量**，无法匹配 JSX 花括号表达式 `attr={...}` 或模板字符串。
+
+**因此所有 `<img>` 标签必须满足以下条件：**
+
+1. `src`、`data-seede-image-id`、`prompt` 三个属性都用 **双引号字符串字面量**（`attr="value"`），**禁止**使用 `{...}` 表达式或模板字符串
+2. **禁止在 `.map()` / 循环 / 数组展开中生成 `<img>` 标签** — 循环变量会让属性变成表达式，后端无法解析
+3. 即使有多个类似的卡片/商品需要图片，也必须**逐个手写每个 `<img>` 标签**（文字内容仍可用 `.map()`）
+
+```jsx
+{/* ✗ 严禁：.map() 中生成 <img>（后端正则无法解析花括号表达式） */}
+{products.map((p, i) => (
+  <div key={i}>
+    <img src={`https://picsum.photos/seed/${p.seed}/400/300`}
+         data-seede-image-id={p.id}
+         prompt={`Product photo of ${p.name}`} />
+  </div>
+))}
+
+{/* ✓ 正确：每个 <img> 单独手写，属性全部是双引号字面量 */}
+<div>
+  <img src="https://picsum.photos/seed/smartwatch/400/300"
+       data-seede-image-id="img-2"
+       prompt="Professional product photo of smart watch on white background"
+       className="w-full h-40 object-cover" alt="智能手表" />
+  <div className="p-3">
+    <span style={{ ...typography.body, fontSize: '22px' }}>智能手表</span>
+  </div>
+</div>
+<div>
+  <img src="https://picsum.photos/seed/earbuds/400/300"
+       data-seede-image-id="img-3"
+       prompt="Professional product photo of wireless earbuds on white background"
+       className="w-full h-40 object-cover" alt="无线耳机" />
+  <div className="p-3">
+    <span style={{ ...typography.body, fontSize: '22px' }}>无线耳机</span>
+  </div>
+</div>
 ```
+
+**重要**：文字、价格等非图片内容仍然可以使用 `.map()` —— 只有 `<img>` 标签不行。
+如果卡片很多（>4 个），宁可每个 `<img>` 手写也不要用循环。代码冗长不影响渲染效果，
+但后端无法解析的 `<img>` 会导致**图片永远是随机占位图、与内容完全无关**。
 
 ### 布局要点
 - 全屏背景图必须设置 `absolute inset-0 z-0`，最外层容器设置 `relative overflow-hidden`
@@ -772,7 +1027,7 @@ picsum.photos 的 `seed/qrcode` 会返回一张随机方形图片占位，在设
 
 - **gene.style**：使用方案指定的 primaryColor、accentColor、borderStyle、cornerRadius、shadowLevel、tracking
 - **gene.emotion**：按情绪对应的微参数组合设计（字间距/圆角/阴影/色温必须匹配）
-- **sections**：按 heightPercent 精确分配每个区块的高度（heightPercent × {{height}} / 100 = 区块高度 px）
+- **sections**：固定高度模式下按 heightPercent 精确分配每个区块的高度（heightPercent × {{height}} / 100 = 区块高度 px）；自适应长图模式下 heightPercent 仅作为内容比例参考，不设固定 px 高度
 - **sections.focalPoint**：每个区块的视觉焦点元素必须是该区块中最醒目的
 - **sections.density**：low=留白充裕、medium=适度填充、high=信息密集
 - **images**：使用方案提供的 `imageId + seed + 尺寸`，不要自行替换；代码中的 `<img>` 必须写 `data-seede-image-id="<imageId>"`
@@ -786,9 +1041,14 @@ picsum.photos 的 `seed/qrcode` 会返回一张随机方形图片占位，在设
 4. **彩虹配色**：超过 3 色系 → 用 `colors` Token 对象约束
 5. **遮挡图片**：不透明蒙版盖住背景图 → 蒙版 ≤40%，用 textShadow 保可读性
 6. **emoji 冒充图片**：用 emoji/字母代替人物头像、商品图 → 用 `<img>` 标签
-7. **散乱的样式**：不定义 Token 对象，颜色/字体散落各处 → 必须先定义 `colors` + `typography`
-8. **4 层嵌套背景**：超过 3 层有背景色的 div 嵌套 → 最多 3 层
-9. **违反参考样本**：样本明确用某种结构（如长图 section 堆叠），却自作主张换成另一种 → 模仿样本的手法，不要机械套用死规则
+7. **`.map()` 中生成 `<img>`**：循环中的图片属性变成 JSX 表达式，后端正则无法解析 → 每个 `<img>` 必须单独手写，属性用双引号字面量
+8. **散乱的样式**：不定义 Token 对象，颜色/字体散落各处 → 必须先定义 `colors` + `typography`
+9. **4 层嵌套背景**：超过 3 层有背景色的 div 嵌套 → 最多 3 层
+10. **违反参考样本**：样本明确用某种结构（如长图 section 堆叠），却自作主张换成另一种 → 模仿样本的手法，不要机械套用死规则
+11. **纯色平铺背景**：整个海报或大面积区块只用 `bg-red-600` 或 `bg-blue-900` 这种单一纯色 → 必须用渐变/辉光/深浅交替等高级手法（参见守则 7）
+12. **直角容器**：卡片、按钮、标签用直角矩形 → 所有容器必须有圆角 `rounded-xl` 以上（参见守则 8）
+13. **千篇一律的区块**：所有区块都是"标题+一段文字"的相同结构 → 必须混合使用时间轴、卡片网格、数据展示、引用框等多种组件形式（参见场景适配组件库）
+14. **内容空洞**：一个 section 只有 2-3 个元素 → 竞品一个 section 有 8-12 个元素（标题+副标题+装饰线+图片+3-4张卡片+标签+CTA）
 
 ## 输出格式
 
@@ -797,6 +1057,8 @@ picsum.photos 的 `seed/qrcode` 会返回一张随机方形图片占位，在设
 function Poster() {
   // 在此定义 colors 和 typography Token
   return (
+    {/* 固定高度模式: style={{ width: '{{width}}px', height: '{{height}}px' }} */}
+    {/* 自适应长图模式: style={{ width: '{{width}}px' }}，不设 height */}
     <div style={{ width: '{{width}}px', height: '{{height}}px', backgroundColor: colors.bg }} className="relative overflow-hidden">
       {/* 自由构图：背景层 + 主焦点（巨标/主图/巨型数字）+ 1-3 个辅助元素，全部 absolute 定位 */}
       {/* 构图方式由参考样本决定，不要机械套用单一结构 */}

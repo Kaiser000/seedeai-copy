@@ -1,0 +1,654 @@
+[
+  {
+    "emotion": "专业权威",
+    "templateCount": 214,
+    "tokenExemplars": [
+      {
+        "colors": {
+          "paper": "#FDFCF8",
+          "ink": "#1A1A1A",
+          "highlight": "#FFEB3B",
+          "accentRed": "#E53935",
+          "tape": "rgba(173, 216, 230, 0.5)",
+          "grid": "rgba(0, 0, 0, 0.03)",
+          "markerBlue": "#42A5F5"
+        },
+        "category": "健康医疗",
+        "source": "皮肤科主任的防晒笔记"
+      },
+      {
+        "colors": {
+          "primary": "#0046FF",
+          "secondary": "#00D4FF",
+          "dark": "#0A1128",
+          "gray": "#F8FAFC",
+          "text": "#1E293B",
+          "highlight": "#FF4D00"
+        },
+        "category": "报告报表",
+        "source": "优必选2025年度财报核心解读"
+      },
+      {
+        "colors": {
+          "bg": "#F9F7F2",
+          "primary": "#8C4B2F",
+          "accent": "#3E5A44",
+          "text": "#2D2926",
+          "subText": "#6D675F",
+          "line": "rgba(140, 75, 47, 0.15)"
+        },
+        "category": "旅游行程",
+        "source": "周末去哪儿·上海梧桐区 Citywalk 指南"
+      },
+      {
+        "colors": {
+          "primary": "#1B4332",
+          "secondary": "#2D6A4F",
+          "accent": "#40916C",
+          "bgLight": "#F8FAF9",
+          "textMain": "#1A1A1A",
+          "textSub": "#4A4A4A",
+          "highlight": "#D9411E"
+        },
+        "category": "政策解读",
+        "source": "九江市生态环境损害赔偿工作规定政策解读"
+      },
+      {
+        "colors": {
+          "primary": "#0F172A",
+          "secondary": "#1E293B",
+          "accent": "#B5945F",
+          "textMain": "#F8FAFC",
+          "textBody": "#94A3B8",
+          "bgLight": "#F1F5F9",
+          "white": "#FFFFFF"
+        },
+        "category": "电商产品",
+        "source": "香港重疾险核心优势深度解析"
+      }
+    ],
+    "typicalDecorations": [
+      {
+        "pattern": "absolute-element",
+        "frequency": "90%"
+      },
+      {
+        "pattern": "wide-tracking",
+        "frequency": "66%"
+      },
+      {
+        "pattern": "circle-badge",
+        "frequency": "65%"
+      },
+      {
+        "pattern": "gradient",
+        "frequency": "59%"
+      },
+      {
+        "pattern": "uppercase-label",
+        "frequency": "45%"
+      },
+      {
+        "pattern": "rotation",
+        "frequency": "29%"
+      }
+    ],
+    "preferredLayouts": [
+      {
+        "layout": "flow",
+        "frequency": "35%"
+      },
+      {
+        "layout": "absolute",
+        "frequency": "33%"
+      },
+      {
+        "layout": "flex-col",
+        "frequency": "32%"
+      }
+    ],
+    "formatDistribution": {
+      "常规": 137,
+      "长图": 66,
+      "方形": 11
+    },
+    "avgSectionCount": 11,
+    "avgImageCount": 5
+  },
+  {
+    "emotion": "极简现代",
+    "templateCount": 46,
+    "tokenExemplars": [
+      {
+        "colors": {
+          "primary": "#9333EA",
+          "secondary": "#FAF5FF",
+          "accent": "#A855F7",
+          "dark": "#1F2937",
+          "gray": "#6B7280",
+          "bg": "#FFFFFF",
+          "warning": "#F59E0B",
+          "warningBg": "#FFFBEB"
+        },
+        "category": "科技AI",
+        "source": "OPC一人公司深圳注册全记录"
+      },
+      {
+        "colors": {
+          "bg": "#F5F2E9",
+          "primary": "#324B2C",
+          "accent": "#4A6B43",
+          "white": "#FFFFFF"
+        },
+        "category": "电商产品",
+        "source": "瓯林自然研学长图海报"
+      },
+      {
+        "colors": {
+          "primary": "#0A1628",
+          "accent": "#00D4FF",
+          "glow": "rgba(0, 212, 255, 0.6)",
+          "light": "#FFFFFF",
+          "dark": "#050A10",
+          "glass": "rgba(30, 58, 95, 0.4)"
+        },
+        "category": "电商产品",
+        "source": "未来科技：深蓝电动SUV产品海报"
+      },
+      {
+        "colors": {
+          "primary": "#1A365D",
+          "secondary": "#3182CE",
+          "accent": "#D97706",
+          "neutral": "#F7FAFC",
+          "border": "#E2E8F0",
+          "text": "#2D3748",
+          "subtext": "#718096",
+          "white": "#FFFFFF"
+        },
+        "category": "科技AI",
+        "source": "青少年生成式AI伦理风险及规避路径研究框架"
+      },
+      {
+        "colors": {
+          "bg": "#F8F9F6",
+          "textMain": "#2C3E50",
+          "textLight": "#546E7A",
+          "vegPrimary": "#43A047",
+          "vegLight": "#E8F5E9",
+          "proPrimary": "#F4511E",
+          "proLight": "#FBE9E7",
+          "staplePrimary": "#F9A825",
+          "stapleLight": "#FFF8E1"
+        },
+        "category": "综合海报",
+        "source": "好好吃饭快手早餐指南"
+      }
+    ],
+    "typicalDecorations": [
+      {
+        "pattern": "absolute-element",
+        "frequency": "91%"
+      },
+      {
+        "pattern": "wide-tracking",
+        "frequency": "70%"
+      },
+      {
+        "pattern": "circle-badge",
+        "frequency": "65%"
+      },
+      {
+        "pattern": "gradient",
+        "frequency": "65%"
+      },
+      {
+        "pattern": "uppercase-label",
+        "frequency": "52%"
+      },
+      {
+        "pattern": "rotation",
+        "frequency": "11%"
+      }
+    ],
+    "preferredLayouts": [
+      {
+        "layout": "flex-col",
+        "frequency": "59%"
+      },
+      {
+        "layout": "absolute",
+        "frequency": "26%"
+      },
+      {
+        "layout": "flow",
+        "frequency": "15%"
+      }
+    ],
+    "formatDistribution": {
+      "长图": 18,
+      "常规": 24,
+      "方形": 4
+    },
+    "avgSectionCount": 11,
+    "avgImageCount": 4
+  },
+  {
+    "emotion": "温暖治愈",
+    "templateCount": 30,
+    "tokenExemplars": [
+      {
+        "colors": {
+          "bg": "#FDFBF7",
+          "primary": "#334139",
+          "secondary": "#C89B7B",
+          "accent": "#8DA399",
+          "textLight": "#6B7280",
+          "line": "rgba(51, 65, 57, 0.1)"
+        },
+        "category": "综合海报",
+        "source": "心理学自我滋养视觉长页"
+      },
+      {
+        "colors": {
+          "primary": "#4A6B5D",
+          "primaryLight": "#E8EFEA",
+          "secondary": "#C88C51",
+          "secondaryLight": "#FDF7F1",
+          "bg": "#F8F6F1",
+          "textDark": "#2A3B32",
+          "textMuted": "#5C7065",
+          "white": "#FFFFFF"
+        },
+        "category": "健康医疗",
+        "source": "雨水节气薄荷陈皮茶养生指南"
+      },
+      {
+        "colors": {
+          "primary": "#5A7868",
+          "secondary": "#88A08C",
+          "accent": "#D4A373",
+          "bg": "#FDFCF8",
+          "cardBg": "#FFFFFF",
+          "textDark": "#2C3E50",
+          "textLight": "#607D8B"
+        },
+        "category": "健康医疗",
+        "source": "养生小课堂：小暑绿豆汤进阶煮法海报"
+      },
+      {
+        "colors": {
+          "bg": "#F8F6F1",
+          "textMain": "#3A3331",
+          "textMuted": "#7D736F",
+          "accent1": "#D6C0BC",
+          "accent2": "#B8C3C2",
+          "white": "#FFFFFF",
+          "border": "#E8E1DC"
+        },
+        "category": "综合海报",
+        "source": "情绪梳理疗愈长图"
+      },
+      {
+        "colors": {
+          "primary": "#426850",
+          "primaryLight": "#EDF2EE",
+          "accent": "#D4A373",
+          "textDark": "#2C3530",
+          "textMed": "#5C6B61",
+          "bg": "#FAFAF8",
+          "card": "#FFFFFF",
+          "border": "#E1E8E3"
+        },
+        "category": "健康医疗",
+        "source": "清明健康青团养生指南长图"
+      }
+    ],
+    "typicalDecorations": [
+      {
+        "pattern": "absolute-element",
+        "frequency": "87%"
+      },
+      {
+        "pattern": "circle-badge",
+        "frequency": "53%"
+      },
+      {
+        "pattern": "gradient",
+        "frequency": "47%"
+      },
+      {
+        "pattern": "wide-tracking",
+        "frequency": "43%"
+      },
+      {
+        "pattern": "rotation",
+        "frequency": "30%"
+      },
+      {
+        "pattern": "uppercase-label",
+        "frequency": "27%"
+      }
+    ],
+    "preferredLayouts": [
+      {
+        "layout": "flex-col",
+        "frequency": "67%"
+      },
+      {
+        "layout": "flow",
+        "frequency": "27%"
+      },
+      {
+        "layout": "absolute",
+        "frequency": "7%"
+      }
+    ],
+    "formatDistribution": {
+      "长图": 11,
+      "常规": 17,
+      "方形": 2
+    },
+    "avgSectionCount": 10,
+    "avgImageCount": 5
+  },
+  {
+    "emotion": "高端奢华",
+    "templateCount": 23,
+    "tokenExemplars": [
+      {
+        "colors": {
+          "primary": "#1E3A5F",
+          "secondary": "#2C5282",
+          "accent": "#3182CE",
+          "bg": "#F7FAFC",
+          "text": "#1A202C",
+          "textLight": "#718096",
+          "aia": "#E53E3E",
+          "axa": "#3182CE",
+          "sunlife": "#38A169",
+          "white": "#FFFFFF"
+        },
+        "category": "电商产品",
+        "source": "香港储蓄分红险港风海报"
+      },
+      {
+        "colors": {
+          "bg": "#F7F5F0",
+          "primary": "#1B4D3E",
+          "secondary": "#D4AF37",
+          "text": "#2D3748",
+          "lightText": "#718096",
+          "white": "#FFFFFF"
+        },
+        "category": "旅游行程",
+        "source": "琅勃拉邦三天两晚行程长图"
+      },
+      {
+        "colors": {
+          "red": "#8B1E1E",
+          "darkRed": "#5E0B0B",
+          "gold": "#D4AF37",
+          "lightGold": "#F9F1D8",
+          "bg": "#FFFBF5",
+          "textMain": "#2D2D2D",
+          "textLight": "#666666"
+        },
+        "category": "活动邀请",
+        "source": "左右时间年终大促长图"
+      },
+      {
+        "colors": {
+          "bg": "#0F1020",
+          "primary": "#FFD700",
+          "secondary": "#4F46E5",
+          "text": "#FFFFFF",
+          "textMuted": "#9CA3AF"
+        },
+        "category": "活动邀请",
+        "source": "2026企业年会盛典长图"
+      },
+      {
+        "colors": {
+          "bg": "#0a0a0c",
+          "primary": "#00f2ea",
+          "secondary": "#ff003c",
+          "textMain": "#ffffff",
+          "textSub": "#8b9bb4",
+          "panel": "rgba(255, 255, 255, 0.05)"
+        },
+        "category": "电商产品",
+        "source": "赛博手办电商详情页"
+      }
+    ],
+    "typicalDecorations": [
+      {
+        "pattern": "absolute-element",
+        "frequency": "96%"
+      },
+      {
+        "pattern": "gradient",
+        "frequency": "78%"
+      },
+      {
+        "pattern": "wide-tracking",
+        "frequency": "78%"
+      },
+      {
+        "pattern": "circle-badge",
+        "frequency": "70%"
+      },
+      {
+        "pattern": "uppercase-label",
+        "frequency": "65%"
+      },
+      {
+        "pattern": "rotation",
+        "frequency": "26%"
+      }
+    ],
+    "preferredLayouts": [
+      {
+        "layout": "flex-col",
+        "frequency": "39%"
+      },
+      {
+        "layout": "absolute",
+        "frequency": "30%"
+      },
+      {
+        "layout": "flow",
+        "frequency": "30%"
+      }
+    ],
+    "formatDistribution": {
+      "常规": 17,
+      "长图": 5,
+      "方形": 1
+    },
+    "avgSectionCount": 11,
+    "avgImageCount": 4
+  },
+  {
+    "emotion": "活泼年轻",
+    "templateCount": 6,
+    "tokenExemplars": [
+      {
+        "colors": {
+          "primary": "#FF6B9D",
+          "secondary": "#FFE66D",
+          "accent": "#4ECDC4",
+          "dark": "#2D3436",
+          "light": "#FEF9F6",
+          "warm": "#FF8B60",
+          "purple": "#A29BFE"
+        },
+        "category": "活动邀请",
+        "source": "小胖子12岁生日派对海报"
+      },
+      {
+        "colors": {
+          "bg": "#FFF8F0",
+          "primary": "#FF6B00",
+          "secondary": "#5D7C89",
+          "dark": "#2D3436",
+          "light": "#FFFFFF",
+          "accent": "#F1C40F"
+        },
+        "category": "健康医疗",
+        "source": "猫与老虎科普长图"
+      },
+      {
+        "colors": {
+          "blueDark": "#1E3A8A",
+          "blueMain": "#3B82F6",
+          "blueSoft": "#EFF6FF",
+          "gold": "#F59E0B",
+          "white": "#FFFFFF",
+          "textMain": "#1e293b"
+        },
+        "category": "活动邀请",
+        "source": "公司年会长图"
+      },
+      {
+        "colors": {
+          "yellow": "#FFF200",
+          "cyan": "#00FFFF",
+          "magenta": "#FF00FF",
+          "black": "#000000",
+          "white": "#FFFFFF"
+        },
+        "category": "品牌故事",
+        "source": "波普风咖啡厅长图"
+      },
+      {
+        "colors": {
+          "primary": "#E6004E",
+          "dark": "#111111",
+          "light": "#F8F9FA",
+          "gray": "#666666",
+          "accent": "#005BBB"
+        },
+        "category": "综合海报",
+        "source": "戴森吹风机逻辑推导长图"
+      }
+    ],
+    "typicalDecorations": [
+      {
+        "pattern": "circle-badge",
+        "frequency": "100%"
+      },
+      {
+        "pattern": "absolute-element",
+        "frequency": "100%"
+      },
+      {
+        "pattern": "wide-tracking",
+        "frequency": "67%"
+      },
+      {
+        "pattern": "rotation",
+        "frequency": "50%"
+      },
+      {
+        "pattern": "uppercase-label",
+        "frequency": "50%"
+      },
+      {
+        "pattern": "gradient",
+        "frequency": "33%"
+      }
+    ],
+    "preferredLayouts": [
+      {
+        "layout": "flow",
+        "frequency": "33%"
+      },
+      {
+        "layout": "flex-col",
+        "frequency": "33%"
+      },
+      {
+        "layout": "absolute",
+        "frequency": "33%"
+      }
+    ],
+    "formatDistribution": {
+      "长图": 2,
+      "常规": 4
+    },
+    "avgSectionCount": 15,
+    "avgImageCount": 6
+  },
+  {
+    "emotion": "紧急促销",
+    "templateCount": 5,
+    "tokenExemplars": [
+      {
+        "colors": {
+          "bg": "#F3F1E8",
+          "primary": "#3D5A35",
+          "text": "#3D5A35",
+          "white": "#FFFFFF"
+        },
+        "category": "健康医疗",
+        "source": "xx口腔10周年年终感恩钜惠长图"
+      },
+      {
+        "colors": {
+          "brandRed": "#E63946",
+          "brandOrange": "#F4A261",
+          "brandYellow": "#FFB703",
+          "dark": "#2A1810",
+          "cream": "#FFFCF5",
+          "white": "#FFFFFF",
+          "border": "rgba(42, 24, 16, 0.1)"
+        },
+        "category": "电商产品",
+        "source": "塔斯汀汉堡兰园店集赞促销活动长图"
+      }
+    ],
+    "typicalDecorations": [
+      {
+        "pattern": "absolute-element",
+        "frequency": "80%"
+      },
+      {
+        "pattern": "circle-badge",
+        "frequency": "60%"
+      },
+      {
+        "pattern": "wide-tracking",
+        "frequency": "60%"
+      },
+      {
+        "pattern": "rotation",
+        "frequency": "40%"
+      },
+      {
+        "pattern": "gradient",
+        "frequency": "40%"
+      },
+      {
+        "pattern": "uppercase-label",
+        "frequency": "20%"
+      }
+    ],
+    "preferredLayouts": [
+      {
+        "layout": "flex-col",
+        "frequency": "60%"
+      },
+      {
+        "layout": "absolute",
+        "frequency": "40%"
+      }
+    ],
+    "formatDistribution": {
+      "长图": 2,
+      "常规": 3
+    },
+    "avgSectionCount": 13,
+    "avgImageCount": 5
+  }
+]

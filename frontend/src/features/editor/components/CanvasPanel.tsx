@@ -3,10 +3,16 @@ import { useEditorStore } from '../stores/useEditorStore'
 import { useFabricCanvas } from '../hooks/useFabricCanvas'
 import { loadFonts } from '@/engine/utils/fontLoader'
 import { convertDomToCanvas } from '@/engine/index'
+import { runGeometricAudit } from '@/engine/audit/geometricAudit'
 import { compileJsx, renderToHiddenDom } from '@/features/generation/services/jsxCompiler'
+import { ADAPTIVE_HEIGHT } from '@/features/input/components/SizeSelector'
 import React from 'react'
 import * as ReactDOMClient from 'react-dom/client'
 import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react'
+import { AuditBanner } from './AuditBanner'
+
+/** 自适应长图模式下，渲染前的画布占位高度（仅用于初始显示，渲染后被实测值替换） */
+const ADAPTIVE_PLACEHOLDER_HEIGHT = 3000
 
 interface CanvasPanelProps {
   onLayersChange?: () => void
@@ -21,7 +27,14 @@ export function CanvasPanel({ onLayersChange }: CanvasPanelProps) {
 
   const generatedCode = useEditorStore((s) => s.generatedCode)
   const posterSize = useEditorStore((s) => s.posterSize)
+  const setPosterSize = useEditorStore((s) => s.setPosterSize)
   const setError = useEditorStore((s) => s.setError)
+  const setAuditReport = useEditorStore((s) => s.setAuditReport)
+
+  /** 是否为自适应高度模式（长图） */
+  const isAdaptive = posterSize.height === ADAPTIVE_HEIGHT
+  /** 用于显示和计算的有效高度：自适应模式使用占位高度直到渲染后测量出实际值 */
+  const effectiveHeight = isAdaptive ? ADAPTIVE_PLACEHOLDER_HEIGHT : posterSize.height
 
   const [fontsReady, setFontsReady] = useState(false)
   const [rendering, setRendering] = useState(false)
@@ -52,7 +65,9 @@ export function CanvasPanel({ onLayersChange }: CanvasPanelProps) {
     const { width: cw, height: ch } = container.getBoundingClientRect()
     const pad = 64
     const scaleX = (cw - pad * 2) / posterSize.width
-    const scaleY = (ch - pad * 2) / posterSize.height
+    // 自适应模式下高度可能为 0（尚未渲染），使用占位高度避免除零
+    const displayH = posterSize.height || ADAPTIVE_PLACEHOLDER_HEIGHT
+    const scaleY = (ch - pad * 2) / displayH
     const scale = Math.min(scaleX, scaleY)
     zoomRef.current = Math.max(0.05, Math.min(4, scale))
     panRef.current = { x: 0, y: 0 }
@@ -146,18 +161,25 @@ export function CanvasPanel({ onLayersChange }: CanvasPanelProps) {
     setRendering(true)
     pendingCodeRef.current = null
 
+    // 自适应长图模式：hidden div 使用 auto 高度，渲染后测量实际内容高度
+    const adaptive = posterSize.height === ADAPTIVE_HEIGHT
+
     // 将 hidden div 挂到 document.body 而非组件内部的 overflow:hidden 容器，
     // 避免父容器的 CSS 属性干扰布局计算（getBoundingClientRect）
     const hiddenDiv = document.createElement('div')
     hiddenDiv.style.cssText =
       `position:absolute;visibility:hidden;pointer-events:none;left:-9999px;` +
-      `width:${posterSize.width}px;height:${posterSize.height}px;`
+      `width:${posterSize.width}px;` +
+      (adaptive ? '' : `height:${posterSize.height}px;`)
     document.body.appendChild(hiddenDiv)
 
     try {
       // 调试：输出原始 JSX 代码的前 500 字符，用于排查 LLM 输出格式问题
       console.log('[CanvasPanel] 原始 JSX 代码 (前500字符):', codeToRender.slice(0, 500))
       console.log('[CanvasPanel] 代码总长度:', codeToRender.length)
+      if (adaptive) {
+        console.log('[CanvasPanel] 自适应长图模式 — 渲染后将测量实际高度')
+      }
 
       const compiledJs = await compileJsx(codeToRender)
 
@@ -188,22 +210,81 @@ export function CanvasPanel({ onLayersChange }: CanvasPanelProps) {
         await new Promise((r) => setTimeout(r, 200))
       }
 
+      // ── 自适应高度测量：渲染完成后从 DOM 取实际高度 ──
+      // 对于固定尺寸模式直接使用预设高度；自适应模式从 hidden div 的内容高度推导
+      let resolvedHeight = posterSize.height
+      if (adaptive) {
+        // scrollHeight 包含了 overflow 溢出的内容，是内容的真实高度
+        const measured = hiddenDiv.scrollHeight
+        // 安全下限：即使 LLM 生成了几乎空的内容，也至少保持一个合理的最小高度
+        resolvedHeight = Math.max(measured, posterSize.width)
+        console.log('[CanvasPanel] 自适应长图实测高度:', {
+          scrollHeight: hiddenDiv.scrollHeight,
+          offsetHeight: hiddenDiv.offsetHeight,
+          resolvedHeight,
+        })
+        // 将实测高度回写到 store，后续 export/chat/roll 都使用此值
+        setPosterSize({ ...posterSize, height: resolvedHeight })
+      }
+
       const canvas = getCanvas()
       if (!canvas) return
+
+      // ── 几何审计：在拷贝到 fabric canvas 之前跑一遍规则集 ──
+      // audit 不抛异常，失败只是"发现问题"；写入 store 让 AuditBanner 展示，
+      // 并可被 useAuditRepair 回注到 LLM 做修复。
+      try {
+        const report = runGeometricAudit(hiddenDiv, {
+          width: posterSize.width,
+          height: resolvedHeight,
+        })
+        setAuditReport(report)
+      } catch (auditErr) {
+        // 保险丝：审计模块异常绝不能阻塞渲染主流程
+        console.error('[CanvasPanel] 几何审计异常，跳过:', {
+          error: (auditErr as Error).message,
+        })
+        setAuditReport(null)
+      }
+
       await convertDomToCanvas(
         hiddenDiv,
-        { width: posterSize.width, height: posterSize.height, backgroundColor: '#ffffff' },
+        { width: posterSize.width, height: resolvedHeight, backgroundColor: '#ffffff' },
         canvas,
       )
+
+      // 自适应模式下画布尺寸变化，重新 fit 到屏幕
+      if (adaptive) {
+        setTimeout(() => fitToScreen(), 50)
+      }
+
       onLayersChange?.()
     } catch (err) {
+      const rawMessage = (err as Error).message || 'unknown error'
       console.error('[CanvasPanel] Render pipeline failed:', {
-        error: (err as Error).message,
+        error: rawMessage,
         stack: (err as Error).stack,
         codeLength: codeToRender.length,
         posterSize,
       })
-      setError('生成结果有问题，要重新生成吗？')
+
+      // 渲染失败时清空画布：避免上次成功渲染的 fabric 对象残留，
+      // 让用户误以为"只是局部丢了"。空白画布 + 明确错误条能诚实反映状态。
+      const canvas = getCanvas()
+      if (canvas) {
+        try {
+          canvas.clear()
+          canvas.backgroundColor = '#ffffff'
+          canvas.renderAll()
+          onLayersChange?.()
+        } catch (clearErr) {
+          console.warn('[CanvasPanel] 清空画布失败:', clearErr)
+        }
+      }
+
+      // 把真实错误类型透给用户，LLM typo 这种场景下一眼可见是哪个变量
+      // ReferenceError / SyntaxError / TypeError 等运行时错误都会被捕获
+      setError(`渲染失败：${rawMessage}`)
     } finally {
       document.body.removeChild(hiddenDiv)
       setRendering(false)
@@ -213,7 +294,7 @@ export function CanvasPanel({ onLayersChange }: CanvasPanelProps) {
         runRender(pending)
       }
     }
-  }, [posterSize, getCanvas, onLayersChange, setError]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [posterSize, getCanvas, onLayersChange, setError, setPosterSize, fitToScreen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex flex-col h-full">
@@ -245,7 +326,7 @@ export function CanvasPanel({ onLayersChange }: CanvasPanelProps) {
           <canvas
             ref={canvasElRef}
             width={posterSize.width}
-            height={posterSize.height}
+            height={posterSize.height || effectiveHeight}
             style={{ display: 'block', boxShadow: '0 8px 40px rgba(0,0,0,0.22)' }}
           />
         </div>
@@ -296,13 +377,16 @@ export function CanvasPanel({ onLayersChange }: CanvasPanelProps) {
 
         {/* Canvas size — bottom left */}
         <div className="absolute bottom-4 left-4 text-[11px] text-gray-400 bg-white/80 px-2 py-1 rounded-md z-10">
-          {posterSize.width} × {posterSize.height}
+          {posterSize.width} × {isAdaptive ? '自适应' : posterSize.height}
         </div>
 
         {/* Usage hint — middle mouse pan */}
         <div className="absolute top-3 left-1/2 -translate-x-1/2 text-[11px] text-gray-400 pointer-events-none select-none z-10 opacity-60">
           滚轮缩放 (Ctrl)  ·  中键拖拽平移
         </div>
+
+        {/* 几何审计结果 Banner —— 仅在发现问题时渲染，右上角浮层 */}
+        <AuditBanner />
       </div>
     </div>
   )

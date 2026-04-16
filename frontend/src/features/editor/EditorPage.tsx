@@ -132,7 +132,12 @@ export function EditorPage() {
 
         {error && (
           <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="text-xs text-red-500 max-w-[160px] truncate">{error}</span>
+            <span
+              className="text-xs text-red-500 max-w-[260px] truncate"
+              title={error}
+            >
+              {error}
+            </span>
             <button
               onClick={handleRetry}
               className="text-xs text-white bg-red-500 hover:bg-red-600 px-2.5 py-1 rounded-md transition-colors"

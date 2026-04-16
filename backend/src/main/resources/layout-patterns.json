@@ -1,0 +1,3707 @@
+[
+  {
+    "patternId": "layout-8",
+    "signature": "常规|flow|1-3|img-rich",
+    "frequency": 19,
+    "format": "常规",
+    "topLayout": "flow",
+    "sectionCountBucket": "1-3",
+    "avgSectionCount": 1,
+    "avgImageCount": 8,
+    "typicalRoleSequence": "",
+    "commonSectionRoles": [],
+    "commonDecorations": [
+      "absolute-element",
+      "gradient",
+      "wide-tracking"
+    ],
+    "compatibleCategories": [
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "a885b998-99c7-4420-8cf6-85cd64be4407",
+    "representativeName": "螺丝钉金钉宝主动优选投顾组合策略解析长图",
+    "templateIds": [
+      "a885b998-99c7-4420-8cf6-85cd64be4407",
+      "8b1c0275-96d7-4aa1-b491-a4dd3b2b98fc",
+      "3b297383-915a-45af-944e-036339a728f6",
+      "a255a7e4-7266-4530-9346-04d746bb6383",
+      "20f91a1e-c0d8-4bc1-9584-1a5dc65e68f9",
+      "a1f3d0c4-27f4-49f3-ad99-91e1604b0435",
+      "31b28a03-ced0-49a2-96b6-f4f9a2c14718",
+      "a19ad369-e999-4d6e-b396-d29997571de6",
+      "fba93e72-d058-43d1-a857-7583b04671b4",
+      "8985ee7a-d171-4b3e-b98d-341cd6fb4cb6",
+      "645191da-3df2-4e60-87fd-f770e6104235",
+      "e337f644-6424-46b4-a7f8-5ea362bb9be1",
+      "a9926da2-7336-4ded-b615-f2ca6e5cce1c",
+      "0c75b5d4-c418-42bf-b008-370979b35cd1",
+      "27b2b1c7-29da-4cad-9483-33b580a2d218",
+      "98358cb5-c5fa-4be8-9425-df3f585d2f44",
+      "62df5730-133c-4e2d-b191-a574cafe1f1a",
+      "330065fa-b180-4e3a-8629-9dbff62c54cb",
+      "6b665405-8220-45e9-b141-9c54525c479f"
+    ]
+  },
+  {
+    "patternId": "layout-19",
+    "signature": "常规|flex-col|10+|grid+img-rich",
+    "frequency": 17,
+    "format": "常规",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 15,
+    "avgImageCount": 6,
+    "typicalRoleSequence": "hero → content → content → content → content → content → card-grid → features → features → features → features → footer",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "94%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "71%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "65%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "35%"
+      },
+      {
+        "role": "cta",
+        "pctOfTemplates": "18%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "wide-tracking",
+      "circle-badge",
+      "uppercase-label",
+      "gradient",
+      "rotation"
+    ],
+    "compatibleCategories": [
+      "综合海报",
+      "健康医疗",
+      "活动邀请",
+      "报告报表",
+      "电商产品",
+      "品牌故事",
+      "旅游行程"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "活泼年轻",
+      "紧急促销",
+      "高端奢华"
+    ],
+    "representativeId": "cc9e43b1-ace7-4782-886b-c68ec15729c4",
+    "representativeName": "客悦酒店管理专业代运营海报",
+    "templateIds": [
+      "cc9e43b1-ace7-4782-886b-c68ec15729c4",
+      "72e66de5-d9d1-477d-b00b-c7cec4a4c261",
+      "ae8cee21-1b46-4b73-9534-0e1cdc304f8a",
+      "eb3817af-8397-4409-8f68-bb910bb4d65f",
+      "79051e48-deef-4089-8d5d-4d8c9116abea",
+      "9a00d275-398e-4c10-a5b2-ed4318012bcb",
+      "59780731-e837-403c-b264-833ef2e20824",
+      "66502fe5-2639-4e97-9848-6b1f818722e1",
+      "594467d4-8cb0-48bb-810b-0eb44c2c8ec8",
+      "766d5580-a3b9-4abd-b93e-fc2b79bc156a",
+      "86844f27-d72c-4449-bbd0-a430bb0684b2",
+      "8c13348f-3980-4479-84a8-e477f391e2c9",
+      "b81a832e-aa40-4ddf-a479-b0bcffbd604a",
+      "30870d99-c4f6-4206-8882-0651405b140e",
+      "14c8201c-3608-4f5a-883c-ad11c58000ee",
+      "a3782aeb-7157-4284-8cc1-d7aae22f73d9",
+      "903a3400-7a56-4b32-a548-ac0bbb5f9b44"
+    ]
+  },
+  {
+    "patternId": "layout-11",
+    "signature": "常规|absolute|10+|data+grid+img-rich",
+    "frequency": 15,
+    "format": "常规",
+    "topLayout": "absolute",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 19,
+    "avgImageCount": 6,
+    "typicalRoleSequence": "content → content → hero → hero → hero → content → data-list → grid-content → content → grid-content → footer → content",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "80%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "80%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "53%"
+      },
+      {
+        "role": "cta",
+        "pctOfTemplates": "40%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "circle-badge",
+      "gradient",
+      "wide-tracking",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "设计创意",
+      "综合海报",
+      "教育培训",
+      "品牌故事",
+      "旅游行程",
+      "电商产品",
+      "招聘招生",
+      "科技AI",
+      "活动邀请"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "活泼年轻",
+      "极简现代"
+    ],
+    "representativeId": "74fc866d-257e-40ee-ae8a-7a3d704d2472",
+    "representativeName": "有声书专辑详情",
+    "templateIds": [
+      "74fc866d-257e-40ee-ae8a-7a3d704d2472",
+      "da548d1c-e663-4f95-80e2-06ca3e215b64",
+      "0129aafb-77c6-46e0-bc8a-5fe37374f515",
+      "6f51fba4-72f8-4009-a2d1-b50bd16d0a86",
+      "5bc5c6b7-aa1f-41a1-85ba-268221ea22c8",
+      "f3b45575-2397-4d7d-ba55-a9e2d159a903",
+      "90c31b31-41be-4a22-b110-f2f8d62f906e",
+      "b4075de7-a9be-4fce-b880-40456f5a0a4b",
+      "4a0b9be1-afc8-4e03-b121-c3edaa2598b7",
+      "b419d3f7-d964-437d-95c7-cc17ad732ca1",
+      "754c2094-2c4a-4adf-b2cc-3b5b1f79d4c7",
+      "89b1ccdc-20a7-4c79-b0e3-bacd027fd03a",
+      "db2e8f47-37f4-42be-8f59-e9e9e8632df0",
+      "16724309-a2a5-47e1-80ed-a1e9ea36dea3",
+      "af3d2014-761c-4083-84aa-f288a1d73048"
+    ]
+  },
+  {
+    "patternId": "layout-17",
+    "signature": "常规|flex-col|10+|data+grid+img-rich",
+    "frequency": 14,
+    "format": "常规",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 15,
+    "avgImageCount": 7,
+    "typicalRoleSequence": "hero → content → products → footer → grid-content → content → content → card-grid → footer → cta → content",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "93%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "93%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "64%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "36%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "wide-tracking",
+      "circle-badge",
+      "uppercase-label",
+      "gradient",
+      "rotation"
+    ],
+    "compatibleCategories": [
+      "电商产品",
+      "健康医疗",
+      "品牌故事",
+      "综合海报",
+      "科技AI",
+      "旅游行程"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "温暖治愈",
+      "极简现代",
+      "高端奢华"
+    ],
+    "representativeId": "3ca0c061-5a0e-413c-a3d8-b458ede85b7f",
+    "representativeName": "婴儿推车凉席详情页",
+    "templateIds": [
+      "3ca0c061-5a0e-413c-a3d8-b458ede85b7f",
+      "fa5d274f-8b0b-41e9-8c4b-08f78c789191",
+      "b27add83-500a-41e4-b8f8-8dc1aa0e813e",
+      "67242ecc-62c0-47d7-8bd0-4d640ca68329",
+      "d496d4b3-88a9-4a17-83dd-19da0b1b392c",
+      "f743f0c4-4735-4e1f-8423-035fe187c80f",
+      "8109ea2a-7991-4ff9-8667-d67d9881aa4e",
+      "b5567416-9f6b-4f00-895b-e4c7799a7078",
+      "a0a63eac-12ed-4dc7-9858-7645d2208732",
+      "2d29ce08-a7c6-4d4e-a433-fed3d7765e15",
+      "54dd348d-e40e-4c35-8648-7dec1d64a200",
+      "9fd3efa5-a604-428a-96af-bb9d0d93e238",
+      "d63247d5-6d80-4e74-9033-30d08f61d208",
+      "56b20645-116d-4d42-bcc5-1a49c3ce8a39"
+    ]
+  },
+  {
+    "patternId": "layout-16",
+    "signature": "常规|flex-col|7-10|data",
+    "frequency": 7,
+    "format": "常规",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "7-10",
+    "avgSectionCount": 8,
+    "avgImageCount": 1,
+    "typicalRoleSequence": "hero → hero → content → data-list → content → content → hero → data-list → footer",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "86%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "86%"
+      },
+      {
+        "role": "products",
+        "pctOfTemplates": "14%"
+      },
+      {
+        "role": "timeline",
+        "pctOfTemplates": "14%"
+      }
+    ],
+    "commonDecorations": [
+      "wide-tracking",
+      "absolute-element",
+      "circle-badge",
+      "uppercase-label",
+      "gradient"
+    ],
+    "compatibleCategories": [
+      "读书笔记",
+      "节日节气",
+      "设计创意",
+      "综合海报",
+      "电商产品"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "温暖治愈",
+      "紧急促销",
+      "极简现代"
+    ],
+    "representativeId": "8465a660-75fb-488a-8327-ba50f889bbd2",
+    "representativeName": "外刊打卡学习长图",
+    "templateIds": [
+      "8465a660-75fb-488a-8327-ba50f889bbd2",
+      "17f0174b-d315-4542-a6ce-0dda135f6c76",
+      "6ee8b276-8a8a-451d-ae9e-dcce409d4efc",
+      "57fa4366-e8f7-45ce-a9e4-423ace67a368",
+      "3603ecae-fb86-437f-8e6c-778433656563",
+      "fb74c0cb-c466-4c40-80bf-18fd82e2abdb",
+      "aba4b000-21ab-4c2d-84d9-cac26ff397ab"
+    ]
+  },
+  {
+    "patternId": "layout-35",
+    "signature": "长图|absolute|10+|data+grid+img-rich",
+    "frequency": 7,
+    "format": "长图",
+    "topLayout": "absolute",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 15,
+    "avgImageCount": 5,
+    "typicalRoleSequence": "hero → content → grid-content → content → content → data-list → grid-content → content → content → content → hero",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "86%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "86%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "43%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "43%"
+      }
+    ],
+    "commonDecorations": [
+      "gradient",
+      "absolute-element",
+      "circle-badge",
+      "wide-tracking"
+    ],
+    "compatibleCategories": [
+      "品牌故事",
+      "健康医疗",
+      "旅游行程",
+      "活动邀请",
+      "教育培训"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "温暖治愈",
+      "活泼年轻",
+      "极简现代"
+    ],
+    "representativeId": "e88831c1-99fc-4978-861b-959f77a022d9",
+    "representativeName": "云南特色商品展暨咖啡大赛长图",
+    "templateIds": [
+      "e88831c1-99fc-4978-861b-959f77a022d9",
+      "fb82589a-9dea-4681-872d-25de7fd2bb2e",
+      "b7e4323d-b359-47e1-aa6a-7c659014e881",
+      "052bc85f-142b-45ce-82e3-f72ca7f5fed0",
+      "b2cdc4bc-2951-45a3-bb73-95a8f08bf9b9",
+      "f864eaac-4298-4409-b222-a64c62edd490",
+      "3f89a7f1-9bcf-4d69-bcea-b13b1786450d"
+    ]
+  },
+  {
+    "patternId": "layout-43",
+    "signature": "常规|absolute|10+|grid+img-rich",
+    "frequency": 7,
+    "format": "常规",
+    "topLayout": "absolute",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 17,
+    "avgImageCount": 8,
+    "typicalRoleSequence": "content → content → grid-content → content → hero → content → content → content → grid-content → hero → content → content → content → hero → content → content → content",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "86%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "71%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "57%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "43%"
+      },
+      {
+        "role": "cta",
+        "pctOfTemplates": "14%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "circle-badge",
+      "gradient",
+      "wide-tracking",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "旅游行程",
+      "健康医疗",
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "高端奢华",
+      "专业权威",
+      "极简现代"
+    ],
+    "representativeId": "a3e3c52e-5198-4362-b07c-d53460a66eca",
+    "representativeName": "琅勃拉邦三天两晚行程长图",
+    "templateIds": [
+      "a3e3c52e-5198-4362-b07c-d53460a66eca",
+      "b23fd70b-c4d5-477b-b4c2-79a4bac112be",
+      "e08bde01-f6c6-4f7c-9855-6dd89f6a8b75",
+      "4caa9829-653e-42b5-96f3-cb7d05ea932b",
+      "51cb3a03-7bce-47f7-a42f-88590700622c",
+      "b6d8a81d-c946-4e5a-86e0-1f49ad308046",
+      "354db633-2d1f-49b2-9f0f-c25f6f4a2a3b"
+    ]
+  },
+  {
+    "patternId": "layout-2",
+    "signature": "长图|flow|7-10|data+grid",
+    "frequency": 6,
+    "format": "长图",
+    "topLayout": "flow",
+    "sectionCountBucket": "7-10",
+    "avgSectionCount": 9,
+    "avgImageCount": 1,
+    "typicalRoleSequence": "hero → grid-content → data-list → content → card-grid → content → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "83%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "33%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "absolute-element",
+      "wide-tracking",
+      "uppercase-label",
+      "gradient",
+      "divider-line",
+      "rotation"
+    ],
+    "compatibleCategories": [
+      "报告报表",
+      "设计创意",
+      "读书笔记",
+      "综合海报",
+      "电商产品",
+      "健康医疗"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "温暖治愈"
+    ],
+    "representativeId": "278641d4-82c6-461c-9208-e479fc4babc5",
+    "representativeName": "优必选2025年度财报核心解读",
+    "templateIds": [
+      "278641d4-82c6-461c-9208-e479fc4babc5",
+      "d8be3612-053d-49d7-afd4-ce680aa36520",
+      "b6952f8e-1b25-4c9e-be42-076ee85554fa",
+      "7ef6181a-7f9d-4218-a8da-43e24150f2f3",
+      "a35bf90a-6cac-4774-9d12-c27d554993d7",
+      "ed4be3ce-d5b9-47da-8cdd-43f81c0d4047"
+    ]
+  },
+  {
+    "patternId": "layout-4",
+    "signature": "长图|flex-col|7-10|data+grid+img-rich",
+    "frequency": 6,
+    "format": "长图",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "7-10",
+    "avgSectionCount": 9,
+    "avgImageCount": 4,
+    "typicalRoleSequence": "hero → content → hero → grid-content → content → data-list → content → content → footer → content",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "67%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "33%"
+      }
+    ],
+    "commonDecorations": [
+      "gradient",
+      "absolute-element",
+      "circle-badge",
+      "wide-tracking",
+      "uppercase-label",
+      "rotation",
+      "divider-line"
+    ],
+    "compatibleCategories": [
+      "综合海报",
+      "健康医疗",
+      "教育培训",
+      "节日节气",
+      "政策解读"
+    ],
+    "compatibleEmotions": [
+      "温暖治愈",
+      "专业权威",
+      "极简现代"
+    ],
+    "representativeId": "9f5409c7-cdf3-4ae5-8db5-64b50a15651a",
+    "representativeName": "心理学自我滋养视觉长页",
+    "templateIds": [
+      "9f5409c7-cdf3-4ae5-8db5-64b50a15651a",
+      "1d90d100-7bf8-4137-94ac-4972a871924e",
+      "14f4da05-c7b3-45e0-a1a5-cc58dfeb40cd",
+      "fd467b2c-94c1-4118-bb20-ead582ea065e",
+      "51945e16-f8c9-4e84-a1ef-23a6a479f293",
+      "989d07dd-0c8c-47d9-ac6e-193bbc5f7039"
+    ]
+  },
+  {
+    "patternId": "layout-12",
+    "signature": "长图|absolute|10+|data+grid",
+    "frequency": 6,
+    "format": "长图",
+    "topLayout": "absolute",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 17,
+    "avgImageCount": 1,
+    "typicalRoleSequence": "hero → content → data-list → content → content → content → content → grid-content → content → content → content → content → grid-content → grid-content → content → footer → content",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "83%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "83%"
+      },
+      {
+        "role": "timeline",
+        "pctOfTemplates": "33%"
+      }
+    ],
+    "commonDecorations": [
+      "wide-tracking",
+      "absolute-element",
+      "circle-badge",
+      "gradient",
+      "uppercase-label",
+      "rotation"
+    ],
+    "compatibleCategories": [
+      "健康医疗",
+      "招聘招生",
+      "综合海报",
+      "报告报表"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "fac73ce0-eae0-4263-b34f-c456a27377cb",
+    "representativeName": "起重机械作业安全科普长图",
+    "templateIds": [
+      "fac73ce0-eae0-4263-b34f-c456a27377cb",
+      "99a7c85a-a3bd-4d1b-b88e-aecad9b70629",
+      "82cefad2-e527-4126-8535-15b4d8e6a18d",
+      "e5d4cd77-c2cb-428c-8481-f3a5ace0365f",
+      "be34daf0-f033-4b58-8978-4bd73d5e6a80",
+      "e7aa29fc-4030-41ea-8467-cd3bc8df3af4"
+    ]
+  },
+  {
+    "patternId": "layout-25",
+    "signature": "常规|flow|10+|grid+img-rich",
+    "frequency": 6,
+    "format": "常规",
+    "topLayout": "flow",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 16,
+    "avgImageCount": 7,
+    "typicalRoleSequence": "content → hero → content → grid-content → content → content → content → content → grid-content → grid-content → content → grid-content → footer → content",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "cta",
+        "pctOfTemplates": "33%"
+      }
+    ],
+    "commonDecorations": [
+      "wide-tracking",
+      "absolute-element",
+      "circle-badge",
+      "gradient",
+      "rotation",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "健康医疗",
+      "综合海报",
+      "旅游行程"
+    ],
+    "compatibleEmotions": [
+      "温暖治愈",
+      "专业权威",
+      "高端奢华"
+    ],
+    "representativeId": "13a57129-f848-4103-83ae-08704e9a743a",
+    "representativeName": "养生小课堂：小暑绿豆汤进阶煮法海报",
+    "templateIds": [
+      "13a57129-f848-4103-83ae-08704e9a743a",
+      "54d6cfe5-e074-47b6-a72c-ec4ef4e011b5",
+      "50c9ad03-1c66-4f9d-b04d-50877f5379b4",
+      "70d8b3a9-5ba2-44e6-9ef1-a5498b219a23",
+      "6150cfe0-7d5f-48b1-84de-69e4d2e93d04",
+      "3d38cd11-968b-4ad0-8a5a-d93ae26a9af2"
+    ]
+  },
+  {
+    "patternId": "layout-39",
+    "signature": "长图|flex-col|10+|grid+img-rich",
+    "frequency": 6,
+    "format": "长图",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 16,
+    "avgImageCount": 10,
+    "typicalRoleSequence": "content → hero → content → content → content → card-grid → features → content → content → features → features → content → cta",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "67%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "67%"
+      },
+      {
+        "role": "cta",
+        "pctOfTemplates": "33%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "33%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "wide-tracking",
+      "uppercase-label",
+      "gradient",
+      "circle-badge"
+    ],
+    "compatibleCategories": [
+      "综合海报",
+      "旅游行程",
+      "报告报表",
+      "品牌故事",
+      "健康医疗"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "温暖治愈"
+    ],
+    "representativeId": "ae817d9a-4d92-4d69-bd17-c4b052c57cb7",
+    "representativeName": "绿岛阳光康养度假村长图",
+    "templateIds": [
+      "ae817d9a-4d92-4d69-bd17-c4b052c57cb7",
+      "0974e028-6eaa-4aab-b9c3-b3018231dd7e",
+      "b9ed9c63-97a3-4bc5-ac59-012c962b33e4",
+      "046bd8f8-87b9-4c09-9bde-6af2c8bbb2e7",
+      "a420b3dd-7d25-4485-a374-510c2ff02c36",
+      "518bf48b-7971-4994-9f57-7959a9a34d4c"
+    ]
+  },
+  {
+    "patternId": "layout-47",
+    "signature": "常规|absolute|10+|data+img-rich",
+    "frequency": 6,
+    "format": "常规",
+    "topLayout": "absolute",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 18,
+    "avgImageCount": 4,
+    "typicalRoleSequence": "content → content → data-list → hero → hero → hero → content → content → content → content → content → content → data-list → people → content → content → content → footer → footer",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "83%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "83%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "67%"
+      },
+      {
+        "role": "people",
+        "pctOfTemplates": "17%"
+      },
+      {
+        "role": "rules",
+        "pctOfTemplates": "17%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "absolute-element",
+      "gradient",
+      "wide-tracking",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "品牌故事",
+      "综合海报",
+      "旅游行程"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "高端奢华"
+    ],
+    "representativeId": "b988da78-d3a7-4a3d-86ee-c7f1111ba8e5",
+    "representativeName": "纯禧贵妃小说宣传长图",
+    "templateIds": [
+      "b988da78-d3a7-4a3d-86ee-c7f1111ba8e5",
+      "11197005-37a4-46a7-815c-4911b4311daf",
+      "e4962598-f637-47c0-ba73-f103d1ac1a78",
+      "d2776b5f-166c-41c8-b2c4-f222a6673859",
+      "6e7dc78f-0ce2-41ec-a332-5fb0b8310e33",
+      "eeea78fd-00da-4932-bcde-783bf13edb20"
+    ]
+  },
+  {
+    "patternId": "layout-49",
+    "signature": "常规|flow|10+|data+grid+img-rich",
+    "frequency": 6,
+    "format": "常规",
+    "topLayout": "flow",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 15,
+    "avgImageCount": 6,
+    "typicalRoleSequence": "hero → content → content → content → hero → content → grid-content → content → content → content → content → content → hero → data-list → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "67%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "wide-tracking",
+      "absolute-element",
+      "rotation",
+      "uppercase-label",
+      "gradient",
+      "divider-line"
+    ],
+    "compatibleCategories": [
+      "教育培训",
+      "电商产品",
+      "综合海报",
+      "设计创意",
+      "美食餐饮"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "极简现代",
+      "高端奢华"
+    ],
+    "representativeId": "99c54bf8-222b-4c78-977a-dbbb7b6e734a",
+    "representativeName": "日式拉面课程长图",
+    "templateIds": [
+      "99c54bf8-222b-4c78-977a-dbbb7b6e734a",
+      "7b26b4d5-1e6f-4d56-b29b-ff586a9f3998",
+      "4ed1092a-0da2-42a2-bd5c-18163109dd15",
+      "14a41937-ecf1-4383-8342-d5614ae57b4f",
+      "731d6861-5abf-4e80-b4ea-56cd43459b15",
+      "0511d72a-2812-4bfa-ac37-c4b6bf7e330c"
+    ]
+  },
+  {
+    "patternId": "layout-1",
+    "signature": "常规|flex-col|10+|data+grid",
+    "frequency": 5,
+    "format": "常规",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 17,
+    "avgImageCount": 1,
+    "typicalRoleSequence": "content → hero → content → content → grid-content → content → content → content → content → content → data-list → content → content → content → footer → content → content",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "80%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "20%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "absolute-element",
+      "uppercase-label",
+      "rotation",
+      "wide-tracking",
+      "gradient"
+    ],
+    "compatibleCategories": [
+      "健康医疗",
+      "电商产品",
+      "科技AI",
+      "读书笔记",
+      "设计创意"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "极简现代"
+    ],
+    "representativeId": "7e0c3144-d3eb-4ab2-a457-7e18071ee3cc",
+    "representativeName": "皮肤科主任的防晒笔记",
+    "templateIds": [
+      "7e0c3144-d3eb-4ab2-a457-7e18071ee3cc",
+      "2c00f381-6afb-495a-8c44-3bc6434427e1",
+      "6498fd6e-a7f5-47ed-ae64-a21356ca94c9",
+      "4e04297d-c75d-41fb-b6f8-d3072dabb761",
+      "b0ee2db6-d06d-4e5f-9017-2dae8388635f"
+    ]
+  },
+  {
+    "patternId": "layout-6",
+    "signature": "长图|flex-col|10+|data+grid+img-rich",
+    "frequency": 5,
+    "format": "长图",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 14,
+    "avgImageCount": 8,
+    "typicalRoleSequence": "hero → content → content → card-grid → content → grid-content → content → content → content → data-list → content → data-list → hero",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "80%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "80%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "60%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "40%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "wide-tracking",
+      "absolute-element",
+      "gradient",
+      "uppercase-label",
+      "divider-line",
+      "rotation"
+    ],
+    "compatibleCategories": [
+      "健康医疗",
+      "报告报表",
+      "品牌故事",
+      "旅游行程"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "极简现代",
+      "温暖治愈"
+    ],
+    "representativeId": "0b39c1a6-f1eb-413f-a648-87761df4f897",
+    "representativeName": "废气排放速率科普长图",
+    "templateIds": [
+      "0b39c1a6-f1eb-413f-a648-87761df4f897",
+      "f4a87324-ec5e-4dac-998b-c85fe69d460e",
+      "a8c4f474-490d-4845-a448-8eac94c2f3a5",
+      "d5826cc6-7096-4d65-b950-828725b88328",
+      "c5f7500d-1570-4f24-9a46-6f5e0fc993bc"
+    ]
+  },
+  {
+    "patternId": "layout-27",
+    "signature": "长图|absolute|10+|img-rich",
+    "frequency": 5,
+    "format": "长图",
+    "topLayout": "absolute",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 17,
+    "avgImageCount": 7,
+    "typicalRoleSequence": "hero → content → hero → rules → content → content → content → content → cta → features → products → products → footer → footer → content",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "80%"
+      },
+      {
+        "role": "cta",
+        "pctOfTemplates": "40%"
+      },
+      {
+        "role": "features",
+        "pctOfTemplates": "40%"
+      },
+      {
+        "role": "rules",
+        "pctOfTemplates": "20%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "wide-tracking",
+      "uppercase-label",
+      "rotation",
+      "gradient"
+    ],
+    "compatibleCategories": [
+      "电商产品",
+      "综合海报",
+      "品牌故事"
+    ],
+    "compatibleEmotions": [
+      "紧急促销",
+      "专业权威",
+      "高端奢华",
+      "极简现代"
+    ],
+    "representativeId": "f344d50d-7168-493a-ae0a-6efd8d317f0a",
+    "representativeName": "塔斯汀汉堡兰园店集赞促销活动长图",
+    "templateIds": [
+      "f344d50d-7168-493a-ae0a-6efd8d317f0a",
+      "40888eac-b8cd-4291-b7b6-36037ad38c3c",
+      "6a4c495a-f43f-4989-82c0-439ea65b9287",
+      "de8ac0d1-0c91-4e8a-80a0-8f0c8d5131fd",
+      "bcde5058-b2d4-4edf-8b60-1e56de99cacf"
+    ]
+  },
+  {
+    "patternId": "layout-34",
+    "signature": "常规|absolute|7-10|data+grid+img-rich",
+    "frequency": 5,
+    "format": "常规",
+    "topLayout": "absolute",
+    "sectionCountBucket": "7-10",
+    "avgSectionCount": 8,
+    "avgImageCount": 7,
+    "typicalRoleSequence": "hero → content → card-grid → card-grid → card-grid → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "60%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "20%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "circle-badge",
+      "rotation",
+      "gradient",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "电商产品",
+      "综合海报",
+      "活动邀请"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "feb7d5fd-0d68-45e7-afb0-cf0695b887b5",
+    "representativeName": "大嘴猴水杯全能详情页",
+    "templateIds": [
+      "feb7d5fd-0d68-45e7-afb0-cf0695b887b5",
+      "b9a98119-9ebf-4ae2-bd32-89fcb9a1a556",
+      "40e15c22-9189-4f3e-a361-c083f5bc7c2e",
+      "72561f50-1cca-45c7-a38d-ff4988aad538",
+      "b2e0f2a0-4215-4ef4-b7c0-160794af3e03"
+    ]
+  },
+  {
+    "patternId": "layout-42",
+    "signature": "常规|flex-col|10+|data+img-rich",
+    "frequency": 5,
+    "format": "常规",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 15,
+    "avgImageCount": 5,
+    "typicalRoleSequence": "content → hero → content → content → hero → data-list → content → content → hero → data-list → content → content → hero → data-list → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "cta",
+        "pctOfTemplates": "40%"
+      },
+      {
+        "role": "timeline",
+        "pctOfTemplates": "20%"
+      }
+    ],
+    "commonDecorations": [
+      "gradient",
+      "absolute-element",
+      "circle-badge",
+      "wide-tracking"
+    ],
+    "compatibleCategories": [
+      "综合海报",
+      "活动邀请",
+      "电商产品",
+      "设计创意"
+    ],
+    "compatibleEmotions": [
+      "极简现代",
+      "高端奢华",
+      "温暖治愈"
+    ],
+    "representativeId": "ca875eb0-e432-4d70-97f2-b6ed8680c5e8",
+    "representativeName": "好好吃饭快手早餐指南",
+    "templateIds": [
+      "ca875eb0-e432-4d70-97f2-b6ed8680c5e8",
+      "e0e769fe-3c50-4b99-a979-ee4bb2f5e726",
+      "46a8d21a-b425-47c5-a9cb-cf6cc7aadc55",
+      "e2cf3c9e-4452-4928-b8db-1ab8a9f1c5d8",
+      "92472510-56ca-464c-b191-40328318c110"
+    ]
+  },
+  {
+    "patternId": "layout-3",
+    "signature": "常规|flow|1-3|grid+img-rich",
+    "frequency": 4,
+    "format": "常规",
+    "topLayout": "flow",
+    "sectionCountBucket": "1-3",
+    "avgSectionCount": 1,
+    "avgImageCount": 11,
+    "typicalRoleSequence": "",
+    "commonSectionRoles": [],
+    "commonDecorations": [
+      "absolute-element",
+      "gradient"
+    ],
+    "compatibleCategories": [
+      "电商产品",
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "高端奢华",
+      "专业权威"
+    ],
+    "representativeId": "694d1f5f-e7b1-431e-9524-b7fffc749e01",
+    "representativeName": "东北黑蜂椴树成熟蜜长图",
+    "templateIds": [
+      "694d1f5f-e7b1-431e-9524-b7fffc749e01",
+      "9afc45d0-acb7-4255-9f4d-b89aa02baf95",
+      "d97d1d8b-5e93-4b04-b368-8d9c283505be",
+      "14f8aeee-e78e-4e29-abc0-27ccf621d90c"
+    ]
+  },
+  {
+    "patternId": "layout-18",
+    "signature": "常规|flow|7-10|data+grid+img-rich",
+    "frequency": 4,
+    "format": "常规",
+    "topLayout": "flow",
+    "sectionCountBucket": "7-10",
+    "avgSectionCount": 9,
+    "avgImageCount": 7,
+    "typicalRoleSequence": "hero → features → content → features → features → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "features",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "25%"
+      },
+      {
+        "role": "products",
+        "pctOfTemplates": "25%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "gradient",
+      "wide-tracking",
+      "uppercase-label",
+      "circle-badge"
+    ],
+    "compatibleCategories": [
+      "电商产品",
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "温暖治愈",
+      "极简现代",
+      "高端奢华"
+    ],
+    "representativeId": "72bdde8c-cf7e-48a2-b2c9-fbe826e8921b",
+    "representativeName": "SonicFlow Pro 产品详情长图",
+    "templateIds": [
+      "72bdde8c-cf7e-48a2-b2c9-fbe826e8921b",
+      "031a490e-8b64-44cd-a3fa-4a2f85a01a1f",
+      "86b034b0-39b0-4355-bdac-2d17f093d9cb",
+      "c1715560-6797-4a75-8899-f853b75e438a"
+    ]
+  },
+  {
+    "patternId": "layout-23",
+    "signature": "常规|absolute|7-10|data+grid",
+    "frequency": 4,
+    "format": "常规",
+    "topLayout": "absolute",
+    "sectionCountBucket": "7-10",
+    "avgSectionCount": 9,
+    "avgImageCount": 1,
+    "typicalRoleSequence": "content → hero → features → products → products → grid-content → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "75%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "75%"
+      },
+      {
+        "role": "features",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "products",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "gradient",
+      "absolute-element",
+      "circle-badge",
+      "wide-tracking"
+    ],
+    "compatibleCategories": [
+      "电商产品",
+      "健康医疗",
+      "旅游行程"
+    ],
+    "compatibleEmotions": [
+      "高端奢华",
+      "专业权威"
+    ],
+    "representativeId": "ea741360-ba36-4d57-9bed-bf1ee610269a",
+    "representativeName": "香港储蓄分红险港风海报",
+    "templateIds": [
+      "ea741360-ba36-4d57-9bed-bf1ee610269a",
+      "c5742882-2710-4256-bb96-17c2d3cc5f6a",
+      "653c5bfc-5ede-42e1-af7a-7f3a9574922e",
+      "73b84a6e-5413-4b85-8dc6-658cd8614cb7"
+    ]
+  },
+  {
+    "patternId": "layout-28",
+    "signature": "常规|flow|7-10|data+grid",
+    "frequency": 4,
+    "format": "常规",
+    "topLayout": "flow",
+    "sectionCountBucket": "7-10",
+    "avgSectionCount": 9,
+    "avgImageCount": 2,
+    "typicalRoleSequence": "hero → content → content → products → grid-content → grid-content → content → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "75%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "products",
+        "pctOfTemplates": "25%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "gradient",
+      "wide-tracking",
+      "circle-badge",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "综合海报",
+      "健康医疗",
+      "品牌故事"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "d6a1d400-8490-40c0-8ca5-eb73fa0db32f",
+    "representativeName": "PM FitLine ئامىنو كىسلاتا مەھسۇلاتى تونۇشتۇرۇش",
+    "templateIds": [
+      "d6a1d400-8490-40c0-8ca5-eb73fa0db32f",
+      "5ea133b8-a95b-4113-aa60-b6f30d6a61fd",
+      "9fc3b907-b348-4234-9c5a-aed6a5967f17",
+      "05e208b9-e955-4408-a859-9e0886ebe3b3"
+    ]
+  },
+  {
+    "patternId": "layout-30",
+    "signature": "长图|absolute|7-10|data+grid+img-rich",
+    "frequency": 4,
+    "format": "长图",
+    "topLayout": "absolute",
+    "sectionCountBucket": "7-10",
+    "avgSectionCount": 9,
+    "avgImageCount": 5,
+    "typicalRoleSequence": "content → hero → content → grid-content → features → features → content → cta → footer → content",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "75%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "75%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "75%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "75%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "features",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "wide-tracking",
+      "absolute-element",
+      "gradient",
+      "circle-badge"
+    ],
+    "compatibleCategories": [
+      "电商产品",
+      "品牌故事",
+      "设计创意"
+    ],
+    "compatibleEmotions": [
+      "极简现代",
+      "专业权威"
+    ],
+    "representativeId": "af3db8cd-8884-4b9b-bb59-3b4f10752bb3",
+    "representativeName": "未来科技：深蓝电动SUV产品海报",
+    "templateIds": [
+      "af3db8cd-8884-4b9b-bb59-3b4f10752bb3",
+      "8ce8086d-3920-4b0a-b788-3a2ba3f67773",
+      "5224c3b0-34e4-49ec-a52d-bf4f3c594b09",
+      "a6417899-b8a5-4393-b8ef-5dc9439ed74c"
+    ]
+  },
+  {
+    "patternId": "layout-38",
+    "signature": "常规|flex-col|7-10|data+grid",
+    "frequency": 4,
+    "format": "常规",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "7-10",
+    "avgSectionCount": 9,
+    "avgImageCount": 2,
+    "typicalRoleSequence": "content → content → content → grid-content → content → content → content → content → data-list → footer",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "75%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "75%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "timeline",
+        "pctOfTemplates": "25%"
+      }
+    ],
+    "commonDecorations": [
+      "wide-tracking",
+      "absolute-element",
+      "circle-badge",
+      "uppercase-label",
+      "gradient"
+    ],
+    "compatibleCategories": [
+      "科技AI",
+      "旅游行程",
+      "综合海报",
+      "活动邀请"
+    ],
+    "compatibleEmotions": [
+      "极简现代",
+      "温暖治愈"
+    ],
+    "representativeId": "dc6d784c-6c5d-4b5d-9ad6-55b17f3b527a",
+    "representativeName": "青少年生成式AI伦理风险及规避路径研究框架",
+    "templateIds": [
+      "dc6d784c-6c5d-4b5d-9ad6-55b17f3b527a",
+      "a85d499e-ac15-440b-9d30-2667588944bd",
+      "9b7b9a0d-db11-4389-94b5-f7ef14efa154",
+      "376bc2bf-a1ba-4026-8d3d-dede6a91e470"
+    ]
+  },
+  {
+    "patternId": "layout-44",
+    "signature": "长图|flex-col|10+|data",
+    "frequency": 4,
+    "format": "长图",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 16,
+    "avgImageCount": 2,
+    "typicalRoleSequence": "hero → content → content → data-list → content → content → data-list → content → data-list → content → data-list → content",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "75%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "rules",
+        "pctOfTemplates": "25%"
+      },
+      {
+        "role": "timeline",
+        "pctOfTemplates": "25%"
+      }
+    ],
+    "commonDecorations": [
+      "wide-tracking",
+      "absolute-element",
+      "circle-badge",
+      "gradient",
+      "rotation",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "健康医疗",
+      "招聘招生",
+      "活动邀请"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "3d4a45e2-7658-4ffa-bd21-b067d457ceda",
+    "representativeName": "精神科顾问活动专题页",
+    "templateIds": [
+      "3d4a45e2-7658-4ffa-bd21-b067d457ceda",
+      "cd93be83-1108-4962-8cf3-c1cbb8c56022",
+      "f66dd303-c391-429f-80bb-b4d19b67f73d",
+      "006b3d3e-53af-473d-bcc1-b720603604cb"
+    ]
+  },
+  {
+    "patternId": "layout-5",
+    "signature": "长图|flex-col|4-6|data+grid+img-rich",
+    "frequency": 3,
+    "format": "长图",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "4-6",
+    "avgSectionCount": 6,
+    "avgImageCount": 10,
+    "typicalRoleSequence": "hero → hero → card-grid → hero → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "67%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "67%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "33%"
+      }
+    ],
+    "commonDecorations": [
+      "gradient",
+      "absolute-element",
+      "circle-badge",
+      "wide-tracking",
+      "uppercase-label",
+      "rotation"
+    ],
+    "compatibleCategories": [
+      "品牌故事",
+      "旅游行程",
+      "健康医疗"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "极简现代"
+    ],
+    "representativeId": "2dac6384-b870-4925-a517-70a6426f4387",
+    "representativeName": "青岛啤酒经典百年传承长图",
+    "templateIds": [
+      "2dac6384-b870-4925-a517-70a6426f4387",
+      "72a5d676-8e74-4379-9d82-8b17c74a2a61",
+      "e0f01c0b-e7aa-4288-b8e6-8a7f46acae99"
+    ]
+  },
+  {
+    "patternId": "layout-14",
+    "signature": "长图|flex-col|10+|data+grid",
+    "frequency": 3,
+    "format": "长图",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 15,
+    "avgImageCount": 1,
+    "typicalRoleSequence": "content → hero → content → content → content → content → data-list → content → grid-content → content → grid-content → footer → content",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "67%"
+      }
+    ],
+    "commonDecorations": [
+      "wide-tracking",
+      "absolute-element",
+      "circle-badge",
+      "gradient",
+      "rotation",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "政策解读",
+      "健康医疗",
+      "设计创意"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "紧急促销",
+      "极简现代"
+    ],
+    "representativeId": "87576568-8258-4d61-8aa3-6d6b68adde45",
+    "representativeName": "垦利区属地管理五+模式深度解读",
+    "templateIds": [
+      "87576568-8258-4d61-8aa3-6d6b68adde45",
+      "79ebaace-79c0-4f62-9c82-35511895e600",
+      "bb138b98-034b-477e-bb45-552c435ac6e4"
+    ]
+  },
+  {
+    "patternId": "layout-15",
+    "signature": "长图|flex-col|10+|img-rich",
+    "frequency": 3,
+    "format": "长图",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 12,
+    "avgImageCount": 5,
+    "typicalRoleSequence": "hero → content → content → content → content → content → content → content → content → content → content",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "67%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "circle-badge",
+      "wide-tracking",
+      "gradient",
+      "rotation",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "健康医疗",
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "高端奢华",
+      "极简现代"
+    ],
+    "representativeId": "46aee846-a02c-4cef-a1de-f6b6c2196982",
+    "representativeName": "清明节气口腔健康海报",
+    "templateIds": [
+      "46aee846-a02c-4cef-a1de-f6b6c2196982",
+      "c0458a38-9fe5-4c1e-a709-2ccf93a52df9",
+      "11f5afdb-a9b7-4e6f-97b5-a5e59910616c"
+    ]
+  },
+  {
+    "patternId": "layout-22",
+    "signature": "长图|flow|10+|data+grid+img-rich",
+    "frequency": 3,
+    "format": "长图",
+    "topLayout": "flow",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 14,
+    "avgImageCount": 7,
+    "typicalRoleSequence": "hero → features → content → content → content → content → card-grid → content → timeline → grid-content → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "features",
+        "pctOfTemplates": "67%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "67%"
+      },
+      {
+        "role": "timeline",
+        "pctOfTemplates": "67%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "rotation",
+      "circle-badge",
+      "wide-tracking",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "健康医疗",
+      "活动邀请",
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "活泼年轻"
+    ],
+    "representativeId": "26b63824-a235-48ab-9a3e-5131ec2d7dfd",
+    "representativeName": "悠兰里自然科普研学长图海报",
+    "templateIds": [
+      "26b63824-a235-48ab-9a3e-5131ec2d7dfd",
+      "2085d98f-e4d1-4b2a-8676-f337d3694055",
+      "e4b95b79-8aee-472d-b9ad-3e797a769373"
+    ]
+  },
+  {
+    "patternId": "layout-29",
+    "signature": "常规|absolute|10+|grid",
+    "frequency": 3,
+    "format": "常规",
+    "topLayout": "absolute",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 15,
+    "avgImageCount": 1,
+    "typicalRoleSequence": "content → content → content → content → content → grid-content → content → content → content → content → hero → content → content → content → content → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "rules",
+        "pctOfTemplates": "33%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "rotation",
+      "wide-tracking",
+      "uppercase-label",
+      "circle-badge",
+      "gradient"
+    ],
+    "compatibleCategories": [
+      "综合海报",
+      "活动邀请",
+      "读书笔记"
+    ],
+    "compatibleEmotions": [
+      "温暖治愈",
+      "专业权威"
+    ],
+    "representativeId": "904348a9-1c41-4820-94a0-6ababf2e7b0f",
+    "representativeName": "情绪梳理疗愈长图",
+    "templateIds": [
+      "904348a9-1c41-4820-94a0-6ababf2e7b0f",
+      "77da4721-ecc4-4fa5-bd88-721a78638a43",
+      "8ca3788b-3135-443b-b3aa-b713c3afcc95"
+    ]
+  },
+  {
+    "patternId": "layout-36",
+    "signature": "常规|flow|1-3|",
+    "frequency": 3,
+    "format": "常规",
+    "topLayout": "flow",
+    "sectionCountBucket": "1-3",
+    "avgSectionCount": 1,
+    "avgImageCount": 1,
+    "typicalRoleSequence": "",
+    "commonSectionRoles": [],
+    "commonDecorations": [
+      "absolute-element",
+      "rotation",
+      "circle-badge"
+    ],
+    "compatibleCategories": [
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "9eea5179-1f0f-4097-a17a-b0ad150c208c",
+    "representativeName": "消防设施操作员职报名政策",
+    "templateIds": [
+      "9eea5179-1f0f-4097-a17a-b0ad150c208c",
+      "4877dac4-0617-4377-8c7f-0022f67f2a53",
+      "29c5585b-c5a0-4b26-8329-6d666c7fa62c"
+    ]
+  },
+  {
+    "patternId": "layout-37",
+    "signature": "长图|flow|10+|data",
+    "frequency": 3,
+    "format": "长图",
+    "topLayout": "flow",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 14,
+    "avgImageCount": 1,
+    "typicalRoleSequence": "hero → content → content → data-list → hero → hero → hero → content → content → content → content → content → content → content → content → content → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "67%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "67%"
+      }
+    ],
+    "commonDecorations": [
+      "wide-tracking",
+      "absolute-element",
+      "uppercase-label",
+      "divider-line",
+      "circle-badge",
+      "gradient"
+    ],
+    "compatibleCategories": [
+      "健康医疗",
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "温暖治愈",
+      "极简现代",
+      "专业权威"
+    ],
+    "representativeId": "e62de5b9-c7b7-4b83-9cc2-ae09ae4c5bfa",
+    "representativeName": "四季睡衣选购指南长图",
+    "templateIds": [
+      "e62de5b9-c7b7-4b83-9cc2-ae09ae4c5bfa",
+      "f3c8ee53-b665-46d6-b451-3cc2daa392b7",
+      "c1dfbc13-dadf-4611-87fb-25b5d67f4619"
+    ]
+  },
+  {
+    "patternId": "layout-40",
+    "signature": "长图|absolute|10+|grid+img-rich",
+    "frequency": 3,
+    "format": "长图",
+    "topLayout": "absolute",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 17,
+    "avgImageCount": 9,
+    "typicalRoleSequence": "hero → hero → content → content → content → content → content → content → content → content → content → content → grid-content → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "67%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "67%"
+      },
+      {
+        "role": "products",
+        "pctOfTemplates": "33%"
+      },
+      {
+        "role": "features",
+        "pctOfTemplates": "33%"
+      }
+    ],
+    "commonDecorations": [
+      "gradient",
+      "absolute-element",
+      "circle-badge",
+      "divider-line",
+      "wide-tracking",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "健康医疗",
+      "电商产品",
+      "旅游行程"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "8162fff9-2c26-4387-8460-b397d86bf254",
+    "representativeName": "四季香薰助好眠长图",
+    "templateIds": [
+      "8162fff9-2c26-4387-8460-b397d86bf254",
+      "8eda7c8a-fe23-4bf7-8256-00c6e32c664a",
+      "3c7bd58a-a76f-415c-8fd4-41c887ad07cd"
+    ]
+  },
+  {
+    "patternId": "layout-41",
+    "signature": "常规|absolute|10+|data+grid",
+    "frequency": 3,
+    "format": "常规",
+    "topLayout": "absolute",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 13,
+    "avgImageCount": 1,
+    "typicalRoleSequence": "content → content → hero → content → content → content → content → rules → grid-content → hero → footer",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "67%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "67%"
+      },
+      {
+        "role": "rules",
+        "pctOfTemplates": "33%"
+      },
+      {
+        "role": "products",
+        "pctOfTemplates": "33%"
+      }
+    ],
+    "commonDecorations": [
+      "gradient",
+      "wide-tracking",
+      "absolute-element",
+      "rotation",
+      "uppercase-label",
+      "circle-badge"
+    ],
+    "compatibleCategories": [
+      "综合海报",
+      "电商产品",
+      "设计创意"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "17c55ae1-211f-4519-922d-eb7afe991dca",
+    "representativeName": "河北分公司诚信服务大使积分方案",
+    "templateIds": [
+      "17c55ae1-211f-4519-922d-eb7afe991dca",
+      "30751159-cf0a-4ccb-895a-e705babcad1c",
+      "f842556f-1c96-4207-94fd-3a8d0375a64f"
+    ]
+  },
+  {
+    "patternId": "layout-48",
+    "signature": "长图|flex-col|10+|data+img-rich",
+    "frequency": 3,
+    "format": "长图",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 14,
+    "avgImageCount": 4,
+    "typicalRoleSequence": "content → hero → content → content → content → hero → data-list → hero → content → content → content → footer → content",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "67%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "67%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "gradient",
+      "absolute-element",
+      "wide-tracking",
+      "rotation",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "活动邀请",
+      "健康医疗",
+      "科技AI"
+    ],
+    "compatibleEmotions": [
+      "高端奢华",
+      "专业权威",
+      "极简现代"
+    ],
+    "representativeId": "6f70ce82-f925-4438-a461-fc9723a76160",
+    "representativeName": "左右时间年终大促长图",
+    "templateIds": [
+      "6f70ce82-f925-4438-a461-fc9723a76160",
+      "f8cceb5b-0320-4355-9a83-a307c96c39fa",
+      "2df8bfe6-4d7b-4e9d-8c5b-023dc5b9be4b"
+    ]
+  },
+  {
+    "patternId": "layout-54",
+    "signature": "常规|flow|10+|data",
+    "frequency": 3,
+    "format": "常规",
+    "topLayout": "flow",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 16,
+    "avgImageCount": 2,
+    "typicalRoleSequence": "hero → people → data-list → hero → hero → content → content → content → content → content → people → content → people → content → content → rules → footer → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "people",
+        "pctOfTemplates": "33%"
+      },
+      {
+        "role": "rules",
+        "pctOfTemplates": "33%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "absolute-element",
+      "gradient",
+      "wide-tracking",
+      "divider-line"
+    ],
+    "compatibleCategories": [
+      "健康医疗",
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "13a87d27-ae5a-42cc-9428-88cda6c547f0",
+    "representativeName": "肩袖损伤及疼痛中西医结合会议长图",
+    "templateIds": [
+      "13a87d27-ae5a-42cc-9428-88cda6c547f0",
+      "6767cce9-28f3-4dfc-ad58-27c5be0b8247",
+      "f8582637-4888-4ee2-a2c2-08bbbd19fdb8"
+    ]
+  },
+  {
+    "patternId": "layout-55",
+    "signature": "长图|absolute|10+|data+img-rich",
+    "frequency": 3,
+    "format": "长图",
+    "topLayout": "absolute",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 16,
+    "avgImageCount": 3,
+    "typicalRoleSequence": "content → content → hero → content → content → data-list → content → content → content → content → data-list → footer → cta → content",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "cta",
+        "pctOfTemplates": "33%"
+      }
+    ],
+    "commonDecorations": [
+      "gradient",
+      "wide-tracking",
+      "absolute-element",
+      "circle-badge",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "教育培训",
+      "电商产品",
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "bfc80f9c-6b79-44e6-b77d-7562c6d521a9",
+    "representativeName": "交易黄埔军校长图",
+    "templateIds": [
+      "bfc80f9c-6b79-44e6-b77d-7562c6d521a9",
+      "9a5a12ee-c549-4b97-b42e-d495ef8a211b",
+      "b6f3ff98-1ac9-4864-ae6b-84a4ca69a58f"
+    ]
+  },
+  {
+    "patternId": "layout-61",
+    "signature": "常规|absolute|10+|img-rich",
+    "frequency": 3,
+    "format": "常规",
+    "topLayout": "absolute",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 16,
+    "avgImageCount": 4,
+    "typicalRoleSequence": "hero → content → content → content → content → content → content → content → content → content → content → content → content → content → content → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "circle-badge",
+      "wide-tracking",
+      "gradient",
+      "rotation"
+    ],
+    "compatibleCategories": [
+      "品牌故事",
+      "活动邀请",
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "高端奢华",
+      "极简现代",
+      "专业权威"
+    ],
+    "representativeId": "afc88ac4-6732-45b5-9f34-931bd71dff06",
+    "representativeName": "万豪旅享家酒店营销长图",
+    "templateIds": [
+      "afc88ac4-6732-45b5-9f34-931bd71dff06",
+      "d95e3438-f615-408b-a9a6-be655bfed39c",
+      "735152aa-1ba6-47ac-ad16-d8d1db0d29be"
+    ]
+  },
+  {
+    "patternId": "layout-7",
+    "signature": "长图|flex-col|7-10|data",
+    "frequency": 2,
+    "format": "长图",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "7-10",
+    "avgSectionCount": 8,
+    "avgImageCount": 2,
+    "typicalRoleSequence": "hero → people → content → content → data-list → features → footer → content",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "people",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "features",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "divider-line",
+      "gradient",
+      "rotation",
+      "absolute-element",
+      "wide-tracking",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "政策解读",
+      "教育培训"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "2b2a2d2f-7247-43f4-9d5c-c1366ef8bcac",
+    "representativeName": "九江市生态环境损害赔偿工作规定政策解读",
+    "templateIds": [
+      "2b2a2d2f-7247-43f4-9d5c-c1366ef8bcac",
+      "f9e10549-41d4-4d05-96d6-39ff28e82a24"
+    ]
+  },
+  {
+    "patternId": "layout-9",
+    "signature": "长图|flow|7-10|data+grid+img-rich",
+    "frequency": 2,
+    "format": "长图",
+    "topLayout": "flow",
+    "sectionCountBucket": "7-10",
+    "avgSectionCount": 8,
+    "avgImageCount": 4,
+    "typicalRoleSequence": "hero → content → content → hero → grid-content → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "features",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "gradient",
+      "rotation",
+      "wide-tracking",
+      "uppercase-label",
+      "absolute-element"
+    ],
+    "compatibleCategories": [
+      "电商产品"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "高端奢华"
+    ],
+    "representativeId": "732b6d2d-aa8f-4e89-9fcb-3d915d489fe4",
+    "representativeName": "香港重疾险核心优势深度解析",
+    "templateIds": [
+      "732b6d2d-aa8f-4e89-9fcb-3d915d489fe4",
+      "8bd18526-7153-4995-8b2c-3aa39c9899f1"
+    ]
+  },
+  {
+    "patternId": "layout-10",
+    "signature": "长图|flex-col|7-10|data+grid",
+    "frequency": 2,
+    "format": "长图",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "7-10",
+    "avgSectionCount": 9,
+    "avgImageCount": 2,
+    "typicalRoleSequence": "hero → content → timeline → grid-content → data-list → data-list → timeline → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "timeline",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "gradient",
+      "absolute-element"
+    ],
+    "compatibleCategories": [
+      "综合海报",
+      "科技AI"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "极简现代"
+    ],
+    "representativeId": "28911a06-e603-4467-ada5-52c88e86c70a",
+    "representativeName": "2026年个人所得税退税全攻略",
+    "templateIds": [
+      "28911a06-e603-4467-ada5-52c88e86c70a",
+      "e0bdb506-8ebc-4c3e-87e9-57982881eede"
+    ]
+  },
+  {
+    "patternId": "layout-13",
+    "signature": "长图|flex-col|10+|grid",
+    "frequency": 2,
+    "format": "长图",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 15,
+    "avgImageCount": 2,
+    "typicalRoleSequence": "content → content → content → content → content → content → content → grid-content → content → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "timeline",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "absolute-element"
+    ],
+    "compatibleCategories": [
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "ddad8bec-5336-4976-bb1c-c19a1bf1d64c",
+    "representativeName": "111知行半月读复古报纸长图",
+    "templateIds": [
+      "ddad8bec-5336-4976-bb1c-c19a1bf1d64c",
+      "d33a583a-9c01-430d-a191-ac20b20f0a52"
+    ]
+  },
+  {
+    "patternId": "layout-20",
+    "signature": "常规|flex-col|4-6|",
+    "frequency": 2,
+    "format": "常规",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "4-6",
+    "avgSectionCount": 5,
+    "avgImageCount": 1,
+    "typicalRoleSequence": "content → content → content → content",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "wide-tracking",
+      "uppercase-label",
+      "absolute-element"
+    ],
+    "compatibleCategories": [
+      "设计创意",
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "69e0fe33-2422-4614-be91-baa6c94e7600",
+    "representativeName": "Philosophical Design Poster",
+    "templateIds": [
+      "69e0fe33-2422-4614-be91-baa6c94e7600",
+      "85bdac7c-d738-4cd2-9b2b-f4d1a9264459"
+    ]
+  },
+  {
+    "patternId": "layout-21",
+    "signature": "常规|absolute|4-6|",
+    "frequency": 2,
+    "format": "常规",
+    "topLayout": "absolute",
+    "sectionCountBucket": "4-6",
+    "avgSectionCount": 5,
+    "avgImageCount": 0,
+    "typicalRoleSequence": "hero → content → content → content → content",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "timeline",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "wide-tracking"
+    ],
+    "compatibleCategories": [
+      "健康医疗",
+      "电商产品"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "紧急促销"
+    ],
+    "representativeId": "4fb1c272-1d8f-4db8-ac42-7f2f4f96a66e",
+    "representativeName": "千滚水隔夜水健康科普海报",
+    "templateIds": [
+      "4fb1c272-1d8f-4db8-ac42-7f2f4f96a66e",
+      "638833ed-6f0e-406b-8ba2-17ea32ad358d"
+    ]
+  },
+  {
+    "patternId": "layout-24",
+    "signature": "常规|flex-col|10+|grid",
+    "frequency": 2,
+    "format": "常规",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 21,
+    "avgImageCount": 2,
+    "typicalRoleSequence": "hero → hero → hero → content → content → content → content → content → content → content → timeline → content → content → content → content → grid-content → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "timeline",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "products",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "wide-tracking",
+      "absolute-element",
+      "gradient",
+      "rotation",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "健康医疗",
+      "电商产品"
+    ],
+    "compatibleEmotions": [
+      "温暖治愈",
+      "专业权威"
+    ],
+    "representativeId": "a56c3eae-d91a-41fb-8b30-4cb401a87cdc",
+    "representativeName": "雨水节气薄荷陈皮茶养生指南",
+    "templateIds": [
+      "a56c3eae-d91a-41fb-8b30-4cb401a87cdc",
+      "3ac2a35e-d39b-4d30-b06e-c77af766b502"
+    ]
+  },
+  {
+    "patternId": "layout-26",
+    "signature": "常规|absolute|7-10|",
+    "frequency": 2,
+    "format": "常规",
+    "topLayout": "absolute",
+    "sectionCountBucket": "7-10",
+    "avgSectionCount": 10,
+    "avgImageCount": 1,
+    "typicalRoleSequence": "content → hero → content → content → content → content → content → footer → content",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "people",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "cta",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "wide-tracking",
+      "absolute-element",
+      "divider-line",
+      "rotation",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "综合海报",
+      "读书笔记"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "bfa69200-7087-4b56-a9ee-19b6b1fb378c",
+    "representativeName": "律所合规与发展深度解析",
+    "templateIds": [
+      "bfa69200-7087-4b56-a9ee-19b6b1fb378c",
+      "5fe15c7e-d336-4a53-b995-0b5875e0c322"
+    ]
+  },
+  {
+    "patternId": "layout-31",
+    "signature": "方形|absolute|7-10|",
+    "frequency": 2,
+    "format": "方形",
+    "topLayout": "absolute",
+    "sectionCountBucket": "7-10",
+    "avgSectionCount": 7,
+    "avgImageCount": 1,
+    "typicalRoleSequence": "content → content → content → content → content → content → content",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "gradient",
+      "wide-tracking",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "综合海报",
+      "科技AI"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "极简现代"
+    ],
+    "representativeId": "e3f47acf-672d-4ca1-8f82-0bd945fb7c11",
+    "representativeName": "四川天府新区直管区政府投资管理办法信息图",
+    "templateIds": [
+      "e3f47acf-672d-4ca1-8f82-0bd945fb7c11",
+      "75b53f4b-39d0-4dfd-a30e-cbbe1e03a356"
+    ]
+  },
+  {
+    "patternId": "layout-32",
+    "signature": "常规|absolute|7-10|grid",
+    "frequency": 2,
+    "format": "常规",
+    "topLayout": "absolute",
+    "sectionCountBucket": "7-10",
+    "avgSectionCount": 10,
+    "avgImageCount": 1,
+    "typicalRoleSequence": "content → content → content → content → content → grid-content → content → footer → footer → content",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "gradient",
+      "rotation",
+      "wide-tracking"
+    ],
+    "compatibleCategories": [
+      "活动邀请"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "60f5bb65-fc7f-4244-a84b-7e137cb2423c",
+    "representativeName": "艺善享书苑公益读书会长图邀请函",
+    "templateIds": [
+      "60f5bb65-fc7f-4244-a84b-7e137cb2423c",
+      "594c099a-1e5a-4911-b999-fbc343144be0"
+    ]
+  },
+  {
+    "patternId": "layout-33",
+    "signature": "长图|flex-col|4-6|data+grid",
+    "frequency": 2,
+    "format": "长图",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "4-6",
+    "avgSectionCount": 5,
+    "avgImageCount": 2,
+    "typicalRoleSequence": "hero → card-grid → data-list → content",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "products",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "wide-tracking",
+      "divider-line",
+      "gradient",
+      "absolute-element",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "教育培训",
+      "品牌故事"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "5d5ef7c1-0490-450a-9a8a-87e18f78af75",
+    "representativeName": "女神节烘焙营销课程长图",
+    "templateIds": [
+      "5d5ef7c1-0490-450a-9a8a-87e18f78af75",
+      "ab2f2482-aa60-45ca-a175-59ac2e499f90"
+    ]
+  },
+  {
+    "patternId": "layout-45",
+    "signature": "常规|flow|10+|",
+    "frequency": 2,
+    "format": "常规",
+    "topLayout": "flow",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 17,
+    "avgImageCount": 2,
+    "typicalRoleSequence": "content → hero → content → content → content → content → content → content → content → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "timeline",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "rotation",
+      "wide-tracking",
+      "absolute-element",
+      "divider-line",
+      "gradient",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "活动邀请",
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "383d0d86-4b36-46f0-b61c-791d78eea03c",
+    "representativeName": "余庆支行活动简报",
+    "templateIds": [
+      "383d0d86-4b36-46f0-b61c-791d78eea03c",
+      "2dda6769-382c-479d-8b6d-f2e523cdf986"
+    ]
+  },
+  {
+    "patternId": "layout-46",
+    "signature": "长图|flex-col|7-10|grid+img-rich",
+    "frequency": 2,
+    "format": "长图",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "7-10",
+    "avgSectionCount": 8,
+    "avgImageCount": 6,
+    "typicalRoleSequence": "content → hero → content → content → content → card-grid → content → footer → content",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      }
+    ],
+    "commonDecorations": [
+      "wide-tracking",
+      "divider-line",
+      "rotation",
+      "absolute-element",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "美食餐饮",
+      "科技AI"
+    ],
+    "compatibleEmotions": [
+      "温暖治愈",
+      "极简现代"
+    ],
+    "representativeId": "aae97afe-a2d7-412a-9f5a-e32ca307b817",
+    "representativeName": "寒假进度条生活长图",
+    "templateIds": [
+      "aae97afe-a2d7-412a-9f5a-e32ca307b817",
+      "c5839440-2afb-4f78-bd8b-cb80c1cfa82e"
+    ]
+  },
+  {
+    "patternId": "layout-50",
+    "signature": "常规|flex-col|7-10|data+grid+img-rich",
+    "frequency": 2,
+    "format": "常规",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "7-10",
+    "avgSectionCount": 10,
+    "avgImageCount": 4,
+    "typicalRoleSequence": "hero → content → hero → content → products → content → features → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "features",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "products",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "wide-tracking",
+      "uppercase-label",
+      "absolute-element",
+      "gradient",
+      "circle-badge",
+      "rotation"
+    ],
+    "compatibleCategories": [
+      "电商产品",
+      "设计创意"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "b967cb71-367f-40bd-a792-1936ccf6289f",
+    "representativeName": "复古毛绒外套电商长图",
+    "templateIds": [
+      "b967cb71-367f-40bd-a792-1936ccf6289f",
+      "38f96fb7-91a4-4191-927a-2256b1eda2e9"
+    ]
+  },
+  {
+    "patternId": "layout-51",
+    "signature": "长图|flow|10+|data+grid",
+    "frequency": 2,
+    "format": "长图",
+    "topLayout": "flow",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 17,
+    "avgImageCount": 2,
+    "typicalRoleSequence": "hero → content → content → hero → hero → content → features → content → content → content → content → content → content → content → grid-content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "features",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "timeline",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "wide-tracking",
+      "uppercase-label",
+      "absolute-element",
+      "gradient",
+      "rotation"
+    ],
+    "compatibleCategories": [
+      "电商产品",
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "26d8b96c-a80c-4d25-8d50-3bb994477f57",
+    "representativeName": "碳酸钙粉产品应用长图",
+    "templateIds": [
+      "26d8b96c-a80c-4d25-8d50-3bb994477f57",
+      "d559867c-429d-47cc-bc36-8632ee443494"
+    ]
+  },
+  {
+    "patternId": "layout-52",
+    "signature": "常规|flow|10+|data+grid",
+    "frequency": 2,
+    "format": "常规",
+    "topLayout": "flow",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 13,
+    "avgImageCount": 0,
+    "typicalRoleSequence": "hero → content → content → content → grid-content → content → content → content → content → grid-content → data-list → people → data-list → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "people",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "wide-tracking",
+      "absolute-element",
+      "gradient",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "报告报表",
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "7d613b96-fd6c-47c3-91dc-358dc54fb537",
+    "representativeName": "法院工作报告长图",
+    "templateIds": [
+      "7d613b96-fd6c-47c3-91dc-358dc54fb537",
+      "4174d85a-8c5a-4171-a89a-8f611ed5d2b3"
+    ]
+  },
+  {
+    "patternId": "layout-53",
+    "signature": "常规|flex-col|10+|",
+    "frequency": 2,
+    "format": "常规",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 12,
+    "avgImageCount": 2,
+    "typicalRoleSequence": "hero → content → content → content → content → content → content → content → content → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      }
+    ],
+    "commonDecorations": [
+      "wide-tracking",
+      "uppercase-label",
+      "rotation",
+      "absolute-element",
+      "circle-badge"
+    ],
+    "compatibleCategories": [
+      "综合海报",
+      "活动邀请"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "极简现代"
+    ],
+    "representativeId": "5d92c3d4-9032-467a-9182-9cf521f86946",
+    "representativeName": "Gen Z Café Pop-Punk Long Poster",
+    "templateIds": [
+      "5d92c3d4-9032-467a-9182-9cf521f86946",
+      "e3819766-7d91-4cbb-b846-058e5dd4381f"
+    ]
+  },
+  {
+    "patternId": "layout-56",
+    "signature": "常规|flex-col|4-6|img-rich",
+    "frequency": 2,
+    "format": "常规",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "4-6",
+    "avgSectionCount": 5,
+    "avgImageCount": 7,
+    "typicalRoleSequence": "hero → content → content → content",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      }
+    ],
+    "commonDecorations": [
+      "gradient",
+      "rotation",
+      "absolute-element"
+    ],
+    "compatibleCategories": [
+      "美食餐饮",
+      "电商产品"
+    ],
+    "compatibleEmotions": [
+      "温暖治愈",
+      "高端奢华"
+    ],
+    "representativeId": "48bb31dd-1e3b-4446-93f3-fbd7f1715fe8",
+    "representativeName": "杭州冬日胖果美食长图",
+    "templateIds": [
+      "48bb31dd-1e3b-4446-93f3-fbd7f1715fe8",
+      "a812e292-954b-4a8c-b00d-16f8f61938e9"
+    ]
+  },
+  {
+    "patternId": "layout-57",
+    "signature": "常规|flex-col|10+|data",
+    "frequency": 2,
+    "format": "常规",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 21,
+    "avgImageCount": 2,
+    "typicalRoleSequence": "content → content → content → content → content → hero → data-list → content → content → content → content → content → content → content",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "people",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "rotation",
+      "wide-tracking",
+      "absolute-element",
+      "gradient",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "健康医疗",
+      "教育培训"
+    ],
+    "compatibleEmotions": [
+      "温暖治愈",
+      "高端奢华"
+    ],
+    "representativeId": "bc474367-5792-439e-bf04-bf5cd68a9ff1",
+    "representativeName": "夏季养生八式长图",
+    "templateIds": [
+      "bc474367-5792-439e-bf04-bf5cd68a9ff1",
+      "98f6f013-fe5c-440f-975a-c16651d64f87"
+    ]
+  },
+  {
+    "patternId": "layout-58",
+    "signature": "常规|flow|4-6|data+grid+img-rich",
+    "frequency": 2,
+    "format": "常规",
+    "topLayout": "flow",
+    "sectionCountBucket": "4-6",
+    "avgSectionCount": 6,
+    "avgImageCount": 6,
+    "typicalRoleSequence": "hero → hero → card-grid → content → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "products",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "circle-badge",
+      "rotation",
+      "wide-tracking",
+      "uppercase-label",
+      "gradient"
+    ],
+    "compatibleCategories": [
+      "综合海报",
+      "电商产品"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "高端奢华"
+    ],
+    "representativeId": "0377cdee-5326-4de0-86d5-35ce16e52fca",
+    "representativeName": "Minimalist Christmas Portrait Long Poster",
+    "templateIds": [
+      "0377cdee-5326-4de0-86d5-35ce16e52fca",
+      "089810ab-35e7-431f-ad50-f8a29dd1f48c"
+    ]
+  },
+  {
+    "patternId": "layout-59",
+    "signature": "方形|absolute|10+|data+grid+img-rich",
+    "frequency": 2,
+    "format": "方形",
+    "topLayout": "absolute",
+    "sectionCountBucket": "10+",
+    "avgSectionCount": 16,
+    "avgImageCount": 8,
+    "typicalRoleSequence": "content → hero → content → data-list → content → grid-content → content → content → content → content → content → content → content → content → data-list → content → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "circle-badge",
+      "gradient",
+      "wide-tracking",
+      "uppercase-label"
+    ],
+    "compatibleCategories": [
+      "综合海报",
+      "电商产品"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "23f8e51e-7754-4b14-9448-c0e1f0c75031",
+    "representativeName": "iPhone 17系列深度解析",
+    "templateIds": [
+      "23f8e51e-7754-4b14-9448-c0e1f0c75031",
+      "153b966a-dbae-44ef-8f1e-bbdede6bc85c"
+    ]
+  },
+  {
+    "patternId": "layout-60",
+    "signature": "常规|flex-col|7-10|img-rich",
+    "frequency": 2,
+    "format": "常规",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "7-10",
+    "avgSectionCount": 10,
+    "avgImageCount": 6,
+    "typicalRoleSequence": "hero → content → content → content → content → content → content → content → content → hero",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "gradient",
+      "absolute-element",
+      "circle-badge",
+      "rotation",
+      "wide-tracking"
+    ],
+    "compatibleCategories": [
+      "活动邀请",
+      "健康医疗"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "781d7d47-cf80-4ba7-b177-f6a62ba42d7f",
+    "representativeName": "2026三亚国际石博会长图",
+    "templateIds": [
+      "781d7d47-cf80-4ba7-b177-f6a62ba42d7f",
+      "bec749eb-cc7b-40fb-8936-9750620be57c"
+    ]
+  },
+  {
+    "patternId": "layout-62",
+    "signature": "常规|flow|1-3|data",
+    "frequency": 2,
+    "format": "常规",
+    "topLayout": "flow",
+    "sectionCountBucket": "1-3",
+    "avgSectionCount": 2,
+    "avgImageCount": 1,
+    "typicalRoleSequence": "content → content → footer",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "gradient",
+      "uppercase-label",
+      "wide-tracking"
+    ],
+    "compatibleCategories": [
+      "综合海报",
+      "科技AI"
+    ],
+    "compatibleEmotions": [
+      "专业权威",
+      "极简现代"
+    ],
+    "representativeId": "a2af07b8-91cf-4f8d-b9f1-70c131227a01",
+    "representativeName": "敦煌莫高窟2026年历",
+    "templateIds": [
+      "a2af07b8-91cf-4f8d-b9f1-70c131227a01",
+      "b06cfc27-3c38-4bd1-b4b9-c1c3ba7421ad"
+    ]
+  },
+  {
+    "patternId": "layout-63",
+    "signature": "常规|flow|4-6|",
+    "frequency": 2,
+    "format": "常规",
+    "topLayout": "flow",
+    "sectionCountBucket": "4-6",
+    "avgSectionCount": 6,
+    "avgImageCount": 1,
+    "typicalRoleSequence": "content → content → content → content → content → content",
+    "commonSectionRoles": [
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      }
+    ],
+    "commonDecorations": [],
+    "compatibleCategories": [
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "161c6376-7be2-4918-86f3-bdc11f741a6c",
+    "representativeName": "Mourning Poster HK Fire 2",
+    "templateIds": [
+      "161c6376-7be2-4918-86f3-bdc11f741a6c",
+      "f634f2f8-d231-4fbc-b54b-64021bc9b6db"
+    ]
+  },
+  {
+    "patternId": "layout-64",
+    "signature": "常规|flex-col|4-6|data+grid+img-rich",
+    "frequency": 2,
+    "format": "常规",
+    "topLayout": "flex-col",
+    "sectionCountBucket": "4-6",
+    "avgSectionCount": 5,
+    "avgImageCount": 4,
+    "typicalRoleSequence": "hero → card-grid → data-list → cta",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "card-grid",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "data-list",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "cta",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "50%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "50%"
+      }
+    ],
+    "commonDecorations": [
+      "absolute-element",
+      "wide-tracking"
+    ],
+    "compatibleCategories": [
+      "旅游行程",
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "温暖治愈",
+      "专业权威"
+    ],
+    "representativeId": "5cac11b8-05cb-4497-9826-48c046caebec",
+    "representativeName": "内蒙古沙漠星空旅行海报",
+    "templateIds": [
+      "5cac11b8-05cb-4497-9826-48c046caebec",
+      "be24738f-0970-434f-a98e-93e60ecc189b"
+    ]
+  },
+  {
+    "patternId": "layout-65",
+    "signature": "常规|absolute|1-3|data",
+    "frequency": 2,
+    "format": "常规",
+    "topLayout": "absolute",
+    "sectionCountBucket": "1-3",
+    "avgSectionCount": 1,
+    "avgImageCount": 1,
+    "typicalRoleSequence": "",
+    "commonSectionRoles": [],
+    "commonDecorations": [
+      "circle-badge",
+      "gradient",
+      "absolute-element"
+    ],
+    "compatibleCategories": [
+      "健康医疗",
+      "设计创意"
+    ],
+    "compatibleEmotions": [
+      "极简现代",
+      "专业权威"
+    ],
+    "representativeId": "82733cea-7f50-4e85-a6d8-9a987aeae05b",
+    "representativeName": "流程管理科普长图",
+    "templateIds": [
+      "82733cea-7f50-4e85-a6d8-9a987aeae05b",
+      "12fea378-d3fa-4f2c-9b56-4c11a451b1d3"
+    ]
+  },
+  {
+    "patternId": "layout-66",
+    "signature": "常规|flow|4-6|grid+img-rich",
+    "frequency": 2,
+    "format": "常规",
+    "topLayout": "flow",
+    "sectionCountBucket": "4-6",
+    "avgSectionCount": 6,
+    "avgImageCount": 3,
+    "typicalRoleSequence": "hero → products → grid-content → content → timeline → footer",
+    "commonSectionRoles": [
+      {
+        "role": "hero",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "products",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "grid-content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "content",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "timeline",
+        "pctOfTemplates": "100%"
+      },
+      {
+        "role": "footer",
+        "pctOfTemplates": "100%"
+      }
+    ],
+    "commonDecorations": [
+      "circle-badge",
+      "gradient",
+      "absolute-element"
+    ],
+    "compatibleCategories": [
+      "综合海报"
+    ],
+    "compatibleEmotions": [
+      "专业权威"
+    ],
+    "representativeId": "b0f69f25-0d49-43c6-8a47-41c93eb448cb",
+    "representativeName": "Long March 90th Anniversary Commemorative Liquor 1",
+    "templateIds": [
+      "b0f69f25-0d49-43c6-8a47-41c93eb448cb",
+      "899d632f-81f1-427a-a9e9-baccdc3477be"
+    ]
+  }
+]

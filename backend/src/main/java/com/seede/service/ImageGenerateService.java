@@ -153,8 +153,12 @@ public class ImageGenerateService {
             }
             return enriched;
         } catch (Exception e) {
-            log.warn("解析分析阶段图片 JSON 失败，跳过语义关联: {}", e.getMessage());
-            return placeholders;
+            // 快速失败：分析阶段传入的 images JSON 解析失败说明上游输出损坏，
+            // 静默退回无语义占位图会让图片生成 LLM 拿不到 purpose/description，
+            // 产出与实际语义无关的通用图片。
+            log.error("解析分析阶段图片 JSON 失败，中止图片生成阶段: {}", e.getMessage(), e);
+            throw new IllegalStateException(
+                    "解析分析阶段图片 JSON 失败，上游输出损坏: " + e.getMessage(), e);
         }
     }
 
@@ -250,21 +254,23 @@ public class ImageGenerateService {
                 .filter(msg -> "complete".equals(msg.getType()))
                 .map(SseMessage::getContent)
                 .next()
-                .defaultIfEmpty("[]")
+                // 空响应视为异常：LLM 流没返回任何 complete 消息说明调用失败。
+                .switchIfEmpty(Mono.error(new IllegalStateException(
+                        "图片提示词生成 LLM 无有效响应")))
                 .map(response -> parsePromptResponse(response, placeholders))
                 .doOnNext(list -> log.info("图片提示词生成完毕，共 {} 条", list.size()))
-                .onErrorResume(e -> {
-                    log.warn("图片提示词生成失败，使用 seed 关键词作为备选", e);
-                    return Mono.just(placeholders.stream()
-                            .map(p -> p.withPrompt(
-                                    p.inlinePrompt != null && !p.inlinePrompt.isBlank()
-                                            ? p.inlinePrompt
-                                            : p.seed + ", professional poster design, high quality"))
-                            .toList());
-                });
+                .doOnError(e -> log.error("图片提示词生成失败，中止图片生成阶段", e));
+        // 取消了 onErrorResume 兜底——原先的 seed 关键词兜底会让图片生成拿到
+        // "seed + professional poster design" 这样的通用描述，失去语义上下文。
+        // 快速失败：让错误传播到 generateImagesForCode 的外层 Flux，整体中止图片阶段。
     }
 
-    /** 解析 LLM 返回的图片提示词 JSON，与占位图列表关联 */
+    /**
+     * 解析 LLM 返回的图片提示词 JSON，与占位图列表一一关联。
+     * 快速失败策略：JSON 解析失败、长度不匹配、prompt 为空都直接抛错，
+     * 原先的 "inlinePrompt / seed+generic" 兜底会让图片生成退化为与语义无关的通用描述，
+     * 属于静默降级，已全部移除。
+     */
     private List<ImagePlaceholder> parsePromptResponse(String response, List<ImagePlaceholder> placeholders) {
         try {
             String json = response;
@@ -275,35 +281,37 @@ public class ImageGenerateService {
             }
 
             JsonNode array = objectMapper.readTree(json);
-            List<ImagePlaceholder> result = new ArrayList<>();
+            if (!array.isArray()) {
+                throw new IllegalStateException(
+                        "图片提示词 LLM 响应不是 JSON 数组，实际类型: " + array.getNodeType());
+            }
+            if (array.size() != placeholders.size()) {
+                throw new IllegalStateException(String.format(
+                        "图片提示词 LLM 响应数量不匹配：期望 %d 条，实际 %d 条",
+                        placeholders.size(), array.size()));
+            }
 
+            List<ImagePlaceholder> result = new ArrayList<>();
             for (int i = 0; i < placeholders.size(); i++) {
                 ImagePlaceholder p = placeholders.get(i);
-                if (array.isArray() && i < array.size()) {
-                    JsonNode item = array.get(i);
-                    String prompt = item.has("prompt") ? item.get("prompt").asText() : "";
-                    if (prompt == null || prompt.isBlank()) {
-                        prompt = p.inlinePrompt != null && !p.inlinePrompt.isBlank()
-                                ? p.inlinePrompt
-                                : p.seed + ", professional poster design, high quality";
-                    }
-                    result.add(p.withPrompt(prompt));
-                } else {
-                    String fallbackPrompt = p.inlinePrompt != null && !p.inlinePrompt.isBlank()
-                            ? p.inlinePrompt
-                            : p.seed + ", professional design, high quality";
-                    result.add(p.withPrompt(fallbackPrompt));
+                JsonNode item = array.get(i);
+                String prompt = item.has("prompt") ? item.get("prompt").asText("") : "";
+                if (prompt.isBlank()) {
+                    throw new IllegalStateException(String.format(
+                            "图片提示词 LLM 响应第 %d 条 prompt 为空（seed=%s）",
+                            i, p.seed));
                 }
+                result.add(p.withPrompt(prompt));
             }
             return result;
+        } catch (IllegalStateException e) {
+            // 上面主动抛出的契约校验错，直接透传
+            throw e;
         } catch (Exception e) {
-            log.warn("解析图片提示词 JSON 失败: {}", response, e);
-            return placeholders.stream()
-                    .map(p -> p.withPrompt(
-                            p.inlinePrompt != null && !p.inlinePrompt.isBlank()
-                                    ? p.inlinePrompt
-                                    : p.seed + ", professional poster design, high quality"))
-                    .toList();
+            // JSON 解析异常——原始响应打全到日志便于排查 LLM 输出问题
+            log.error("解析图片提示词 JSON 失败，原始响应: {}", response, e);
+            throw new IllegalStateException(
+                    "解析图片提示词 JSON 失败: " + e.getMessage(), e);
         }
     }
 

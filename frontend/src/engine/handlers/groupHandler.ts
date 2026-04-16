@@ -19,7 +19,8 @@ import { Rect } from 'fabric'
 import { parseLayout } from '../parsers/layoutParser'
 import type { ElementLayout } from '../parsers/layoutParser'
 import { parseStyle } from '../parsers/styleParser'
-import { createTextObject } from './textHandler'
+import { isInlineTextContainer, collectInlineSegments } from '../parsers/inlineTextParser'
+import { createTextObject, createStyledTextObject } from './textHandler'
 import { createShapeObject } from './shapeHandler'
 import { createImageObject } from './imageHandler'
 
@@ -205,6 +206,37 @@ export async function processElement(
     if (text) {
       const textObj = createTextObject(text, layout, style)
       objects.push(textObj)
+    }
+    return objects
+  }
+
+  // ---- 内联文本容器（TEXT_NODE 与 inline <span> 混排）----
+  // 处理如下两类 LLM 常见结构：
+  //   <p>全场<span>5折</span>起</p>                     → 3 段合并
+  //   <div class="flex items-baseline"><span>¥</span><span>50</span></div>
+  // 旧路径会丢失父节点直接 TEXT_NODE、或让不同字号 span 独立定位造成基线错位。
+  // 这里把所有子段合并成一个带 per-character styles 的 Textbox，保留各段样式并自动基线对齐。
+  if (isInlineTextContainer(element)) {
+    // 容器本身若有背景/边框/渐变/阴影，仍要先生成底层 shape，再叠加合并文本
+    const inlineBg = style.backgroundColor
+    if (inlineBg && hasVisualBackground(inlineBg, style)) {
+      if (!isRedundantContainer(layout, parentLayout, style)) {
+        const shape = createShapeObject(layout, style)
+        objects.push(shape)
+      }
+    }
+    const segments = collectInlineSegments(element)
+    if (segments.length > 0) {
+      const textObj = createStyledTextObject(segments, layout, style)
+      objects.push(textObj)
+      console.log('[GroupHandler] 合并内联文本容器:', {
+        tag: element.tagName,
+        className: (element.className || '').toString().substring(0, 60),
+        segmentCount: segments.length,
+        fontSizes: segments.map(s => s.style.fontSize),
+        text: segments.map(s => s.text).join('').substring(0, 40),
+        layout,
+      })
     }
     return objects
   }

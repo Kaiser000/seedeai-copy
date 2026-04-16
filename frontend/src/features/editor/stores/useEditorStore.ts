@@ -17,6 +17,7 @@
  */
 import { create } from 'zustand'
 import type { PosterSize } from '@/features/input/components/SizeSelector'
+import type { AuditReport } from '@/engine/audit/auditTypes'
 
 type Page = 'input' | 'editor'
 
@@ -199,6 +200,16 @@ interface EditorState {
   // Error state
   error: string | null
   setError: (error: string | null) => void
+
+  // ── Geometric Audit 状态 ────────────────────────────────────────
+  // 每次 CanvasPanel 渲染完成后，都会写入一次审计结果。UI 通过 auditReport
+  // 驱动 AuditBanner 展示问题列表；isAuditRepairing 标记修复请求是否在飞。
+  /** 最近一次几何审计报告，null 表示尚未跑过或已清空 */
+  auditReport: AuditReport | null
+  setAuditReport: (report: AuditReport | null) => void
+  /** 是否有修复请求正在进行（防重入 + 禁用修复按钮） */
+  isAuditRepairing: boolean
+  setIsAuditRepairing: (v: boolean) => void
 }
 
 /* ── 工作流初始阶段定义 ──────────────────────────────────────────── */
@@ -222,7 +233,7 @@ export const useEditorStore = create<EditorState>()((set) => ({
   setCurrentPage: (page) => set({ currentPage: page }),
 
   prompt: '',
-  posterSize: { width: 1080, height: 1920, label: '1080×1920 竖版海报' },
+  posterSize: { width: 1080, height: 0, label: '1080×自适应 长图' },
   selectedModel: '',
   setPrompt: (prompt) => set({ prompt }),
   setPosterSize: (size) => set({ posterSize: size }),
@@ -243,6 +254,8 @@ export const useEditorStore = create<EditorState>()((set) => ({
         { role: 'user', content: prompt, timestamp: Date.now(), msgType: 'message' as ChatMessageType },
       ],
       workflowStages: createInitialStages(),
+      auditReport: null,
+      isAuditRepairing: false,
     })),
 
   isGenerating: false,
@@ -307,4 +320,10 @@ export const useEditorStore = create<EditorState>()((set) => ({
   // ── Error state ────────────────────────────────────────────────
   error: null,
   setError: (error) => set({ error }),
+
+  // ── Audit state ────────────────────────────────────────────────
+  auditReport: null,
+  setAuditReport: (report) => set({ auditReport: report }),
+  isAuditRepairing: false,
+  setIsAuditRepairing: (v) => set({ isAuditRepairing: v }),
 }))

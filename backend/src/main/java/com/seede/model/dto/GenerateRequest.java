@@ -25,8 +25,8 @@ public class GenerateRequest {
     @Positive(message = "width 必须为正整数")
     private int width;
 
-    /** 画布高度（像素），必须为正整数 */
-    @Positive(message = "height 必须为正整数")
+    /** 画布高度（像素）。正整数表示固定高度；0 表示自适应长图模式（高度由 LLM 自行决定） */
+    @jakarta.validation.constraints.Min(value = 0, message = "height 必须 ≥ 0（0 = 自适应长图）")
     private int height;
 
     /** 指定使用的 LLM 模型名称（可选）。为空时使用后端默认配置的模型 */
